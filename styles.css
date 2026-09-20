@@ -50,6 +50,17 @@ main{padding-bottom:78px}
 @keyframes breathe{0%{transform:scale(.72)}28%{transform:scale(1)}57%{transform:scale(1)}100%{transform:scale(.72)}}
 .ledger{margin:4px 0 22px;padding:16px 20px;background:var(--sage)}
 .ledger-line{margin:8px 0 0;font-size:.95rem}
+.welcome-paths{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.path-button{display:flex;flex-direction:column;gap:3px;padding:15px 18px;border:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.path-button:hover{border-color:var(--gold)}
+.path-button small{color:var(--muted)}
+.reminder-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);font-size:.9rem}
+.reminder-row label{font-weight:700}
+.reminder-row input[type=time]{border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:6px 8px;font:inherit}
+.install-hint{position:fixed;left:12px;right:12px;bottom:12px;z-index:11;display:flex;align-items:center;gap:8px;padding:12px 14px;background:var(--ink);color:var(--paper);box-shadow:0 12px 32px rgba(0,0,0,.3)}
+.install-hint[hidden]{display:none}
+.install-hint p{margin:0;font-size:.88rem}
+.install-hint .icon-button{color:var(--paper);flex:none}
 .welcome-list{margin:18px 0 26px;padding:0;list-style:none}
 .welcome-list li{position:relative;margin:10px 0;padding-left:30px}
 .welcome-list li::before{content:"✦";position:absolute;left:2px;color:var(--gold)}

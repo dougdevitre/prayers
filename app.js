@@ -19,7 +19,7 @@ function tdata() {
 /* ---------- Persistent state ---------- */
 
 function loadState() {
-  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, checkins: [], sos: [], track: "core", tracks: {}, theme: null, welcomed: false };
+  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, checkins: [], sos: [], track: "core", tracks: {}, theme: null, welcomed: false, installHintDismissed: false };
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!raw || typeof raw !== "object") return fallback;
@@ -93,6 +93,15 @@ function firstIncompleteDay() {
   return DAYS() - 1;
 }
 
+// A ?track= link (from a track's static page or a share) switches journeys on load.
+{
+  const requested = new URLSearchParams(location.search).get("track");
+  if (requested && tracks[requested] && (state.track || "core") !== requested) {
+    state.track = requested;
+    save();
+  }
+}
+
 let day = dayFromHash() ?? firstIncompleteDay();
 
 function go(n) {
@@ -109,8 +118,58 @@ function fullScript(d) {
   return `Day ${d + 1}. ${x[0]}. Scripture, ${x[1]}. ${x[2]} Pause and breathe in slowly. Breathe out. Let your shoulders soften. Reflection. ${x[3]} Prayer. ${x[4]} Amen. Declaration. ${x[5]} Today's practice. ${x[6]} Closing blessing. May truth steady your mind, peace guard your heart, courage guide your next step, and grace carry what you cannot. Go in peace.`;
 }
 
-const player = { status: "idle", keepAlive: 0, repeat: false, sleepTimer: 0 };
+const player = { status: "idle", keepAlive: 0, repeat: false, sleepTimer: 0, mode: "tts" };
 let narrationVoice = null;
+
+// Recorded narration (preferred when a file exists for the day).
+const audioEl = new Audio();
+audioEl.preload = "none";
+
+const recordedFor = d => recordedAudio.days[`${state.track || "core"}-${d}`] || null;
+
+audioEl.addEventListener("timeupdate", () => {
+  if (player.mode === "rec" && audioEl.duration) {
+    $("audioProgress").style.width = `${Math.min(100, (audioEl.currentTime / audioEl.duration) * 100)}%`;
+  }
+});
+
+audioEl.addEventListener("ended", () => {
+  if (player.repeat && player.status === "playing") {
+    audioEl.currentTime = 0;
+    audioEl.play().catch(stopAudio);
+  } else {
+    stopAudio();
+  }
+});
+
+function setMediaSession(title) {
+  if (!("mediaSession" in navigator)) return;
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title,
+      artist: "Stand",
+      artwork: [{ src: "icon-512.png", sizes: "512x512", type: "image/png" }]
+    });
+    navigator.mediaSession.setActionHandler("play", () => $("playButton").click());
+    navigator.mediaSession.setActionHandler("pause", () => $("playButton").click());
+  } catch { /* older browsers */ }
+}
+
+function playRecorded(src) {
+  player.mode = "rec";
+  audioEl.src = src;
+  audioEl.playbackRate = Number($("voiceRate").value);
+  audioEl.currentTime = 0;
+  audioEl.play().then(() => {
+    setPlayerStatus("playing");
+    setMediaSession(document.title);
+  }).catch(() => {
+    // File missing or blocked — fall back to device narration.
+    player.mode = "tts";
+    speakDay();
+  });
+  setPlayerStatus("playing");
+}
 
 function pickVoice() {
   const english = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith("en"));
@@ -139,16 +198,17 @@ function setPlayerStatus(status) {
 }
 
 function stopAudio() {
-  if (!canSpeak) return;
   clearInterval(player.keepAlive);
   clearTimeout(player.sleepTimer);
   // Go idle before cancel(): cancel can fire onend synchronously, and repeat
   // mode must not treat that as a natural end and restart.
   setPlayerStatus("idle");
-  speechSynthesis.cancel();
+  audioEl.pause();
+  if (canSpeak) speechSynthesis.cancel();
 }
 
 function speakDay() {
+  player.mode = "tts";
   const script = fullScript(day);
   const utterance = new SpeechSynthesisUtterance(script);
   utterance.rate = Number($("voiceRate").value);
@@ -185,20 +245,22 @@ function armSleepTimer() {
 }
 
 function startAudio() {
-  speakDay();
+  const src = recordedFor(day);
+  if (src) playRecorded(src);
+  else speakDay();
   armSleepTimer();
 }
 
 $("playButton").onclick = () => {
-  if (!canSpeak) {
+  if (!canSpeak && !recordedFor(day)) {
     $("audioTime").textContent = "Audio is not supported on this device";
     return;
   }
   if (player.status === "playing") {
-    speechSynthesis.pause();
+    player.mode === "rec" ? audioEl.pause() : speechSynthesis.pause();
     setPlayerStatus("paused");
   } else if (player.status === "paused") {
-    speechSynthesis.resume();
+    player.mode === "rec" ? audioEl.play().catch(stopAudio) : speechSynthesis.resume();
     setPlayerStatus("playing");
   } else {
     startAudio();
@@ -206,7 +268,11 @@ $("playButton").onclick = () => {
 };
 
 $("voiceRate").onchange = () => {
-  if (player.status !== "idle") startAudio();
+  if (player.mode === "rec" && player.status !== "idle") {
+    audioEl.playbackRate = Number($("voiceRate").value);
+  } else if (player.status !== "idle") {
+    startAudio();
+  }
 };
 
 $("repeatButton").onclick = () => {
@@ -354,15 +420,28 @@ function sosAnchor() {
   listen.className = "text-button";
   listen.textContent = "▶ Hear this prayed";
   listen.onclick = () => {
-    if (!canSpeak) return;
     stopAudio();
+    const src = recordedAudio.sos[sosSets.indexOf(sos.set)];
+    if (src) {
+      player.mode = "rec";
+      audioEl.src = src;
+      audioEl.playbackRate = 1;
+      audioEl.currentTime = 0;
+      audioEl.play().catch(() => { player.mode = "tts"; sosSpeak(); });
+      return;
+    }
+    sosSpeak();
+  };
+
+  function sosSpeak() {
+    if (!canSpeak) return;
     const utterance = new SpeechSynthesisUtterance(
       `${sos.set.verse} ${sos.set.ref}. ${sos.set.prayer} Amen. ${sos.set.declaration}`);
     utterance.rate = 0.95;
     utterance.pitch = 0.96;
     if (narrationVoice) utterance.voice = narrationVoice;
     speechSynthesis.speak(utterance);
-  };
+  }
 
   const actions = document.createElement("div");
   actions.className = "sos-actions";
@@ -599,6 +678,7 @@ function render() {
   $("declaration").textContent = declaration;
   $("action").textContent = action;
   $("notes").value = tdata().notes[day] || "";
+  $("audioTime").textContent = recordedFor(day) ? "Recorded narration · about 3 minutes" : "About 3 minutes";
 
   const streak = currentStreak();
   $("progressLabel").textContent = `Day ${day + 1} of ${DAYS()}`;
@@ -850,7 +930,8 @@ function sanitizeBackup(raw) {
     track: tracks[raw.track] ? raw.track : "core",
     tracks: trackData,
     theme: raw.theme === "light" || raw.theme === "dark" ? raw.theme : null,
-    welcomed: true
+    welcomed: true,
+    installHintDismissed: raw.installHintDismissed === true
   };
 }
 
@@ -908,13 +989,64 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
   navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 
-$("beginButton").onclick = () => $("welcomeDialog").close();
+document.querySelectorAll(".path-button").forEach(button => {
+  button.onclick = () => {
+    const id = button.dataset.track;
+    if (tracks[id] && (state.track || "core") !== id) {
+      state.track = id;
+      state.welcomed = true;
+      save();
+      $("welcomeDialog").close();
+      go(firstIncompleteDay());
+      return;
+    }
+    $("welcomeDialog").close();
+  };
+});
 $("welcomeDialog").addEventListener("close", () => {
   if (!state.welcomed) {
     state.welcomed = true;
     save();
   }
 });
+
+/* ---------- Daily reminder (.ics) ---------- */
+
+$("reminderButton").onclick = () => {
+  const [h, m] = ($("reminderTime").value || "07:00").split(":").map(Number);
+  const start = new Date();
+  start.setHours(h, m, 0, 0);
+  if (start <= new Date()) start.setDate(start.getDate() + 1);
+  const pad = n => String(n).padStart(2, "0");
+  const stamp = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+  const ics = [
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Stand//Daily Prayer//EN",
+    "BEGIN:VEVENT",
+    `UID:stand-daily-${Date.now()}@stand.app`,
+    `DTSTAMP:${stamp(new Date())}`,
+    `DTSTART:${stamp(start)}`,
+    "DURATION:PT10M",
+    "RRULE:FREQ=DAILY",
+    "SUMMARY:Stand — daily prayer",
+    `DESCRIPTION:A few minutes to stand. Open the app: ${location.origin}`,
+    "BEGIN:VALARM", "TRIGGER:PT0S", "ACTION:DISPLAY", "DESCRIPTION:Time to stand", "END:VALARM",
+    "END:VEVENT", "END:VCALENDAR"
+  ].join("\r\n");
+  downloadFile("stand-daily-reminder.ics", ics, "text/calendar");
+};
+
+/* ---------- iOS install hint ---------- */
+
+{
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isInstalled = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  if (isIOS && !isInstalled && !state.installHintDismissed) $("installHint").hidden = false;
+  $("dismissHint").onclick = () => {
+    $("installHint").hidden = true;
+    state.installHintDismissed = true;
+    save();
+  };
+}
 
 applyTheme();
 if (dayFromHash() === null) history.replaceState(null, "", `${location.search}#${day + 1}`);

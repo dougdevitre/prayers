@@ -16,7 +16,10 @@ A mobile-first, audio-ready devotional app built with plain HTML, CSS, and JavaS
 - **Daily streak** — completing days on consecutive calendar days builds a streak shown in the progress bar.
 - **Verse cards** — the ↗ button shares the day's verse as a designed image via the device share sheet (desktop saves the card and copies the text).
 - **Repeat & sleep timer** — loop the guided prayer and let a 5–30 minute timer stop it, for night-time listening.
-- **SEO day pages** — `npm run build:seo` regenerates the static, crawlable pages under `day/` from `content.js` (set `SITE_URL=https://yourdomain` to also emit `sitemap.xml` and canonical links).
+- **SEO day pages** — `npm run build:seo` regenerates the static, crawlable pages under `day/` (core) and `track/<id>/` (tracks) from `content.js` (set `SITE_URL=https://yourdomain` to also emit `sitemap.xml` and canonical links). `?track=<id>` links deep-link into a journey.
+- **Personalized start** — first-time visitors choose where to begin: the 30-day journey or a focused fear track.
+- **Daily calendar reminder** — the library can generate a recurring calendar event (.ics) at your chosen time, with no notifications permission or server needed.
+- **iOS install tip** — Safari visitors get a one-time, dismissible Add-to-Home-Screen hint.
 - **Dark mode** follows your device setting until you choose a theme with ◐.
 - **Backup and restore** — download all data as a JSON file and restore it on any device; an erase option removes everything.
 - **Welcome screen** introduces the journey on first visit.
@@ -29,6 +32,16 @@ A mobile-first, audio-ready devotional app built with plain HTML, CSS, and JavaS
 npm run dev
 ```
 
+## Tests
+
+A 72-scenario end-to-end smoke suite drives the app in headless Chromium against a server that enforces the production Content Security Policy. It runs in CI (GitHub Actions) on every push and pull request, alongside syntax checks and a guard that the generated SEO pages match `content.js`.
+
+```bash
+npm install
+npx playwright install chromium
+npm test
+```
+
 ## Publish with GitHub and Vercel
 
 1. Create an empty GitHub repository.
@@ -38,7 +51,7 @@ npm run dev
 
 ## Audio
 
-The play button uses the browser's built-in Speech Synthesis API, so the available narrator voice depends on the listener's device. For production-recorded audio, add MP3 files under `audio/day-01.mp3` through `audio/day-30.mp3`, then replace the speech-synthesis player in `app.js` with an HTML Audio element.
+The player prefers recorded narration and falls back to the browser's built-in Speech Synthesis API (so the fallback voice depends on the listener's device). To add recordings: drop MP3s under `audio/` (e.g. `audio/day-01.mp3`, `audio/sos-01.mp3`) and register them in the `recordedAudio` manifest at the bottom of `content.js` — day keys are `"<trackId>-<dayIndex>"` (e.g. `"core-0"`), SOS entries follow the order of the SOS sets. Days without an entry keep using device narration. Recorded playback supports pause/resume, speed, repeat, the sleep timer, and lock-screen controls (Media Session).
 
 ## Content note
 

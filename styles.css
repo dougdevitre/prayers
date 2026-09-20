@@ -20,9 +20,34 @@
 .text-button{border:0;background:none;padding:0;color:var(--ink);font:inherit;font-size:.85rem;font-weight:700;text-decoration:underline;cursor:pointer}
 .text-button.danger{color:#b3402e}
 :root.dark .text-button.danger{color:#e2705c}
+.checkin-section{margin:34px 0;padding:24px 28px;border:1px solid var(--line)}
+.checkin-question{margin:6px 0 14px;font-family:Georgia,serif;font-size:1.15rem}
+.checkin-scale{display:flex;gap:8px;flex-wrap:wrap}
+.checkin-scale button{width:48px;height:48px;border:1px solid var(--line);border-radius:50%;background:transparent;color:var(--ink);font:inherit;font-weight:700;cursor:pointer}
+.checkin-scale button:hover{border-color:var(--gold)}
+.checkin-scale button.selected{background:var(--gold);border-color:var(--gold);color:#132a3a}
+.checkin-note{margin:12px 0 0;color:var(--muted);font-size:.82rem}
+.sos-button{position:fixed;right:18px;bottom:18px;z-index:10;border:0;border-radius:99px;padding:14px 22px;background:var(--gold);color:#132a3a;font:inherit;font-size:.9rem;font-weight:800;letter-spacing:.04em;cursor:pointer;box-shadow:0 12px 32px rgba(18,43,59,.28)}
+.sos-button:hover{transform:translateY(-1px)}
+main{padding-bottom:78px}
+.sos-dialog{max-width:560px;padding:36px clamp(24px,5vw,44px)}
+.sos-close{position:absolute;top:14px;right:14px}
+.sos-stage{min-height:280px}
+.sos-stage h2{margin:8px 0 20px}
+.sos-stage .checkin-scale{margin:8px 0 4px}
+.sos-prayer{margin:22px 0 14px;white-space:pre-line}
+.sos-decl{font:1.25rem/1.5 Georgia,serif;margin:0 0 18px}
+.sos-actions{display:flex;flex-direction:column;gap:14px;margin-top:22px}
+.sos-footer{margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
+.sos-resources{margin-top:14px;padding:16px 20px;background:var(--sage);font-size:.92rem}
+.sos-resources ul{margin:10px 0;padding-left:20px}
+.breath-circle{width:150px;height:150px;margin:28px auto;border:2px solid var(--gold);border-radius:50%;display:grid;place-items:center;text-align:center;font-weight:700;animation:breathe 14s ease-in-out infinite}
+@keyframes breathe{0%{transform:scale(.72)}28%{transform:scale(1)}57%{transform:scale(1)}100%{transform:scale(.72)}}
+.ledger{margin:4px 0 22px;padding:16px 20px;background:var(--sage)}
+.ledger-line{margin:8px 0 0;font-size:.95rem}
 .welcome-list{margin:18px 0 26px;padding:0;list-style:none}
 .welcome-list li{position:relative;margin:10px 0;padding-left:30px}
 .welcome-list li::before{content:"✦";position:absolute;left:2px;color:var(--gold)}
 @media print{.topbar,.progress-wrap,.audio-card,.notes-section,.complete-button,.day-nav,.title-actions,dialog{display:none!important}body{background:#fff}.devotional{margin:0;border:none;box-shadow:none;padding:0}}
 :is(a,button,select,textarea):focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}.breath-circle{animation:none}}

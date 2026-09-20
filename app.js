@@ -47,7 +47,7 @@ const canSpeak = "speechSynthesis" in window;
 /* ---------- Persistent state ---------- */
 
 function loadState() {
-  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, theme: null, welcomed: false };
+  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, checkins: [], sos: [], theme: null, welcomed: false };
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!raw || typeof raw !== "object") return fallback;
@@ -213,6 +213,283 @@ $("voiceRate").onchange = () => {
   if (player.status !== "idle") startAudio();
 };
 
+/* ---------- SOS mode ---------- */
+
+// Verses reuse the day excerpts already in `themes`, keeping one translation surface.
+const sosSets = [
+  { ref: "Psalm 27:1", verse: "The Lord is my light and my salvation—whom shall I fear?",
+    prayer: "Lord, bring me back to this moment. Slow my heart, steady my breath, and stand with me here. I hand You what I cannot control.",
+    declaration: "Fear may speak, but it does not get the final word." },
+  { ref: "Joshua 1:9", verse: "Be strong and courageous. Do not be afraid.",
+    prayer: "God, give me courage for the next few minutes—nothing more is asked of me right now. Be near, and steady my steps.",
+    declaration: "I can be afraid and still be faithful." },
+  { ref: "Matthew 6:34", verse: "Do not worry about tomorrow, for tomorrow will worry about itself.",
+    prayer: "Father, I release the futures my fear keeps writing. Keep me in today, in this breath, in Your hands.",
+    declaration: "I am responsible for faithfulness, not control of every outcome." },
+  { ref: "Psalm 42:11", verse: "Put your hope in God, for I will yet praise him.",
+    prayer: "God, when my feelings shout in absolutes, remind me this moment is not the whole story. Give me hope enough for one step.",
+    declaration: "I do not need all the hope—only enough for the next step." }
+];
+
+const sos = { set: sosSets[0], before: null, recorded: false, timers: [] };
+
+function sosClearTimers() {
+  sos.timers.forEach(clearTimeout);
+  sos.timers = [];
+}
+
+function sosRecord(after) {
+  if (sos.recorded) return;
+  sos.recorded = true;
+  state.sos.push({ t: new Date().toISOString(), before: sos.before, after });
+  save();
+}
+
+function scaleButtons(onPick) {
+  const row = document.createElement("div");
+  row.className = "checkin-scale";
+  for (let v = 1; v <= 5; v++) {
+    const button = document.createElement("button");
+    button.textContent = String(v);
+    button.onclick = () => onPick(v);
+    row.append(button);
+  }
+  return row;
+}
+
+function sosStageEl(kicker, heading) {
+  sosClearTimers();
+  const stage = $("sosStage");
+  stage.textContent = "";
+  const k = document.createElement("p");
+  k.className = "section-kicker";
+  k.textContent = kicker;
+  stage.append(k);
+  if (heading) {
+    const h = document.createElement("h2");
+    h.textContent = heading;
+    stage.append(h);
+  }
+  return stage;
+}
+
+function sosCheckin(kind) {
+  const stage = sosStageEl("STEADY ME", kind === "before" ? "Where is your fear right now?" : "And now — where is it?");
+  stage.append(scaleButtons(v => {
+    if (kind === "before") {
+      sos.before = v;
+      sosBreathing();
+    } else {
+      sosRecord(v);
+      sosDone(v);
+    }
+  }));
+  const note = document.createElement("p");
+  note.className = "checkin-note";
+  note.textContent = "1 = calm · 5 = overwhelming";
+  const skip = document.createElement("button");
+  skip.className = "text-button";
+  skip.textContent = "Skip";
+  skip.onclick = () => { if (kind === "before") sosBreathing(); else { sosRecord(null); sosDone(null); } };
+  stage.append(note, skip);
+}
+
+function sosBreathing() {
+  const stage = sosStageEl("BREATHE");
+  const circle = document.createElement("div");
+  circle.className = "breath-circle";
+  const word = document.createElement("span");
+  word.setAttribute("aria-live", "polite");
+  circle.append(word);
+  const note = document.createElement("p");
+  note.className = "checkin-note";
+  const next = document.createElement("button");
+  next.className = "complete-button";
+  next.textContent = "Continue";
+  next.onclick = sosAnchor;
+  stage.append(circle, note, next);
+
+  const phases = [["Breathe in…", 4000], ["Hold…", 4000], ["Breathe out…", 6000]];
+  const cycles = 3;
+  let elapsed = 0;
+  for (let c = 0; c < cycles; c++) {
+    for (const [label, ms] of phases) {
+      const cycle = c;
+      sos.timers.push(setTimeout(() => {
+        word.textContent = label;
+        note.textContent = `${cycles - cycle} slow breath${cycles - cycle > 1 ? "s" : ""} to go`;
+      }, elapsed));
+      elapsed += ms;
+    }
+  }
+  sos.timers.push(setTimeout(sosAnchor, elapsed + 400));
+  word.textContent = "Breathe in…";
+  note.textContent = "3 slow breaths to go";
+}
+
+function sosAnchor() {
+  const stage = sosStageEl("ANCHOR");
+  const quote = document.createElement("blockquote");
+  quote.className = "scripture";
+  const verse = document.createElement("p");
+  verse.textContent = `“${sos.set.verse}”`;
+  const cite = document.createElement("cite");
+  cite.textContent = sos.set.ref;
+  quote.append(verse, cite);
+
+  const prayer = document.createElement("p");
+  prayer.className = "sos-prayer";
+  prayer.textContent = sos.set.prayer + " Amen.";
+  const decl = document.createElement("p");
+  decl.className = "sos-decl";
+  decl.textContent = sos.set.declaration;
+
+  const listen = document.createElement("button");
+  listen.className = "text-button";
+  listen.textContent = "▶ Hear this prayed";
+  listen.onclick = () => {
+    if (!canSpeak) return;
+    stopAudio();
+    const utterance = new SpeechSynthesisUtterance(
+      `${sos.set.verse} ${sos.set.ref}. ${sos.set.prayer} Amen. ${sos.set.declaration}`);
+    utterance.rate = 0.95;
+    utterance.pitch = 0.96;
+    if (narrationVoice) utterance.voice = narrationVoice;
+    speechSynthesis.speak(utterance);
+  };
+
+  const actions = document.createElement("div");
+  actions.className = "sos-actions";
+  const steadier = document.createElement("button");
+  steadier.className = "complete-button";
+  steadier.textContent = "I'm steadier";
+  steadier.onclick = () => sosCheckin("after");
+  const more = document.createElement("button");
+  more.className = "text-button";
+  more.textContent = "I need another round";
+  more.onclick = () => {
+    sos.set = sosSets[(sosSets.indexOf(sos.set) + 1) % sosSets.length];
+    sosBreathing();
+  };
+  actions.append(steadier, more);
+  stage.append(quote, prayer, decl, listen, actions);
+}
+
+function sosDone(after) {
+  const stage = sosStageEl("WELL STOOD",
+    sos.before != null && after != null && after < sos.before
+      ? `Fear ${sos.before} → ${after}. You stood.`
+      : "You stood through it.");
+  const line = document.createElement("p");
+  line.textContent = "Whatever the next hour holds, this moment was faithfulness. Go gently.";
+  const close = document.createElement("button");
+  close.className = "complete-button";
+  close.textContent = "Close";
+  close.onclick = closeSos;
+  const again = document.createElement("button");
+  again.className = "text-button";
+  again.textContent = "One more round";
+  again.onclick = () => {
+    sos.set = sosSets[(sosSets.indexOf(sos.set) + 1) % sosSets.length];
+    sos.before = after;
+    sos.recorded = false;
+    sosBreathing();
+  };
+  stage.append(line, close, again);
+}
+
+function openSos() {
+  if (canSpeak) speechSynthesis.cancel();
+  sos.set = sosSets[state.sos.length % sosSets.length];
+  sos.before = null;
+  sos.recorded = false;
+  $("sosResources").hidden = true;
+  $("sosSupport").setAttribute("aria-expanded", "false");
+  sosCheckin("before");
+  $("sosDialog").showModal();
+}
+
+function closeSos() {
+  sosClearTimers();
+  if (canSpeak) speechSynthesis.cancel();
+  $("sosDialog").close();
+}
+
+$("sosButton").onclick = openSos;
+$("closeSos").onclick = closeSos;
+$("sosDialog").addEventListener("cancel", sosClearTimers);
+$("sosSupport").onclick = () => {
+  const resources = $("sosResources");
+  resources.hidden = !resources.hidden;
+  $("sosSupport").setAttribute("aria-expanded", String(!resources.hidden));
+};
+
+/* ---------- Day check-in ---------- */
+
+function todaysCheckinFor(d) {
+  const today = localISO(new Date());
+  return [...state.checkins].reverse().find(c => c.day === d && localISO(new Date(c.t)) === today) || null;
+}
+
+function renderDayCheckin() {
+  const latest = todaysCheckinFor(day);
+  document.querySelectorAll("#dayCheckin button").forEach(button => {
+    const active = latest !== null && Number(button.dataset.v) === latest.v;
+    button.classList.toggle("selected", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  $("checkinNote").textContent = latest ? `Noted — ${latest.v} of 5 today` : "1 = calm · 5 = overwhelming";
+}
+
+$("dayCheckin").addEventListener("click", event => {
+  const v = Number(event.target.dataset.v);
+  if (!v) return;
+  state.checkins.push({ t: new Date().toISOString(), day, v });
+  save();
+  renderDayCheckin();
+});
+
+/* ---------- Calm ledger ---------- */
+
+function renderLedger() {
+  const el = $("ledger");
+  el.textContent = "";
+  const sessions = state.sos.filter(s => s.before != null && s.after != null);
+  const avgDrop = sessions.length
+    ? sessions.reduce((sum, s) => sum + (s.before - s.after), 0) / sessions.length
+    : null;
+  const weekAgo = Date.now() - 7 * 86400000;
+  const week = state.checkins.filter(c => new Date(c.t).getTime() >= weekAgo);
+  const avgWeek = week.length ? week.reduce((sum, c) => sum + c.v, 0) / week.length : null;
+
+  const kicker = document.createElement("p");
+  kicker.className = "section-kicker";
+  kicker.textContent = "CALM LEDGER";
+  el.append(kicker);
+
+  if (avgDrop === null && avgWeek === null) {
+    const empty = document.createElement("p");
+    empty.className = "empty-note";
+    empty.textContent = "Your calm ledger appears here after your first fear check-in.";
+    el.append(empty);
+    return;
+  }
+  if (avgDrop !== null) {
+    const p = document.createElement("p");
+    p.className = "ledger-line";
+    p.textContent = avgDrop > 0
+      ? `After prayer, your fear drops an average of ${avgDrop.toFixed(1)} points (${sessions.length} SOS ${sessions.length === 1 ? "session" : "sessions"}).`
+      : `${sessions.length} SOS ${sessions.length === 1 ? "session" : "sessions"} recorded — keep standing; the trend takes a few sessions to show.`;
+    el.append(p);
+  }
+  if (avgWeek !== null) {
+    const p = document.createElement("p");
+    p.className = "ledger-line";
+    p.textContent = `Average check-in this week: ${avgWeek.toFixed(1)} of 5 (${week.length} ${week.length === 1 ? "check-in" : "check-ins"}).`;
+    el.append(p);
+  }
+}
+
 /* ---------- Library ---------- */
 
 let libraryFilter = "all";
@@ -300,6 +577,7 @@ function render() {
   $("prevButton").disabled = day === 0;
   $("nextButton").disabled = day === TOTAL_DAYS - 1;
   document.title = `Day ${day + 1}: ${title} — Stand`;
+  renderDayCheckin();
   renderGrid();
 }
 
@@ -388,7 +666,7 @@ function renderJournal() {
   }
 }
 
-$("journalButton").onclick = () => { renderJournal(); $("journalDialog").showModal(); };
+$("journalButton").onclick = () => { renderLedger(); renderJournal(); $("journalDialog").showModal(); };
 $("closeJournal").onclick = () => $("journalDialog").close();
 
 function downloadFile(name, text, type) {
@@ -424,11 +702,25 @@ function sanitizeBackup(raw) {
       if (validDay(Number(key)) && typeof value === "string") completedDates[key] = value;
     }
   }
+  const validLevel = v => Number.isInteger(v) && v >= 1 && v <= 5;
+  const checkins = Array.isArray(raw.checkins)
+    ? raw.checkins
+        .filter(c => c && typeof c === "object" && typeof c.t === "string" && validLevel(c.v) && validDay(c.day))
+        .map(c => ({ t: c.t, day: c.day, v: c.v }))
+    : [];
+  const sosSessions = Array.isArray(raw.sos)
+    ? raw.sos
+        .filter(s => s && typeof s === "object" && typeof s.t === "string"
+          && (s.before == null || validLevel(s.before)) && (s.after == null || validLevel(s.after)))
+        .map(s => ({ t: s.t, before: s.before ?? null, after: s.after ?? null }))
+    : [];
   return {
     completed: raw.completed.filter(validDay),
     favorites: raw.favorites.filter(validDay),
     notes,
     completedDates,
+    checkins,
+    sos: sosSessions,
     theme: raw.theme === "light" || raw.theme === "dark" ? raw.theme : null,
     welcomed: true
   };
@@ -453,6 +745,7 @@ $("restoreInput").onchange = async event => {
   Object.assign(state, clean);
   save();
   applyTheme();
+  renderLedger();
   renderJournal();
   render();
 };
@@ -493,6 +786,12 @@ $("welcomeDialog").addEventListener("close", () => {
 });
 
 applyTheme();
-if (dayFromHash() === null) history.replaceState(null, "", `#${day + 1}`);
+if (dayFromHash() === null) history.replaceState(null, "", `${location.search}#${day + 1}`);
 render();
-if (!state.welcomed) $("welcomeDialog").showModal();
+if (new URLSearchParams(location.search).has("sos")) {
+  state.welcomed = true;
+  save();
+  openSos();
+} else if (!state.welcomed) {
+  $("welcomeDialog").showModal();
+}

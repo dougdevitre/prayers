@@ -1,5 +1,5 @@
-const CACHE = "stand-v3";
-const ASSETS = ["./", "styles.css", "app.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
+const CACHE = "stand-v5";
+const ASSETS = ["./", "styles.css", "app.js", "content.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", event => {
   event.waitUntil(
@@ -20,8 +20,13 @@ self.addEventListener("activate", event => {
 // Serve from cache first for instant loads, refresh the cache in the background.
 self.addEventListener("fetch", event => {
   const { request } = event;
-  if (request.method !== "GET" || new URL(request.url).origin !== location.origin) return;
-  const cacheKey = request.mode === "navigate" ? "./" : request;
+  const url = new URL(request.url);
+  if (request.method !== "GET" || url.origin !== location.origin) return;
+  const isAppNavigation = request.mode === "navigate" && (url.pathname === "/" || url.pathname === "/index.html");
+  // Only the app shell is served from cache on navigation; static pages
+  // (like the crawlable day/ pages) must reach the network untouched.
+  if (request.mode === "navigate" && !isAppNavigation) return;
+  const cacheKey = isAppNavigation ? "./" : request;
   event.respondWith(
     caches.open(CACHE).then(async cache => {
       const cached = await cache.match(cacheKey);

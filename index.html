@@ -17,6 +17,7 @@
   <title>Stand — 30 Days of Spiritual Combat</title>
 </head>
 <body>
+  <noscript><p class="noscript-note">Stand needs JavaScript to play audio, save notes, and track your journey. Please enable JavaScript and reload.</p></noscript>
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="#" aria-label="Stand home"><span class="brand-mark">✦</span><span>STAND</span></a>
@@ -103,6 +104,23 @@
     <div class="dialog-header"><div><p class="eyebrow">MY REFLECTIONS</p><h2>Journal</h2></div><button class="icon-button" id="closeJournal" aria-label="Close journal">×</button></div>
     <div id="journalList"></div>
     <button class="complete-button" id="exportButton">Download my reflections (.txt)</button>
+    <div class="data-actions">
+      <button class="text-button" id="backupButton">Back up all data (.json)</button>
+      <label class="text-button" for="restoreInput">Restore from backup<input type="file" id="restoreInput" accept="application/json,.json" hidden /></label>
+      <button class="text-button danger" id="eraseButton">Erase all data</button>
+    </div>
+  </dialog>
+
+  <dialog id="welcomeDialog">
+    <p class="eyebrow">WELCOME</p>
+    <h2>Thirty days to stand</h2>
+    <p>Each day pairs Scripture with a short reflection, a guided prayer you can listen to, a declaration to speak, and one small practice.</p>
+    <ul class="welcome-list">
+      <li>Press ▶ to hear the guided prayer, or read at your own pace.</li>
+      <li>Save favorites with ♡ and keep private notes with ✎ — everything stays on your device.</li>
+      <li>Mark each day complete to track progress and build a daily streak.</li>
+    </ul>
+    <button class="complete-button" id="beginButton">Begin</button>
   </dialog>
   <script src="app.js"></script>
 </body>

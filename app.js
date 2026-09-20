@@ -47,7 +47,7 @@ const canSpeak = "speechSynthesis" in window;
 /* ---------- Persistent state ---------- */
 
 function loadState() {
-  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, theme: null };
+  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, theme: null, welcomed: false };
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!raw || typeof raw !== "object") return fallback;
@@ -391,18 +391,76 @@ function renderJournal() {
 $("journalButton").onclick = () => { renderJournal(); $("journalDialog").showModal(); };
 $("closeJournal").onclick = () => $("journalDialog").close();
 
+function downloadFile(name, text, type) {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 $("exportButton").onclick = () => {
   const lines = ["STAND — MY REFLECTIONS", `Exported ${localISO(new Date())}`, ""];
   for (const d of daysWithNotes()) {
     lines.push(`DAY ${String(d + 1).padStart(2, "0")} · ${themes[d][0]}`, state.notes[d].trim(), "");
   }
-  const blob = new Blob([lines.join("\n")], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "stand-reflections.txt";
-  link.click();
-  URL.revokeObjectURL(url);
+  downloadFile("stand-reflections.txt", lines.join("\n"), "text/plain");
+};
+
+/* ---------- Backup, restore, erase ---------- */
+
+function sanitizeBackup(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const validDay = d => Number.isInteger(d) && d >= 0 && d < TOTAL_DAYS;
+  if (!Array.isArray(raw.completed) || !Array.isArray(raw.favorites) || !raw.notes || typeof raw.notes !== "object") return null;
+  const notes = {};
+  for (const [key, value] of Object.entries(raw.notes)) {
+    if (validDay(Number(key)) && typeof value === "string") notes[key] = value;
+  }
+  const completedDates = {};
+  if (raw.completedDates && typeof raw.completedDates === "object") {
+    for (const [key, value] of Object.entries(raw.completedDates)) {
+      if (validDay(Number(key)) && typeof value === "string") completedDates[key] = value;
+    }
+  }
+  return {
+    completed: raw.completed.filter(validDay),
+    favorites: raw.favorites.filter(validDay),
+    notes,
+    completedDates,
+    theme: raw.theme === "light" || raw.theme === "dark" ? raw.theme : null,
+    welcomed: true
+  };
+}
+
+$("backupButton").onclick = () =>
+  downloadFile("stand-backup.json", JSON.stringify(state, null, 2), "application/json");
+
+$("restoreInput").onchange = async event => {
+  const file = event.target.files[0];
+  event.target.value = "";
+  if (!file) return;
+  let clean = null;
+  try {
+    clean = sanitizeBackup(JSON.parse(await file.text()));
+  } catch { /* unreadable or invalid JSON */ }
+  if (!clean) {
+    alert("That file doesn't look like a Stand backup.");
+    return;
+  }
+  if (!confirm("Replace the data on this device with this backup?")) return;
+  Object.assign(state, clean);
+  save();
+  applyTheme();
+  renderJournal();
+  render();
+};
+
+$("eraseButton").onclick = () => {
+  if (!confirm("Erase all notes, favorites, and progress from this device? This cannot be undone.")) return;
+  try { localStorage.removeItem(STORAGE_KEY); } catch { /* nothing to remove */ }
+  location.reload();
 };
 
 addEventListener("keydown", event => {
@@ -426,6 +484,15 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
   navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 
+$("beginButton").onclick = () => $("welcomeDialog").close();
+$("welcomeDialog").addEventListener("close", () => {
+  if (!state.welcomed) {
+    state.welcomed = true;
+    save();
+  }
+});
+
 applyTheme();
 if (dayFromHash() === null) history.replaceState(null, "", `#${day + 1}`);
 render();
+if (!state.welcomed) $("welcomeDialog").showModal();

@@ -13,7 +13,10 @@ A mobile-first, audio-ready devotional app built with plain HTML, CSS, and JavaS
 - **Daily streak** — completing days on consecutive calendar days builds a streak shown in the progress bar.
 - **Share a day** — the ↗ button shares the day's verse via the device share sheet (or copies it to the clipboard).
 - **Dark mode** follows your device setting until you choose a theme with ◐.
-- Notes, favorites, and progress are stored privately on your device (localStorage).
+- **Backup and restore** — download all data as a JSON file and restore it on any device; an erase option removes everything.
+- **Welcome screen** introduces the journey on first visit.
+- **Print-friendly** — printing a day hides the app chrome and keeps the devotional content.
+- Notes, favorites, and progress are stored privately on your device (localStorage), and the deployment ships a strict Content Security Policy.
 
 ## Run locally
 

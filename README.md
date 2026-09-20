@@ -32,6 +32,16 @@ A mobile-first, audio-ready devotional app built with plain HTML, CSS, and JavaS
 npm run dev
 ```
 
+## Tests
+
+A 72-scenario end-to-end smoke suite drives the app in headless Chromium against a server that enforces the production Content Security Policy. It runs in CI (GitHub Actions) on every push and pull request, alongside syntax checks and a guard that the generated SEO pages match `content.js`.
+
+```bash
+npm install
+npx playwright install chromium
+npm test
+```
+
 ## Publish with GitHub and Vercel
 
 1. Create an empty GitHub repository.

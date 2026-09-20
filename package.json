@@ -2,5 +2,13 @@
   "name": "spiritual-combat-prayer-app",
   "version": "1.7.0",
   "private": true,
-  "scripts": {"dev": "npx serve .", "check": "node --check app.js && node --check content.js && node --check sw.js", "build:seo": "node scripts/build-day-pages.js"}
+  "scripts": {
+    "dev": "npx serve .",
+    "check": "node --check app.js && node --check content.js && node --check sw.js && node --check tests/smoke.js",
+    "build:seo": "node scripts/build-day-pages.js",
+    "test": "node tests/smoke.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
 }

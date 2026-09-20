@@ -1,12 +1,25 @@
-const TOTAL_DAYS = themes.length;
 const STORAGE_KEY = "stand-state";
 const $ = id => document.getElementById(id);
 const canSpeak = "speechSynthesis" in window;
 
+/* ---------- Tracks ---------- */
+
+const activeTrack = () => tracks[state.track] || tracks.core;
+const DAYS = () => activeTrack().days.length;
+
+// The core track keeps its data in the legacy top-level state fields so
+// existing users lose nothing; other tracks live under state.tracks[id].
+function tdata() {
+  const id = state.track || "core";
+  if (id === "core" || !tracks[id]) return state;
+  if (!state.tracks[id]) state.tracks[id] = { completed: [], favorites: [], notes: {}, completedDates: {} };
+  return state.tracks[id];
+}
+
 /* ---------- Persistent state ---------- */
 
 function loadState() {
-  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, checkins: [], sos: [], theme: null, welcomed: false };
+  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, checkins: [], sos: [], track: "core", tracks: {}, theme: null, welcomed: false };
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!raw || typeof raw !== "object") return fallback;
@@ -51,7 +64,11 @@ $("themeButton").onclick = () => {
 const localISO = date => date.toLocaleDateString("en-CA");
 
 function currentStreak() {
+  // Completing a day on any track keeps the streak alive.
   const days = new Set(Object.values(state.completedDates));
+  for (const t of Object.values(state.tracks)) {
+    for (const d of Object.values(t.completedDates || {})) days.add(d);
+  }
   if (!days.size) return 0;
   let streak = 0;
   const cursor = new Date();
@@ -68,18 +85,18 @@ function currentStreak() {
 
 function dayFromHash() {
   const n = Number(location.hash.slice(1));
-  return Number.isInteger(n) && n >= 1 && n <= TOTAL_DAYS ? n - 1 : null;
+  return Number.isInteger(n) && n >= 1 && n <= DAYS() ? n - 1 : null;
 }
 
 function firstIncompleteDay() {
-  for (let i = 0; i < TOTAL_DAYS; i++) if (!state.completed.includes(i)) return i;
-  return TOTAL_DAYS - 1;
+  for (let i = 0; i < DAYS(); i++) if (!tdata().completed.includes(i)) return i;
+  return DAYS() - 1;
 }
 
 let day = dayFromHash() ?? firstIncompleteDay();
 
 function go(n) {
-  day = Math.max(0, Math.min(TOTAL_DAYS - 1, n));
+  day = Math.max(0, Math.min(DAYS() - 1, n));
   location.hash = String(day + 1);
   render();
   scrollTo({ top: 0, behavior: "smooth" });
@@ -88,7 +105,7 @@ function go(n) {
 /* ---------- Narration ---------- */
 
 function fullScript(d) {
-  const x = themes[d];
+  const x = activeTrack().days[d];
   return `Day ${d + 1}. ${x[0]}. Scripture, ${x[1]}. ${x[2]} Pause and breathe in slowly. Breathe out. Let your shoulders soften. Reflection. ${x[3]} Prayer. ${x[4]} Amen. Declaration. ${x[5]} Today's practice. ${x[6]} Closing blessing. May truth steady your mind, peace guard your heart, courage guide your next step, and grace carry what you cannot. Go in peace.`;
 }
 
@@ -417,7 +434,9 @@ $("sosSupport").onclick = () => {
 
 function todaysCheckinFor(d) {
   const today = localISO(new Date());
-  return [...state.checkins].reverse().find(c => c.day === d && localISO(new Date(c.t)) === today) || null;
+  const trackId = state.track || "core";
+  return [...state.checkins].reverse()
+    .find(c => c.day === d && (c.track || "core") === trackId && localISO(new Date(c.t)) === today) || null;
 }
 
 function renderDayCheckin() {
@@ -433,7 +452,7 @@ function renderDayCheckin() {
 $("dayCheckin").addEventListener("click", event => {
   const v = Number(event.target.dataset.v);
   if (!v) return;
-  state.checkins.push({ t: new Date().toISOString(), day, v });
+  state.checkins.push({ t: new Date().toISOString(), track: state.track || "core", day, v });
   save();
   renderDayCheckin();
 });
@@ -484,11 +503,12 @@ function renderLedger() {
 let libraryFilter = "all";
 
 function renderGrid() {
-  const visible = themes
+  const data = tdata();
+  const visible = activeTrack().days
     .map((entry, i) => ({ title: entry[0], i }))
     .filter(({ i }) =>
-      libraryFilter === "favorites" ? state.favorites.includes(i)
-      : libraryFilter === "completed" ? state.completed.includes(i)
+      libraryFilter === "favorites" ? data.favorites.includes(i)
+      : libraryFilter === "completed" ? data.completed.includes(i)
       : true);
 
   if (!visible.length) {
@@ -501,9 +521,9 @@ function renderGrid() {
   }
 
   $("dayGrid").innerHTML = visible.map(({ title, i }) => `
-    <button class="day-card ${state.completed.includes(i) ? "done" : ""}" data-day="${i}">
-      ${state.favorites.includes(i) ? '<span class="fav-mark" aria-hidden="true">♥</span>' : ""}
-      <small>DAY ${String(i + 1).padStart(2, "0")}${state.completed.includes(i) ? " · COMPLETE" : ""}</small>
+    <button class="day-card ${data.completed.includes(i) ? "done" : ""}" data-day="${i}">
+      ${data.favorites.includes(i) ? '<span class="fav-mark" aria-hidden="true">♥</span>' : ""}
+      <small>DAY ${String(i + 1).padStart(2, "0")}${data.completed.includes(i) ? " · COMPLETE" : ""}</small>
       <strong>${title}</strong>
     </button>`).join("");
 
@@ -513,6 +533,34 @@ function renderGrid() {
       go(Number(button.dataset.day));
     };
   });
+}
+
+function renderTrackPicker() {
+  const el = $("trackPicker");
+  el.textContent = "";
+  for (const track of Object.values(tracks)) {
+    const data = track.id === "core" ? state : (state.tracks[track.id] || { completed: [] });
+    const chip = document.createElement("button");
+    chip.className = "track-chip" + (track.id === (state.track || "core") ? " active" : "");
+    const name = document.createElement("strong");
+    name.textContent = track.short;
+    const meta = document.createElement("small");
+    meta.textContent = `${data.completed.length} of ${track.days.length} days`;
+    chip.append(name, meta);
+    chip.onclick = () => {
+      if ((state.track || "core") !== track.id) {
+        state.track = track.id;
+        save();
+        libraryFilter = "all";
+        document.querySelectorAll(".filter-tab").forEach(t => t.classList.toggle("active", t.dataset.filter === "all"));
+        $("libraryDialog").close();
+        go(firstIncompleteDay());
+      } else {
+        $("libraryDialog").close();
+      }
+    };
+    el.append(chip);
+  }
 }
 
 document.querySelectorAll(".filter-tab").forEach(tab => {
@@ -526,18 +574,20 @@ document.querySelectorAll(".filter-tab").forEach(tab => {
 /* ---------- Rendering ---------- */
 
 function weekLabelFor(d) {
-  if (d < 7) return weeks[0];
-  if (d < 14) return weeks[1];
-  if (d < 21) return weeks[2];
-  if (d < 29) return weeks[3];
-  return weeks[4];
+  const w = activeTrack().weeks;
+  if (w.length < 5) return w[0];
+  if (d < 7) return w[0];
+  if (d < 14) return w[1];
+  if (d < 21) return w[2];
+  if (d < 29) return w[3];
+  return w[4];
 }
 
 function render() {
   stopAudio();
-  const [title, ref, verse, reflection, prayer, declaration, action] = themes[day];
-  const done = state.completed.includes(day);
-  const fav = state.favorites.includes(day);
+  const [title, ref, verse, reflection, prayer, declaration, action] = activeTrack().days[day];
+  const done = tdata().completed.includes(day);
+  const fav = tdata().favorites.includes(day);
 
   $("weekLabel").textContent = weekLabelFor(day);
   $("dayNumber").textContent = `DAY ${String(day + 1).padStart(2, "0")}`;
@@ -548,13 +598,13 @@ function render() {
   $("prayer").textContent = prayer;
   $("declaration").textContent = declaration;
   $("action").textContent = action;
-  $("notes").value = state.notes[day] || "";
+  $("notes").value = tdata().notes[day] || "";
 
   const streak = currentStreak();
-  $("progressLabel").textContent = `Day ${day + 1} of ${TOTAL_DAYS}`;
+  $("progressLabel").textContent = `Day ${day + 1} of ${DAYS()}`;
   $("progressPercent").textContent =
-    `${state.completed.length} of ${TOTAL_DAYS} complete${streak > 1 ? ` · ${streak}-day streak` : ""}`;
-  $("progressBar").style.width = `${Math.round((state.completed.length / TOTAL_DAYS) * 100)}%`;
+    `${tdata().completed.length} of ${DAYS()} complete${streak > 1 ? ` · ${streak}-day streak` : ""}`;
+  $("progressBar").style.width = `${Math.round((tdata().completed.length / DAYS()) * 100)}%`;
 
   $("favoriteButton").textContent = fav ? "♥" : "♡";
   $("favoriteButton").classList.toggle("active", fav);
@@ -564,7 +614,7 @@ function render() {
   $("completeButton").classList.toggle("completed", done);
   $("completeButton").setAttribute("aria-pressed", String(done));
   $("prevButton").disabled = day === 0;
-  $("nextButton").disabled = day === TOTAL_DAYS - 1;
+  $("nextButton").disabled = day === DAYS() - 1;
   document.title = `Day ${day + 1}: ${title} — Stand`;
   renderDayCheckin();
   renderGrid();
@@ -573,13 +623,14 @@ function render() {
 /* ---------- Interactions ---------- */
 
 $("completeButton").onclick = () => {
-  const i = state.completed.indexOf(day);
+  const data = tdata();
+  const i = data.completed.indexOf(day);
   if (i < 0) {
-    state.completed.push(day);
-    state.completedDates[day] = localISO(new Date());
+    data.completed.push(day);
+    data.completedDates[day] = localISO(new Date());
   } else {
-    state.completed.splice(i, 1);
-    delete state.completedDates[day];
+    data.completed.splice(i, 1);
+    delete data.completedDates[day];
   }
   save();
   render();
@@ -606,7 +657,7 @@ function wrapText(ctx, text, maxWidth) {
 
 // A 1080x1350 (4:5) card in the app's light palette, for social sharing.
 function buildVerseCard() {
-  const [title, ref, verse] = themes[day];
+  const [title, ref, verse] = activeTrack().days[day];
   const canvas = document.createElement("canvas");
   canvas.width = 1080;
   canvas.height = 1350;
@@ -644,7 +695,7 @@ function buildVerseCard() {
 }
 
 $("shareButton").onclick = async () => {
-  const [title, ref, verse] = themes[day];
+  const [title, ref, verse] = activeTrack().days[day];
   const text = `“${verse}” — ${ref}`;
   try {
     const blob = await buildVerseCard();
@@ -668,8 +719,9 @@ $("shareButton").onclick = async () => {
 };
 
 $("favoriteButton").onclick = () => {
-  const i = state.favorites.indexOf(day);
-  i < 0 ? state.favorites.push(day) : state.favorites.splice(i, 1);
+  const data = tdata();
+  const i = data.favorites.indexOf(day);
+  i < 0 ? data.favorites.push(day) : data.favorites.splice(i, 1);
   save();
   render();
 };
@@ -679,7 +731,7 @@ $("notes").oninput = event => {
   clearTimeout(noteTimer);
   $("saveStatus").textContent = "Saving…";
   noteTimer = setTimeout(() => {
-    state.notes[day] = event.target.value;
+    tdata().notes[day] = event.target.value;
     $("saveStatus").textContent = save()
       ? "Saved on this device"
       : "Could not save — storage is unavailable in this browser";
@@ -688,13 +740,13 @@ $("notes").oninput = event => {
 
 $("prevButton").onclick = () => go(day - 1);
 $("nextButton").onclick = () => go(day + 1);
-$("libraryButton").onclick = () => $("libraryDialog").showModal();
+$("libraryButton").onclick = () => { renderTrackPicker(); $("libraryDialog").showModal(); };
 $("closeLibrary").onclick = () => $("libraryDialog").close();
 
 /* ---------- Journal ---------- */
 
 const daysWithNotes = () =>
-  Object.keys(state.notes).map(Number).filter(d => (state.notes[d] || "").trim()).sort((a, b) => a - b);
+  Object.keys(tdata().notes).map(Number).filter(d => (tdata().notes[d] || "").trim()).sort((a, b) => a - b);
 
 function renderJournal() {
   const list = $("journalList");
@@ -713,9 +765,9 @@ function renderJournal() {
     entry.className = "journal-entry";
     const kicker = document.createElement("p");
     kicker.className = "section-kicker";
-    kicker.textContent = `DAY ${String(d + 1).padStart(2, "0")} · ${themes[d][0].toUpperCase()}`;
+    kicker.textContent = `DAY ${String(d + 1).padStart(2, "0")} · ${activeTrack().days[d][0].toUpperCase()}`;
     const body = document.createElement("p");
-    body.textContent = state.notes[d];
+    body.textContent = tdata().notes[d];
     entry.append(kicker, body);
     list.append(entry);
   }
@@ -736,32 +788,54 @@ function downloadFile(name, content, type) {
 $("exportButton").onclick = () => {
   const lines = ["STAND — MY REFLECTIONS", `Exported ${localISO(new Date())}`, ""];
   for (const d of daysWithNotes()) {
-    lines.push(`DAY ${String(d + 1).padStart(2, "0")} · ${themes[d][0]}`, state.notes[d].trim(), "");
+    lines.push(`DAY ${String(d + 1).padStart(2, "0")} · ${activeTrack().days[d][0]}`, tdata().notes[d].trim(), "");
   }
   downloadFile("stand-reflections.txt", lines.join("\n"), "text/plain");
 };
 
 /* ---------- Backup, restore, erase ---------- */
 
-function sanitizeBackup(raw) {
-  if (!raw || typeof raw !== "object") return null;
-  const validDay = d => Number.isInteger(d) && d >= 0 && d < TOTAL_DAYS;
-  if (!Array.isArray(raw.completed) || !Array.isArray(raw.favorites) || !raw.notes || typeof raw.notes !== "object") return null;
-  const notes = {};
-  for (const [key, value] of Object.entries(raw.notes)) {
-    if (validDay(Number(key)) && typeof value === "string") notes[key] = value;
-  }
-  const completedDates = {};
-  if (raw.completedDates && typeof raw.completedDates === "object") {
-    for (const [key, value] of Object.entries(raw.completedDates)) {
-      if (validDay(Number(key)) && typeof value === "string") completedDates[key] = value;
+function sanitizeTrackData(raw, length) {
+  const validDay = d => Number.isInteger(d) && d >= 0 && d < length;
+  const clean = { completed: [], favorites: [], notes: {}, completedDates: {} };
+  if (!raw || typeof raw !== "object") return clean;
+  if (Array.isArray(raw.completed)) clean.completed = raw.completed.filter(validDay);
+  if (Array.isArray(raw.favorites)) clean.favorites = raw.favorites.filter(validDay);
+  if (raw.notes && typeof raw.notes === "object") {
+    for (const [key, value] of Object.entries(raw.notes)) {
+      if (validDay(Number(key)) && typeof value === "string") clean.notes[key] = value;
     }
   }
+  if (raw.completedDates && typeof raw.completedDates === "object") {
+    for (const [key, value] of Object.entries(raw.completedDates)) {
+      if (validDay(Number(key)) && typeof value === "string") clean.completedDates[key] = value;
+    }
+  }
+  return clean;
+}
+
+function sanitizeBackup(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  // The legacy top-level fields identify a Stand backup.
+  if (!Array.isArray(raw.completed) || !Array.isArray(raw.favorites) || !raw.notes || typeof raw.notes !== "object") return null;
+  const core = sanitizeTrackData(raw, themes.length);
+
+  const trackData = {};
+  if (raw.tracks && typeof raw.tracks === "object") {
+    for (const [id, sub] of Object.entries(raw.tracks)) {
+      if (id !== "core" && tracks[id]) trackData[id] = sanitizeTrackData(sub, tracks[id].days.length);
+    }
+  }
+
   const validLevel = v => Number.isInteger(v) && v >= 1 && v <= 5;
   const checkins = Array.isArray(raw.checkins)
     ? raw.checkins
-        .filter(c => c && typeof c === "object" && typeof c.t === "string" && validLevel(c.v) && validDay(c.day))
-        .map(c => ({ t: c.t, day: c.day, v: c.v }))
+        .filter(c => {
+          if (!c || typeof c !== "object" || typeof c.t !== "string" || !validLevel(c.v)) return false;
+          const length = tracks[c.track || "core"] ? tracks[c.track || "core"].days.length : 0;
+          return Number.isInteger(c.day) && c.day >= 0 && c.day < length;
+        })
+        .map(c => ({ t: c.t, track: tracks[c.track] ? c.track : "core", day: c.day, v: c.v }))
     : [];
   const sosSessions = Array.isArray(raw.sos)
     ? raw.sos
@@ -770,12 +844,11 @@ function sanitizeBackup(raw) {
         .map(s => ({ t: s.t, before: s.before ?? null, after: s.after ?? null }))
     : [];
   return {
-    completed: raw.completed.filter(validDay),
-    favorites: raw.favorites.filter(validDay),
-    notes,
-    completedDates,
+    ...core,
     checkins,
     sos: sosSessions,
+    track: tracks[raw.track] ? raw.track : "core",
+    tracks: trackData,
     theme: raw.theme === "light" || raw.theme === "dark" ? raw.theme : null,
     welcomed: true
   };
@@ -799,9 +872,12 @@ $("restoreInput").onchange = async event => {
   if (!confirm("Replace the data on this device with this backup?")) return;
   Object.assign(state, clean);
   save();
+  day = Math.max(0, Math.min(day, DAYS() - 1));
+  location.hash = String(day + 1);
   applyTheme();
   renderLedger();
   renderJournal();
+  renderTrackPicker();
   render();
 };
 

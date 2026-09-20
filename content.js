@@ -41,4 +41,42 @@ const weeks = [
   "DAY THIRTY · THE FINAL BATTLE IS CHARACTER"
 ];
 
-if (typeof module !== "undefined" && module.exports) module.exports = { themes, weeks };
+// Focused short tracks. Each day follows the same shape as `themes`:
+// [title, reference, verse, reflection, prayer, declaration, practice]
+const tracks = {
+  core: {
+    id: "core",
+    name: "Stand — 30 Days of Spiritual Combat",
+    short: "The 30-Day Journey",
+    days: themes,
+    weeks
+  },
+  unknown: {
+    id: "unknown",
+    name: "Fear of the Unknown",
+    short: "Fear of the Unknown",
+    weeks: ["FEAR OF THE UNKNOWN · FIVE DAYS"],
+    days: [
+      ["The Unwritten Page","Proverbs 3:5–6","Trust in the Lord with all your heart and lean not on your own understanding.","Fear of the unknown writes confident endings to stories that have not begun. Trust does not demand the whole plot; it takes the next line with the Author.","Father, I keep trying to read pages that have not been written. Teach me to trust You with the chapters I cannot see, and give me faithfulness for the page in front of me.","I do not need to know the ending to trust the Author.","Write down one unknown you keep rehearsing, and beside it the one step that is actually yours today."],
+      ["Daily Bread","Matthew 6:11","Give us today our daily bread.","Provision arrives daily, not in advance — which is exactly why the unknown feels underfunded. Grace for tomorrow will be issued tomorrow.","Lord, I confess I want a stockpile and You offer bread for today. Feed me for this day's needs, and quiet the hunger for guarantees You never promised.","Today has enough grace in it for today.","Name today's actual needs — not tomorrow's possible ones — and pray only for those."],
+      ["Light for the Next Step","Psalm 119:105","Your word is a lamp for my feet, a light on my path.","A lamp for feet lights steps, not horizons. Scripture rarely shows the whole road, but it never fails the next stretch of ground.","God, when I strain to see the horizon, lower my eyes to the ground You have lit. Give me courage to take the step I can see instead of waiting for the map.","Enough light for one step is enough light.","Take the one clear step you have been postponing while waiting for certainty."],
+      ["Held","Isaiah 41:10","Do not fear, for I am with you; do not be dismayed, for I am your God.","The promise for the unknown is not a preview; it is a presence. Whatever tomorrow holds, you will not hold it alone.","Father, You do not hand me the future — You hold my hand into it. When dread rises tonight or tomorrow, remind me that presence outweighs prediction.","I am not walking into the unknown alone.","Each time a what-if surfaces today, answer it aloud: 'And God will be there too.'"],
+      ["Open Hands","Philippians 4:6–7","Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God.","Anxiety grips; prayer opens the hand. What is presented to God can stop being carried alone, and peace stands guard where control used to pace.","Lord, here is everything I have been holding with a closed fist. I present it — named, specific, with thanks — and ask for the peace that guards what I cannot.","What I hand to God, I no longer carry alone.","Turn today's biggest what-if into one specific, thankful request — prayed once, not rehearsed all day."]
+    ]
+  },
+  night: {
+    id: "night",
+    name: "Night Fear & Sleep",
+    short: "Night Fear & Sleep",
+    weeks: ["NIGHT FEAR & SLEEP · FIVE DAYS"],
+    days: [
+      ["Lying Down","Psalm 4:8","In peace I will lie down and sleep, for you alone, Lord, make me dwell in safety.","Sleep is an act of trust: for a few hours you stop managing the world, and it goes on being held. Lying down in peace is not denial — it is a handoff.","Father, as I lie down I resign as night watchman. What I did not finish today, You are not worried about. Let my body rest under Your safety, not my vigilance.","I can end this day; God does not end with it.","Choose a consistent handoff moment tonight — lights, prayer, done — and keep it."],
+      ["The Watchman","Psalm 121:3–4","He who watches over you will not slumber; indeed, he who watches over Israel will neither slumber nor sleep.","Someone is up all night, and it does not have to be you. The watch is already staffed; your shift ends at bedtime.","Lord, You stay awake so I do not have to. Take the night shift — the replaying, the pre-living, the listening for trouble — and let me sleep like someone who is guarded.","The night watch is God's shift, not mine.","When you wake in the night, say once: 'You are awake, so I don't have to be' — then let the thought pass."],
+      ["Thoughts at Midnight","Psalm 94:19","When anxiety was great within me, your consolation brought me joy.","Midnight thoughts lie about their size; at 3 a.m. every problem doubles. Consolation does not solve the problem — it right-sizes it until morning can.","God, my midnight mind exaggerates. Bring Your consolation into the loop of thoughts I cannot stop, and hold my questions until daylight, when they shrink to their true size.","Nothing is decided at 3 a.m.","Keep paper by the bed: write the worry down once, and let the page hold it until morning."],
+      ["Darkness Is Not Dark","Psalm 139:11–12","Even the darkness will not be dark to you; the night will shine like the day.","Darkness changes what you can see, not what God can. The room at night is exactly as held as the room at noon.","Father, the dark makes everything feel unsupervised. Remind my body of what my faith knows: night is only dark from my side. Stay near until I stop checking.","The dark is not empty; it is watched.","Tonight, take one fear you would have whispered to the darkness and speak it to God instead."],
+      ["New Mercies","Lamentations 3:22–23","His compassions never fail. They are new every morning.","However the night went — restless, wakeful, afraid — morning does not carry it forward. Mercy is not a rollover balance; it is reissued at sunrise.","God, thank You that hard nights do not tax new mornings. Whatever tonight brings, let me wake to mercies that keep no record of my worst hours.","Morning mercy is new — last night does not bill it.","On waking, before checking anything, name one mercy already true of this morning."]
+    ]
+  }
+};
+
+if (typeof module !== "undefined" && module.exports) module.exports = { themes, weeks, tracks };

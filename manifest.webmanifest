@@ -1,0 +1,23 @@
+{
+  "name": "Stand — 30 Days of Spiritual Combat",
+  "short_name": "Stand",
+  "description": "A 30-day audio-ready prayer journey from fear to faith, confusion to truth, and conflict to peace.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f7f4ec",
+  "theme_color": "#132a3a",
+  "shortcuts": [
+    {
+      "name": "Steady me now",
+      "short_name": "SOS",
+      "description": "A 90-second guided calm for a fearful moment",
+      "url": "./?sos=1",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

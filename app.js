@@ -19,7 +19,7 @@ function tdata() {
 /* ---------- Persistent state ---------- */
 
 function loadState() {
-  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, checkins: [], sos: [], track: "core", tracks: {}, theme: null, welcomed: false };
+  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, checkins: [], sos: [], track: "core", tracks: {}, theme: null, welcomed: false, installHintDismissed: false };
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!raw || typeof raw !== "object") return fallback;
@@ -91,6 +91,15 @@ function dayFromHash() {
 function firstIncompleteDay() {
   for (let i = 0; i < DAYS(); i++) if (!tdata().completed.includes(i)) return i;
   return DAYS() - 1;
+}
+
+// A ?track= link (from a track's static page or a share) switches journeys on load.
+{
+  const requested = new URLSearchParams(location.search).get("track");
+  if (requested && tracks[requested] && (state.track || "core") !== requested) {
+    state.track = requested;
+    save();
+  }
 }
 
 let day = dayFromHash() ?? firstIncompleteDay();
@@ -921,7 +930,8 @@ function sanitizeBackup(raw) {
     track: tracks[raw.track] ? raw.track : "core",
     tracks: trackData,
     theme: raw.theme === "light" || raw.theme === "dark" ? raw.theme : null,
-    welcomed: true
+    welcomed: true,
+    installHintDismissed: raw.installHintDismissed === true
   };
 }
 
@@ -979,13 +989,64 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
   navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 
-$("beginButton").onclick = () => $("welcomeDialog").close();
+document.querySelectorAll(".path-button").forEach(button => {
+  button.onclick = () => {
+    const id = button.dataset.track;
+    if (tracks[id] && (state.track || "core") !== id) {
+      state.track = id;
+      state.welcomed = true;
+      save();
+      $("welcomeDialog").close();
+      go(firstIncompleteDay());
+      return;
+    }
+    $("welcomeDialog").close();
+  };
+});
 $("welcomeDialog").addEventListener("close", () => {
   if (!state.welcomed) {
     state.welcomed = true;
     save();
   }
 });
+
+/* ---------- Daily reminder (.ics) ---------- */
+
+$("reminderButton").onclick = () => {
+  const [h, m] = ($("reminderTime").value || "07:00").split(":").map(Number);
+  const start = new Date();
+  start.setHours(h, m, 0, 0);
+  if (start <= new Date()) start.setDate(start.getDate() + 1);
+  const pad = n => String(n).padStart(2, "0");
+  const stamp = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+  const ics = [
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Stand//Daily Prayer//EN",
+    "BEGIN:VEVENT",
+    `UID:stand-daily-${Date.now()}@stand.app`,
+    `DTSTAMP:${stamp(new Date())}`,
+    `DTSTART:${stamp(start)}`,
+    "DURATION:PT10M",
+    "RRULE:FREQ=DAILY",
+    "SUMMARY:Stand — daily prayer",
+    `DESCRIPTION:A few minutes to stand. Open the app: ${location.origin}`,
+    "BEGIN:VALARM", "TRIGGER:PT0S", "ACTION:DISPLAY", "DESCRIPTION:Time to stand", "END:VALARM",
+    "END:VEVENT", "END:VCALENDAR"
+  ].join("\r\n");
+  downloadFile("stand-daily-reminder.ics", ics, "text/calendar");
+};
+
+/* ---------- iOS install hint ---------- */
+
+{
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isInstalled = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  if (isIOS && !isInstalled && !state.installHintDismissed) $("installHint").hidden = false;
+  $("dismissHint").onclick = () => {
+    $("installHint").hidden = true;
+    state.installHintDismissed = true;
+    save();
+  };
+}
 
 applyTheme();
 if (dayFromHash() === null) history.replaceState(null, "", `${location.search}#${day + 1}`);

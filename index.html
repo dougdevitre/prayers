@@ -112,6 +112,11 @@
       <button class="filter-tab" data-filter="completed">Completed</button>
     </div>
     <div class="day-grid" id="dayGrid"></div>
+    <div class="reminder-row">
+      <label for="reminderTime">Daily reminder</label>
+      <input type="time" id="reminderTime" value="07:00" />
+      <button class="text-button" id="reminderButton">Add to my calendar</button>
+    </div>
   </dialog>
 
   <dialog id="journalDialog">
@@ -135,8 +140,18 @@
       <li>Save favorites with ♡ and keep private notes with ✎ — everything stays on your device.</li>
       <li>Mark each day complete to track progress and build a daily streak.</li>
     </ul>
-    <button class="complete-button" id="beginButton">Begin</button>
+    <p class="section-kicker">WHERE WOULD YOU LIKE TO BEGIN?</p>
+    <div class="welcome-paths">
+      <button class="path-button" id="beginButton" data-track="core"><strong>The 30-day journey</strong><small>The full path from fear to faith</small></button>
+      <button class="path-button" data-track="unknown"><strong>Fear of the unknown</strong><small>A focused five-day track</small></button>
+      <button class="path-button" data-track="night"><strong>Fear at night</strong><small>Five days toward rest</small></button>
+    </div>
   </dialog>
+
+  <div class="install-hint" id="installHint" hidden>
+    <p>Keep Stand one tap away: in Safari, tap <strong>Share</strong> → <strong>Add to Home Screen</strong>.</p>
+    <button class="icon-button" id="dismissHint" aria-label="Dismiss install tip">×</button>
+  </div>
 
   <button class="sos-button" id="sosButton">Steady me now</button>
 

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#132a3a" />
+  <meta name="description" content="A 30-day audio-ready prayer journey from fear to faith, confusion to truth, and conflict to peace." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23132a3a'/%3E%3Cpath d='M32 11v42M18 24h28' stroke='%23f1c879' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Stand — 30 Days of Spiritual Combat</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Stand home"><span class="brand-mark">✦</span><span>STAND</span></a>
+      <div class="top-actions">
+        <button class="icon-button" id="themeButton" aria-label="Toggle dark mode">◐</button>
+        <button class="icon-button" id="libraryButton" aria-label="Open the 30-day library">☰</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="progress-wrap" aria-label="Journey progress">
+        <div class="progress-copy"><span id="progressLabel">Day 1 of 30</span><span id="progressPercent">0% complete</span></div>
+        <div class="progress-track"><span id="progressBar"></span></div>
+      </section>
+
+      <article class="devotional" id="devotional">
+        <p class="eyebrow" id="weekLabel">WEEK ONE · ESTABLISH THE GROUND</p>
+        <div class="title-row">
+          <div><p class="day-number" id="dayNumber">DAY 01</p><h1 id="dayTitle">Stand</h1></div>
+          <button class="favorite-button" id="favoriteButton" aria-label="Save this day">♡</button>
+        </div>
+
+        <blockquote class="scripture">
+          <p id="scriptureText"></p>
+          <cite id="scriptureRef"></cite>
+        </blockquote>
+
+        <div class="audio-card">
+          <button class="play-button" id="playButton" aria-label="Play daily prayer"><span id="playIcon">▶</span></button>
+          <div class="audio-main">
+            <div class="audio-labels"><strong>Guided prayer</strong><span id="audioTime">About 3 minutes</span></div>
+            <div class="audio-track"><span id="audioProgress"></span></div>
+          </div>
+          <select id="voiceRate" aria-label="Narration speed"><option value="0.85">0.85×</option><option value="1" selected>1×</option><option value="1.15">1.15×</option></select>
+        </div>
+
+        <section class="content-section">
+          <h2>Reflection</h2>
+          <p id="reflection"></p>
+        </section>
+
+        <section class="prayer-panel">
+          <p class="section-kicker">PRAY</p>
+          <p id="prayer"></p>
+          <p class="amen">Amen.</p>
+        </section>
+
+        <section class="declaration-panel">
+          <p class="section-kicker">DECLARE</p>
+          <p id="declaration"></p>
+        </section>
+
+        <section class="action-panel">
+          <div class="action-icon">→</div><div><p class="section-kicker">TODAY'S PRACTICE</p><p id="action"></p></div>
+        </section>
+
+        <section class="notes-section">
+          <label for="notes">My reflection</label>
+          <textarea id="notes" rows="4" placeholder="What is God showing me today?"></textarea>
+          <p class="save-status" id="saveStatus" aria-live="polite">Saved on this device</p>
+        </section>
+
+        <button class="complete-button" id="completeButton">Mark day complete</button>
+        <nav class="day-nav" aria-label="Day navigation"><button id="prevButton">← Previous</button><button id="nextButton">Next →</button></nav>
+      </article>
+    </main>
+  </div>
+
+  <dialog id="libraryDialog">
+    <div class="dialog-header"><div><p class="eyebrow">YOUR JOURNEY</p><h2>Thirty days to stand</h2></div><button class="icon-button" id="closeLibrary" aria-label="Close library">×</button></div>
+    <div class="day-grid" id="dayGrid"></div>
+  </dialog>
+  <script src="app.js"></script>
+</body>
+</html>

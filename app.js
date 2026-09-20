@@ -31,17 +31,312 @@ const themes = [
   ["Character","Ephesians 6:18","Pray in the Spirit on all occasions with all kinds of prayers and requests.","The deepest victory may not be defeating an enemy. It may be that hatred did not make you hateful, deception dishonest, fear cowardly, or suffering cruel.","Father, clothe me in truth, guard my heart, direct my feet toward peace, strengthen my faith, protect my mind, and place Your Word within me. When I have done everything I know how to do, teach me to stand.","Darkness around me will not become darkness within me.","Review the journey. Choose one practice to carry into the next thirty days."]
 ];
 
-const weeks=["WEEK ONE · ESTABLISH THE GROUND","WEEK TWO · CONFRONT THE INNER BATTLE","WEEK THREE · COMBAT IN RELATIONSHIPS","WEEK FOUR · TRANSFORMATION","DAY THIRTY · THE FINAL BATTLE IS CHARACTER"];
-const $=id=>document.getElementById(id); let day=Math.max(0,Math.min(29,Number(location.hash.slice(1))-1||0)); let speaking=false;
-const state=JSON.parse(localStorage.getItem("stand-state")||'{"completed":[],"favorites":[],"notes":{},"dark":false}');
-function save(){localStorage.setItem("stand-state",JSON.stringify(state));}
-function fullScript(d){const x=themes[d];return `Day ${d+1}. ${x[0]}. Scripture, ${x[1]}. ${x[2]} Pause and breathe in slowly. Breathe out. Let your shoulders soften. Reflection. ${x[3]} Prayer. ${x[4]} Amen. Declaration. ${x[5]} Today's practice. ${x[6]} Closing blessing. May truth steady your mind, peace guard your heart, courage guide your next step, and grace carry what you cannot. Go in peace.`}
-function render(){speechSynthesis.cancel();speaking=false;$("playIcon").textContent="▶";const x=themes[day],done=state.completed.includes(day),fav=state.favorites.includes(day);$("weekLabel").textContent=day<7?weeks[0]:day<14?weeks[1]:day<21?weeks[2]:day<29?weeks[3]:weeks[4];$("dayNumber").textContent=`DAY ${String(day+1).padStart(2,"0")}`;$("dayTitle").textContent=x[0];$("scriptureRef").textContent=x[1];$("scriptureText").textContent=`“${x[2]}”`;$("reflection").textContent=x[3];$("prayer").textContent=x[4];$("declaration").textContent=x[5];$("action").textContent=x[6];$("notes").value=state.notes[day]||"";$("progressLabel").textContent=`Day ${day+1} of 30`;const pct=Math.round(state.completed.length/30*100);$("progressPercent").textContent=`${pct}% complete`;$("progressBar").style.width=`${pct}%`;$("favoriteButton").textContent=fav?"♥":"♡";$("favoriteButton").classList.toggle("active",fav);$("completeButton").textContent=done?"✓ Day complete":"Mark day complete";$("completeButton").classList.toggle("completed",done);$("prevButton").disabled=day===0;$("nextButton").disabled=day===29;document.title=`Day ${day+1}: ${x[0]} — Stand`;renderGrid();}
-function go(n){day=Math.max(0,Math.min(29,n));location.hash=String(day+1);render();scrollTo({top:0,behavior:"smooth"});}
-function renderGrid(){$("dayGrid").innerHTML=themes.map((x,i)=>`<button class="day-card ${state.completed.includes(i)?"done":""}" data-day="${i}"><small>DAY ${String(i+1).padStart(2,"0")}${state.completed.includes(i)?" · COMPLETE":""}</small><strong>${x[0]}</strong></button>`).join("");document.querySelectorAll(".day-card").forEach(b=>b.onclick=()=>{$("libraryDialog").close();go(Number(b.dataset.day));});}
-$("playButton").onclick=()=>{if(speaking){speechSynthesis.cancel();speaking=false;$("playIcon").textContent="▶";$("audioProgress").style.width="0";return}const u=new SpeechSynthesisUtterance(fullScript(day));u.rate=Number($("voiceRate").value);u.pitch=.96;u.onend=()=>{speaking=false;$("playIcon").textContent="▶";$("audioProgress").style.width="0"};u.onboundary=e=>{$("audioProgress").style.width=`${Math.min(100,e.charIndex/fullScript(day).length*100)}%`};speechSynthesis.speak(u);speaking=true;$("playIcon").textContent="■"};
-$("completeButton").onclick=()=>{const i=state.completed.indexOf(day);i<0?state.completed.push(day):state.completed.splice(i,1);save();render();};
-$("favoriteButton").onclick=()=>{const i=state.favorites.indexOf(day);i<0?state.favorites.push(day):state.favorites.splice(i,1);save();render();};
-let noteTimer;$("notes").oninput=e=>{clearTimeout(noteTimer);$("saveStatus").textContent="Saving…";noteTimer=setTimeout(()=>{state.notes[day]=e.target.value;save();$("saveStatus").textContent="Saved on this device";},350)};
-$("prevButton").onclick=()=>go(day-1);$("nextButton").onclick=()=>go(day+1);$("libraryButton").onclick=()=>$("libraryDialog").showModal();$("closeLibrary").onclick=()=>$("libraryDialog").close();
-$("themeButton").onclick=()=>{state.dark=!state.dark;document.documentElement.classList.toggle("dark",state.dark);save();};document.documentElement.classList.toggle("dark",state.dark);window.onhashchange=()=>{const n=Number(location.hash.slice(1));if(n>=1&&n<=30){day=n-1;render()}};render();
+const weeks = [
+  "WEEK ONE · ESTABLISH THE GROUND",
+  "WEEK TWO · CONFRONT THE INNER BATTLE",
+  "WEEK THREE · COMBAT IN RELATIONSHIPS",
+  "WEEK FOUR · TRANSFORMATION",
+  "DAY THIRTY · THE FINAL BATTLE IS CHARACTER"
+];
+
+const TOTAL_DAYS = themes.length;
+const STORAGE_KEY = "stand-state";
+const $ = id => document.getElementById(id);
+const canSpeak = "speechSynthesis" in window;
+
+/* ---------- Persistent state ---------- */
+
+function loadState() {
+  const fallback = { completed: [], favorites: [], notes: {}, theme: null };
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (!raw || typeof raw !== "object") return fallback;
+    // Migrate the pre-1.1 "dark" boolean: an explicit dark choice is kept,
+    // otherwise the theme follows the device setting until the user toggles.
+    if (raw.theme === undefined) raw.theme = raw.dark ? "dark" : null;
+    return { ...fallback, ...raw };
+  } catch {
+    return fallback;
+  }
+}
+
+const state = loadState();
+
+function save() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/* ---------- Theme ---------- */
+
+const systemDark = matchMedia("(prefers-color-scheme: dark)");
+const prefersDark = () => (state.theme ? state.theme === "dark" : systemDark.matches);
+
+function applyTheme() {
+  document.documentElement.classList.toggle("dark", prefersDark());
+}
+
+systemDark.addEventListener("change", applyTheme);
+$("themeButton").onclick = () => {
+  state.theme = prefersDark() ? "light" : "dark";
+  save();
+  applyTheme();
+};
+
+/* ---------- Current day ---------- */
+
+function dayFromHash() {
+  const n = Number(location.hash.slice(1));
+  return Number.isInteger(n) && n >= 1 && n <= TOTAL_DAYS ? n - 1 : null;
+}
+
+function firstIncompleteDay() {
+  for (let i = 0; i < TOTAL_DAYS; i++) if (!state.completed.includes(i)) return i;
+  return TOTAL_DAYS - 1;
+}
+
+let day = dayFromHash() ?? firstIncompleteDay();
+
+function go(n) {
+  day = Math.max(0, Math.min(TOTAL_DAYS - 1, n));
+  location.hash = String(day + 1);
+  render();
+  scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* ---------- Narration ---------- */
+
+function fullScript(d) {
+  const x = themes[d];
+  return `Day ${d + 1}. ${x[0]}. Scripture, ${x[1]}. ${x[2]} Pause and breathe in slowly. Breathe out. Let your shoulders soften. Reflection. ${x[3]} Prayer. ${x[4]} Amen. Declaration. ${x[5]} Today's practice. ${x[6]} Closing blessing. May truth steady your mind, peace guard your heart, courage guide your next step, and grace carry what you cannot. Go in peace.`;
+}
+
+const player = { status: "idle", keepAlive: 0 };
+let narrationVoice = null;
+
+function pickVoice() {
+  const english = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith("en"));
+  if (!english.length) return null;
+  const preferred = ["Samantha", "Daniel", "Karen", "Moira", "Google US English", "Google UK English Female", "Aria", "Sonia"];
+  for (const name of preferred) {
+    const match = english.find(v => v.name.includes(name));
+    if (match) return match;
+  }
+  return english.find(v => v.localService) || english[0];
+}
+
+if (canSpeak) {
+  narrationVoice = pickVoice();
+  speechSynthesis.addEventListener("voiceschanged", () => { narrationVoice = pickVoice(); });
+}
+
+function setPlayerStatus(status) {
+  player.status = status;
+  $("playIcon").textContent = status === "playing" ? "❚❚" : "▶";
+  $("playButton").setAttribute("aria-label",
+    status === "playing" ? "Pause daily prayer"
+    : status === "paused" ? "Resume daily prayer"
+    : "Play daily prayer");
+  if (status === "idle") $("audioProgress").style.width = "0";
+}
+
+function stopAudio() {
+  if (!canSpeak) return;
+  clearInterval(player.keepAlive);
+  speechSynthesis.cancel();
+  setPlayerStatus("idle");
+}
+
+function startAudio() {
+  const script = fullScript(day);
+  const utterance = new SpeechSynthesisUtterance(script);
+  utterance.rate = Number($("voiceRate").value);
+  utterance.pitch = 0.96;
+  if (narrationVoice) utterance.voice = narrationVoice;
+  utterance.onend = stopAudio;
+  utterance.onerror = stopAudio;
+  utterance.onboundary = e => {
+    $("audioProgress").style.width = `${Math.min(100, (e.charIndex / script.length) * 100)}%`;
+  };
+  speechSynthesis.cancel();
+  speechSynthesis.speak(utterance);
+  setPlayerStatus("playing");
+  // Chromium silently stops utterances longer than ~15 seconds unless nudged.
+  clearInterval(player.keepAlive);
+  player.keepAlive = setInterval(() => {
+    if (player.status === "playing" && speechSynthesis.speaking) {
+      speechSynthesis.pause();
+      speechSynthesis.resume();
+    }
+  }, 10000);
+}
+
+$("playButton").onclick = () => {
+  if (!canSpeak) {
+    $("audioTime").textContent = "Audio is not supported on this device";
+    return;
+  }
+  if (player.status === "playing") {
+    speechSynthesis.pause();
+    setPlayerStatus("paused");
+  } else if (player.status === "paused") {
+    speechSynthesis.resume();
+    setPlayerStatus("playing");
+  } else {
+    startAudio();
+  }
+};
+
+$("voiceRate").onchange = () => {
+  if (player.status !== "idle") startAudio();
+};
+
+/* ---------- Library ---------- */
+
+let libraryFilter = "all";
+
+function renderGrid() {
+  const visible = themes
+    .map((entry, i) => ({ title: entry[0], i }))
+    .filter(({ i }) =>
+      libraryFilter === "favorites" ? state.favorites.includes(i)
+      : libraryFilter === "completed" ? state.completed.includes(i)
+      : true);
+
+  if (!visible.length) {
+    $("dayGrid").innerHTML = `<p class="empty-note">${
+      libraryFilter === "favorites"
+        ? "Tap the heart on any day to save it here."
+        : "No days completed yet — your journey starts today."
+    }</p>`;
+    return;
+  }
+
+  $("dayGrid").innerHTML = visible.map(({ title, i }) => `
+    <button class="day-card ${state.completed.includes(i) ? "done" : ""}" data-day="${i}">
+      ${state.favorites.includes(i) ? '<span class="fav-mark" aria-hidden="true">♥</span>' : ""}
+      <small>DAY ${String(i + 1).padStart(2, "0")}${state.completed.includes(i) ? " · COMPLETE" : ""}</small>
+      <strong>${title}</strong>
+    </button>`).join("");
+
+  document.querySelectorAll(".day-card").forEach(button => {
+    button.onclick = () => {
+      $("libraryDialog").close();
+      go(Number(button.dataset.day));
+    };
+  });
+}
+
+document.querySelectorAll(".filter-tab").forEach(tab => {
+  tab.onclick = () => {
+    libraryFilter = tab.dataset.filter;
+    document.querySelectorAll(".filter-tab").forEach(t => t.classList.toggle("active", t === tab));
+    renderGrid();
+  };
+});
+
+/* ---------- Rendering ---------- */
+
+function weekLabelFor(d) {
+  if (d < 7) return weeks[0];
+  if (d < 14) return weeks[1];
+  if (d < 21) return weeks[2];
+  if (d < 29) return weeks[3];
+  return weeks[4];
+}
+
+function render() {
+  stopAudio();
+  const [title, ref, verse, reflection, prayer, declaration, action] = themes[day];
+  const done = state.completed.includes(day);
+  const fav = state.favorites.includes(day);
+
+  $("weekLabel").textContent = weekLabelFor(day);
+  $("dayNumber").textContent = `DAY ${String(day + 1).padStart(2, "0")}`;
+  $("dayTitle").textContent = title;
+  $("scriptureRef").textContent = ref;
+  $("scriptureText").textContent = `“${verse}”`;
+  $("reflection").textContent = reflection;
+  $("prayer").textContent = prayer;
+  $("declaration").textContent = declaration;
+  $("action").textContent = action;
+  $("notes").value = state.notes[day] || "";
+
+  $("progressLabel").textContent = `Day ${day + 1} of ${TOTAL_DAYS}`;
+  $("progressPercent").textContent = `${state.completed.length} of ${TOTAL_DAYS} complete`;
+  $("progressBar").style.width = `${Math.round((state.completed.length / TOTAL_DAYS) * 100)}%`;
+
+  $("favoriteButton").textContent = fav ? "♥" : "♡";
+  $("favoriteButton").classList.toggle("active", fav);
+  $("favoriteButton").setAttribute("aria-pressed", String(fav));
+  $("favoriteButton").setAttribute("aria-label", fav ? "Remove this day from favorites" : "Save this day to favorites");
+  $("completeButton").textContent = done ? "✓ Day complete" : "Mark day complete";
+  $("completeButton").classList.toggle("completed", done);
+  $("completeButton").setAttribute("aria-pressed", String(done));
+  $("prevButton").disabled = day === 0;
+  $("nextButton").disabled = day === TOTAL_DAYS - 1;
+  document.title = `Day ${day + 1}: ${title} — Stand`;
+  renderGrid();
+}
+
+/* ---------- Interactions ---------- */
+
+$("completeButton").onclick = () => {
+  const i = state.completed.indexOf(day);
+  i < 0 ? state.completed.push(day) : state.completed.splice(i, 1);
+  save();
+  render();
+};
+
+$("favoriteButton").onclick = () => {
+  const i = state.favorites.indexOf(day);
+  i < 0 ? state.favorites.push(day) : state.favorites.splice(i, 1);
+  save();
+  render();
+};
+
+let noteTimer;
+$("notes").oninput = event => {
+  clearTimeout(noteTimer);
+  $("saveStatus").textContent = "Saving…";
+  noteTimer = setTimeout(() => {
+    state.notes[day] = event.target.value;
+    $("saveStatus").textContent = save()
+      ? "Saved on this device"
+      : "Could not save — storage is unavailable in this browser";
+  }, 350);
+};
+
+$("prevButton").onclick = () => go(day - 1);
+$("nextButton").onclick = () => go(day + 1);
+$("libraryButton").onclick = () => $("libraryDialog").showModal();
+$("closeLibrary").onclick = () => $("libraryDialog").close();
+
+addEventListener("keydown", event => {
+  if (event.altKey || event.ctrlKey || event.metaKey) return;
+  if (event.target.closest("input, textarea, select") || $("libraryDialog").open) return;
+  if (event.key === "ArrowLeft") go(day - 1);
+  if (event.key === "ArrowRight") go(day + 1);
+});
+
+window.onhashchange = () => {
+  const fromHash = dayFromHash();
+  if (fromHash !== null && fromHash !== day) {
+    day = fromHash;
+    render();
+  }
+};
+
+/* ---------- Startup ---------- */
+
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+
+applyTheme();
+if (dayFromHash() === null) history.replaceState(null, "", `#${day + 1}`);
+render();

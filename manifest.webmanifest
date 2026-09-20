@@ -1,0 +1,12 @@
+{
+  "name": "Stand — 30 Days of Spiritual Combat",
+  "short_name": "Stand",
+  "description": "A 30-day audio-ready prayer journey from fear to faith, confusion to truth, and conflict to peace.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f7f4ec",
+  "theme_color": "#132a3a",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

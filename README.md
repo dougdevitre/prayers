@@ -2,6 +2,16 @@
 
 A mobile-first, audio-ready devotional app built with plain HTML, CSS, and JavaScript. It includes all 30 days, guided device narration, progress tracking, favorites, private reflection notes, dark mode, and responsive design.
 
+## Features
+
+- **Guided narration** with play/pause, adjustable speed, and an automatically selected English voice.
+- **Picks up where you left off** — opening the app jumps to your first incomplete day.
+- **Library filters** — browse all days, favorites, or completed days from the ☰ menu.
+- **Keyboard navigation** — use ← and → to move between days.
+- **Installable and offline-ready** — a web app manifest and service worker let you add it to your home screen and use it without a connection.
+- **Dark mode** follows your device setting until you choose a theme with ◐.
+- Notes, favorites, and progress are stored privately on your device (localStorage).
+
 ## Run locally
 
 ```bash

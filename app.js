@@ -1,44 +1,3 @@
-const themes = [
-  ["Stand","Ephesians 6:10–13","Be strong in the Lord and in his mighty power.","The first command of spiritual combat is not attack. It is to stand. Standing means refusing to let fear, anger, pressure, accusation, or uncertainty dictate who you become.","Father, establish me within before I attempt to change anything around me. Where I am frightened, give me courage. Where I am confused, give me clarity. Where I am angry, give me discipline. Where I am exhausted, renew my strength. I will not surrender my character to my circumstances. Help me stand.","I will stand in truth, walk in peace, and keep my character.","When something triggers you, pause and ask: What would standing in truth look like right now?"],
-  ["Truth","Ephesians 6:14","Stand firm then, with the belt of truth buckled around your waist.","Truth is the first piece of armor. Spiritual combat begins with intellectual honesty: separating what you know, what you believe, what you assume, and what you fear.","God of truth, remove deception from around me and self-deception from within me. Do not merely show me the truths I want to discover. Show me truth itself. Give me courage to change my mind when evidence requires it. Let truth matter more than winning.","Truth matters more than my need to be right.","Divide one difficult situation into three columns: known, believed, and unknown."],
-  ["Righteousness","Ephesians 6:14","Stand firm, with the breastplate of righteousness in place.","Spiritual warfare is not only about identifying wrongdoing in others. It asks whether your own conduct matches the standard you expect from everyone else.","Lord, search my motives. Expose hypocrisy, correct pride, remove vengeance, and strengthen integrity. Let my private character match my public words. May the right thing remain right even when nobody sees it.","My character is measured by what I practice, not what I proclaim.","Do one right thing today when nobody is watching."],
-  ["Peace","Ephesians 6:15","Have your feet fitted with the readiness that comes from the gospel of peace.","Peace is not passivity. It can require boundaries, hard conversations, repair, or walking away. Peace refuses unnecessary chaos without hiding from necessary truth.","Prince of Peace, make me an instrument of peace without making me afraid of necessary conflict. Help me know when to speak, when to listen, when to act, and when to walk away.","I can carry peace into a place without surrendering truth.","Remove one unnecessary source of conflict from your day."],
-  ["Faith","Ephesians 6:16","Take up the shield of faith, with which you can extinguish all the flaming arrows.","Faith does not pretend difficulty is unreal. Faith refuses to give difficulty ultimate authority. It makes room for a next faithful step before the whole path is visible.","God, there are outcomes I cannot control, questions I cannot answer, and people I cannot change. I place them before You. Give me enough faith to take the next faithful step.","This difficulty is real, but it does not control my character.","Name one uncontrollable outcome and release it aloud."],
-  ["Guard the Mind","Ephesians 6:17","Take the helmet of salvation.","Rumination can turn one painful moment into hundreds of imagined ones. Guarding the mind means deciding which thoughts deserve continued attention.","God, protect my mind. Interrupt obsessive fear, challenge catastrophic thinking, and expose false narratives. Return me to what is true, useful, honorable, and within my responsibility.","My mind does not need to solve everything today.","Test one recurring thought: Is it true, known, useful, and actionable?"],
-  ["The Word","Ephesians 6:17","Take the sword of the Spirit, which is the word of God.","Words shape interpretation, and interpretation shapes action. Sacred words can return you to courage when noise pulls you toward panic.","Lord, place words of truth within me before the world fills me with noise. Let Scripture challenge fear, pride, hatred, despair, and temptation.","Truth will remain after today's noise disappears.","Choose one short verse and return to it three times today."],
-  ["Fear","Psalm 27:1","The Lord is my light and my salvation—whom shall I fear?","Fear predicts futures that have not happened. Courage returns to the responsibility directly in front of you.","Lord, bring me back to today. Give me courage for today's responsibility rather than anxiety about tomorrow's possibilities. I will prepare wisely, but I will not worship fear.","Fear may speak, but it does not get the final word.","Do one thing fear has persuaded you to postpone."],
-  ["Anger","James 1:19–20","Be quick to listen, slow to speak and slow to become angry.","Anger can carry information about a wound, boundary, injustice, or fear. It becomes dangerous when it moves from messenger to master.","God, let anger become information rather than my master. Show me what lies beneath it, then teach me to respond with clarity and proportion.","I can feel anger without surrendering my conduct to it.","Delay an angry response until your body becomes calm."],
-  ["Resentment","Romans 12:21","Do not be overcome by evil, but overcome evil with good.","Resentment keeps another person's wrongdoing active inside you. Releasing it does not excuse harm; it refuses to let harm reproduce itself.","Lord, I refuse to carry another person's wrongdoing inside me indefinitely. Help me pursue accountability without revenge. Let evil stop with me.","What harmed me will not determine what I become.","Name one resentment you are ready to begin releasing."],
-  ["Pride","Proverbs 16:18","Pride goes before destruction, a haughty spirit before a fall.","Pride turns uncertainty into performance and correction into threat. Humility creates freedom to learn, repair, and receive help.","God, protect me from needing to win every argument. Give me freedom to say: I was wrong. I do not know. I need help. Please forgive me.","I do not lose dignity when I become teachable.","Admit one thing you do not know."],
-  ["Temptation","Matthew 4:10","Worship the Lord your God, and serve him only.","Temptation often becomes powerful through rationalization. Freedom grows when you notice the decision point before it becomes a habit.","Lord, help me recognize temptation before I rename or excuse it. Give me strength during the few moments when a decision becomes a pattern.","I can choose what strengthens the person I am becoming.","Remove one environmental trigger connected to a recurring temptation."],
-  ["Despair","Psalm 42:11","Put your hope in God, for I will yet praise him.","Feelings are powerful witnesses, but imperfect prophets. Despair speaks in absolutes; hope looks for the next constructive step.","God, when my feelings tell me nothing will improve, remind me that this moment is not the whole story. Give me enough hope for one more faithful step.","I do not need all the hope—only enough for the next step.","Do one constructive thing for your future self."],
-  ["Rest","Matthew 11:28","Come to me, all you who are weary and burdened, and I will give you rest.","Exhaustion is not proof of faithfulness. Rest restores perspective, restraint, attention, and the ability to love well.","Lord, I surrender the belief that exhaustion proves devotion. Teach me to rest without guilt. Restore my body, quiet my mind, and renew my spirit.","Rest is part of faithfulness, not a departure from it.","Protect a period of genuine rest today."],
-  ["Guard Your Words","James 3:5","The tongue is a small part of the body, but it makes great boasts.","Words can clarify or inflame, defend dignity or destroy it. Spiritual discipline places a guard between emotional impulse and lasting speech.","God, put a guard over my mouth. Let my words be truthful without cruelty, strong without abuse, and clear without manipulation.","My words will serve truth, repair, and necessary boundaries.","Read an emotional message twice before sending it."],
-  ["Discernment","James 1:5","If any of you lacks wisdom, you should ask God.","Discernment separates observable behavior from stories about motives. It holds alertness and humility together.","Lord, give me discernment without suspicion, alertness without paranoia, confidence without arrogance, and compassion without gullibility.","I can observe carefully without pretending to know every motive.","Write the facts of one situation separately from your interpretation."],
-  ["Boundaries","Proverbs 4:23","Above all else, guard your heart, for everything you do flows from it.","Forgiveness does not require unlimited access. A healthy boundary protects peace and responsibility; punishment tries to control another person's pain.","God, teach me to establish boundaries without hatred. Remove bitterness without removing discernment. Let forgiveness free my heart while wisdom guards the door.","I can love someone without granting unsafe access.","Name one boundary that protects peace without punishing."],
-  ["False Accusations","Psalm 37:6","He will make your righteous reward shine like the dawn.","You can answer falsehood with calm facts without making every opinion your assignment. Document what matters; release what you cannot control.","Lord, when misunderstood, keep me from destroying my peace trying to control every perception. Help me speak truth, correct what is false, accept what is mine, and release the rest.","An accusation does not define my identity.","Replace repeated self-defense with one clear factual statement."],
-  ["Forgiveness","Colossians 3:13","Forgive as the Lord forgave you.","Forgiveness can be a process. It releases the desire for revenge; it does not erase memory, accountability, consequences, or wise distance.","God, begin the work of forgiveness within me. Remove my desire to see another suffer merely because I suffered. Keep wisdom and boundaries intact.","I release vengeance while preserving truth and responsibility.","Pray for freedom from resentment, not forced reconciliation."],
-  ["Love Your Enemy","Matthew 5:44","Love your enemies and pray for those who persecute you.","Loving an enemy does not mean calling harm good. It means refusing dehumanization while seeking protection, truth, and accountability.","Lord, teach me to oppose harmful behavior without dehumanizing the person responsible. Protect my heart from becoming what hurt me.","I can seek accountability without hatred.","Refuse dehumanizing language about someone you oppose."],
-  ["Protect the Vulnerable","Isaiah 1:17","Seek justice. Defend the oppressed.","Strength becomes holy when it protects rather than dominates. Advocacy serves another person's dignity instead of using their pain for recognition.","God, make my strength useful to someone vulnerable. Give me courage to protect without controlling, advocate without exploiting, and serve without needing recognition.","My strength is entrusted to me for service.","Help someone who cannot repay you."],
-  ["Courage","Joshua 1:9","Be strong and courageous. Do not be afraid.","Courage is not the absence of fear. It is faithful movement while fear is present.","God, give me enough courage to move while fear is present. Keep me from waiting for perfect confidence before doing what is right.","I can be afraid and still be faithful.","Take one action you have been avoiding."],
-  ["Wisdom","Proverbs 3:5–6","Trust in the Lord with all your heart and lean not on your own understanding.","Urgency can impersonate wisdom. Wise decisions create room for counsel, consequences, conscience, and time.","Lord, slow me down enough to see clearly. Keep urgency from making choices that wisdom would refuse.","I am permitted to pause before a non-emergency decision.","Delay one decision long enough to consider its consequences."],
-  ["Justice","Micah 6:8","Act justly and love mercy and walk humbly with your God.","Justice is not favoritism for our own side. It applies the same dignity, evidence, and standard even to people we dislike.","God, give me a love for justice that includes justice for people I oppose. Protect me from demanding standards for others that I reject for myself.","Truth and fairness do not change sides to favor me.","Apply to yourself the standard you apply to another."],
-  ["Mercy","Luke 6:36","Be merciful, just as your Father is merciful.","Mercy makes room for human weakness and repair without erasing responsibility. It is neither denial nor enabling.","Lord, let mercy temper judgment without hiding truth. Teach me the difference between compassion and enabling.","I can make room for repair while keeping healthy limits.","Give someone room to correct a genuine mistake."],
-  ["Humility","Philippians 2:3","In humility value others above yourselves.","Humility is accurate self-knowledge: neither self-exaltation nor self-erasure. It listens for truth even when correction feels uncomfortable.","God, make me teachable. When correction comes, help me examine it before rejecting it. Keep me secure enough to learn.","Correction can refine me without defining me.","Ask someone trustworthy: What am I not seeing?"],
-  ["Perseverance","Romans 5:4","Perseverance produces character; and character, hope.","Some battles are won through endurance rather than dramatic victory. Small faithful acts compound when visible results are slow.","Lord, give me strength to continue doing what is right when results are delayed. Protect me from confusing slow progress with failure.","Faithfulness still counts when nobody applauds it.","Complete one small task connected to a long-term goal."],
-  ["Surrender","Matthew 6:34","Do not worry about tomorrow, for tomorrow will worry about itself.","Surrender releases outcomes while retaining responsibility. It is not giving up; it is returning each burden to its proper owner.","Father, I surrender outcomes while retaining responsibility. I will do what belongs to me and release what does not.","I am responsible for faithfulness, not control of every outcome.","Write what you cannot control and physically put the paper away."],
-  ["Become the Light","Matthew 5:14","You are the light of the world.","Healing becomes service when your presence offers courage, truth, stability, compassion, and hope to someone else.","God, do more than deliver me from darkness. Teach me to carry light. Make my presence a source of courage, truth, stability, compassion, and hope.","What I have survived can become light for someone else.","Encourage one person who is struggling."],
-  ["Character","Ephesians 6:18","Pray in the Spirit on all occasions with all kinds of prayers and requests.","The deepest victory may not be defeating an enemy. It may be that hatred did not make you hateful, deception dishonest, fear cowardly, or suffering cruel.","Father, clothe me in truth, guard my heart, direct my feet toward peace, strengthen my faith, protect my mind, and place Your Word within me. When I have done everything I know how to do, teach me to stand.","Darkness around me will not become darkness within me.","Review the journey. Choose one practice to carry into the next thirty days."]
-];
-
-const weeks = [
-  "WEEK ONE · ESTABLISH THE GROUND",
-  "WEEK TWO · CONFRONT THE INNER BATTLE",
-  "WEEK THREE · COMBAT IN RELATIONSHIPS",
-  "WEEK FOUR · TRANSFORMATION",
-  "DAY THIRTY · THE FINAL BATTLE IS CHARACTER"
-];
-
 const TOTAL_DAYS = themes.length;
 const STORAGE_KEY = "stand-state";
 const $ = id => document.getElementById(id);
@@ -133,7 +92,7 @@ function fullScript(d) {
   return `Day ${d + 1}. ${x[0]}. Scripture, ${x[1]}. ${x[2]} Pause and breathe in slowly. Breathe out. Let your shoulders soften. Reflection. ${x[3]} Prayer. ${x[4]} Amen. Declaration. ${x[5]} Today's practice. ${x[6]} Closing blessing. May truth steady your mind, peace guard your heart, courage guide your next step, and grace carry what you cannot. Go in peace.`;
 }
 
-const player = { status: "idle", keepAlive: 0 };
+const player = { status: "idle", keepAlive: 0, repeat: false, sleepTimer: 0 };
 let narrationVoice = null;
 
 function pickVoice() {
@@ -165,17 +124,21 @@ function setPlayerStatus(status) {
 function stopAudio() {
   if (!canSpeak) return;
   clearInterval(player.keepAlive);
-  speechSynthesis.cancel();
+  clearTimeout(player.sleepTimer);
+  // Go idle before cancel(): cancel can fire onend synchronously, and repeat
+  // mode must not treat that as a natural end and restart.
   setPlayerStatus("idle");
+  speechSynthesis.cancel();
 }
 
-function startAudio() {
+function speakDay() {
   const script = fullScript(day);
   const utterance = new SpeechSynthesisUtterance(script);
   utterance.rate = Number($("voiceRate").value);
   utterance.pitch = 0.96;
   if (narrationVoice) utterance.voice = narrationVoice;
-  utterance.onend = stopAudio;
+  // Repeat mode re-speaks the same day until the sleep timer or the user stops it.
+  utterance.onend = () => { player.repeat && player.status === "playing" ? speakDay() : stopAudio(); };
   utterance.onerror = stopAudio;
   utterance.onboundary = e => {
     $("audioProgress").style.width = `${Math.min(100, (e.charIndex / script.length) * 100)}%`;
@@ -191,6 +154,22 @@ function startAudio() {
       speechSynthesis.resume();
     }
   }, 10000);
+}
+
+function armSleepTimer() {
+  clearTimeout(player.sleepTimer);
+  const minutes = Number($("sleepTimer").value);
+  if (minutes > 0) {
+    player.sleepTimer = setTimeout(() => {
+      stopAudio();
+      $("sleepTimer").value = "0";
+    }, minutes * 60000);
+  }
+}
+
+function startAudio() {
+  speakDay();
+  armSleepTimer();
 }
 
 $("playButton").onclick = () => {
@@ -211,6 +190,16 @@ $("playButton").onclick = () => {
 
 $("voiceRate").onchange = () => {
   if (player.status !== "idle") startAudio();
+};
+
+$("repeatButton").onclick = () => {
+  player.repeat = !player.repeat;
+  $("repeatButton").classList.toggle("active", player.repeat);
+  $("repeatButton").setAttribute("aria-pressed", String(player.repeat));
+};
+
+$("sleepTimer").onchange = () => {
+  if (player.status !== "idle") armSleepTimer();
 };
 
 /* ---------- SOS mode ---------- */
@@ -596,17 +585,83 @@ $("completeButton").onclick = () => {
   render();
 };
 
+/* ---------- Verse cards ---------- */
+
+function wrapText(ctx, text, maxWidth) {
+  const words = text.split(" ");
+  const lines = [];
+  let line = "";
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (ctx.measureText(candidate).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = candidate;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+// A 1080x1350 (4:5) card in the app's light palette, for social sharing.
+function buildVerseCard() {
+  const [title, ref, verse] = themes[day];
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1350;
+  const ctx = canvas.getContext("2d");
+  const ink = "#132a3a", gold = "#b88732", muted = "#60717b";
+
+  ctx.fillStyle = "#f7f4ec";
+  ctx.fillRect(0, 0, 1080, 1350);
+  ctx.strokeStyle = gold;
+  ctx.lineWidth = 3;
+  ctx.strokeRect(50, 50, 980, 1250);
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = gold;
+  ctx.font = "700 44px Georgia, serif";
+  ctx.fillText("✦", 540, 175);
+  ctx.font = "800 30px system-ui, sans-serif";
+  ctx.fillText(`D A Y   ${day + 1}   ·   ${title.toUpperCase().split("").join(" ")}`, 540, 265);
+
+  ctx.fillStyle = ink;
+  ctx.font = "italic 58px Georgia, serif";
+  const lines = wrapText(ctx, `“${verse}”`, 820);
+  const start = 675 - ((lines.length - 1) * 82) / 2;
+  lines.forEach((line, i) => ctx.fillText(line, 540, start + i * 82));
+
+  ctx.fillStyle = muted;
+  ctx.font = "700 32px system-ui, sans-serif";
+  ctx.fillText(ref.toUpperCase(), 540, start + lines.length * 82 + 40);
+
+  ctx.fillStyle = ink;
+  ctx.font = "800 34px system-ui, sans-serif";
+  ctx.fillText("S T A N D", 540, 1215);
+
+  return new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+}
+
 $("shareButton").onclick = async () => {
   const [title, ref, verse] = themes[day];
   const text = `“${verse}” — ${ref}`;
   try {
+    const blob = await buildVerseCard();
+    const file = blob ? new File([blob], `stand-day-${String(day + 1).padStart(2, "0")}.png`, { type: "image/png" }) : null;
+    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: `Day ${day + 1}: ${title} — Stand`, text });
+      return;
+    }
     if (navigator.share) {
       await navigator.share({ title: `Day ${day + 1}: ${title} — Stand`, text, url: location.href });
-    } else {
-      await navigator.clipboard.writeText(`${text}\n${location.href}`);
-      $("shareButton").textContent = "✓";
-      setTimeout(() => { $("shareButton").textContent = "↗"; }, 1200);
+      return;
     }
+    // Desktop fallback: save the verse card and copy the text.
+    if (file) downloadFile(file.name, blob, "image/png");
+    await navigator.clipboard.writeText(`${text}\n${location.href}`).catch(() => {});
+    $("shareButton").textContent = "✓";
+    setTimeout(() => { $("shareButton").textContent = "↗"; }, 1200);
   } catch {
     // The user closed the share sheet, or clipboard access was denied.
   }
@@ -669,8 +724,8 @@ function renderJournal() {
 $("journalButton").onclick = () => { renderLedger(); renderJournal(); $("journalDialog").showModal(); };
 $("closeJournal").onclick = () => $("journalDialog").close();
 
-function downloadFile(name, text, type) {
-  const url = URL.createObjectURL(new Blob([text], { type }));
+function downloadFile(name, content, type) {
+  const url = URL.createObjectURL(content instanceof Blob ? content : new Blob([content], { type }));
   const link = document.createElement("a");
   link.href = url;
   link.download = name;

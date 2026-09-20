@@ -55,7 +55,11 @@
             <div class="audio-labels"><strong>Guided prayer</strong><span id="audioTime">About 3 minutes</span></div>
             <div class="audio-track"><span id="audioProgress"></span></div>
           </div>
-          <select id="voiceRate" aria-label="Narration speed"><option value="0.85">0.85×</option><option value="1" selected>1×</option><option value="1.15">1.15×</option></select>
+          <div class="audio-extras">
+            <select id="voiceRate" aria-label="Narration speed"><option value="0.85">0.85×</option><option value="1" selected>1×</option><option value="1.15">1.15×</option></select>
+            <button class="repeat-button" id="repeatButton" aria-label="Repeat this prayer until stopped" aria-pressed="false">⟳</button>
+            <select id="sleepTimer" aria-label="Sleep timer"><option value="0">No timer</option><option value="5">5 min</option><option value="10">10 min</option><option value="15">15 min</option><option value="30">30 min</option></select>
+          </div>
         </div>
 
         <section class="content-section">
@@ -151,6 +155,7 @@
       </div>
     </div>
   </dialog>
+  <script src="content.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

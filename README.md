@@ -13,7 +13,9 @@ A mobile-first, audio-ready devotional app built with plain HTML, CSS, and JavaS
 - **Installable and offline-ready** — a web app manifest and service worker let you add it to your home screen and use it without a connection.
 - **Reflections journal** — open ✎ to read every note in one place and download them as a text file.
 - **Daily streak** — completing days on consecutive calendar days builds a streak shown in the progress bar.
-- **Share a day** — the ↗ button shares the day's verse via the device share sheet (or copies it to the clipboard).
+- **Verse cards** — the ↗ button shares the day's verse as a designed image via the device share sheet (desktop saves the card and copies the text).
+- **Repeat & sleep timer** — loop the guided prayer and let a 5–30 minute timer stop it, for night-time listening.
+- **SEO day pages** — `npm run build:seo` regenerates the static, crawlable pages under `day/` from `content.js` (set `SITE_URL=https://yourdomain` to also emit `sitemap.xml` and canonical links).
 - **Dark mode** follows your device setting until you choose a theme with ◐.
 - **Backup and restore** — download all data as a JSON file and restore it on any device; an erase option removes everything.
 - **Welcome screen** introduces the journey on first visit.

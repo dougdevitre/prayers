@@ -38,7 +38,7 @@ npm run dev
 
 ## Audio
 
-The play button uses the browser's built-in Speech Synthesis API, so the available narrator voice depends on the listener's device. For production-recorded audio, add MP3 files under `audio/day-01.mp3` through `audio/day-30.mp3`, then replace the speech-synthesis player in `app.js` with an HTML Audio element.
+The player prefers recorded narration and falls back to the browser's built-in Speech Synthesis API (so the fallback voice depends on the listener's device). To add recordings: drop MP3s under `audio/` (e.g. `audio/day-01.mp3`, `audio/sos-01.mp3`) and register them in the `recordedAudio` manifest at the bottom of `content.js` — day keys are `"<trackId>-<dayIndex>"` (e.g. `"core-0"`), SOS entries follow the order of the SOS sets. Days without an entry keep using device narration. Recorded playback supports pause/resume, speed, repeat, the sleep timer, and lock-screen controls (Media Session).
 
 ## Content note
 

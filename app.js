@@ -109,8 +109,58 @@ function fullScript(d) {
   return `Day ${d + 1}. ${x[0]}. Scripture, ${x[1]}. ${x[2]} Pause and breathe in slowly. Breathe out. Let your shoulders soften. Reflection. ${x[3]} Prayer. ${x[4]} Amen. Declaration. ${x[5]} Today's practice. ${x[6]} Closing blessing. May truth steady your mind, peace guard your heart, courage guide your next step, and grace carry what you cannot. Go in peace.`;
 }
 
-const player = { status: "idle", keepAlive: 0, repeat: false, sleepTimer: 0 };
+const player = { status: "idle", keepAlive: 0, repeat: false, sleepTimer: 0, mode: "tts" };
 let narrationVoice = null;
+
+// Recorded narration (preferred when a file exists for the day).
+const audioEl = new Audio();
+audioEl.preload = "none";
+
+const recordedFor = d => recordedAudio.days[`${state.track || "core"}-${d}`] || null;
+
+audioEl.addEventListener("timeupdate", () => {
+  if (player.mode === "rec" && audioEl.duration) {
+    $("audioProgress").style.width = `${Math.min(100, (audioEl.currentTime / audioEl.duration) * 100)}%`;
+  }
+});
+
+audioEl.addEventListener("ended", () => {
+  if (player.repeat && player.status === "playing") {
+    audioEl.currentTime = 0;
+    audioEl.play().catch(stopAudio);
+  } else {
+    stopAudio();
+  }
+});
+
+function setMediaSession(title) {
+  if (!("mediaSession" in navigator)) return;
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title,
+      artist: "Stand",
+      artwork: [{ src: "icon-512.png", sizes: "512x512", type: "image/png" }]
+    });
+    navigator.mediaSession.setActionHandler("play", () => $("playButton").click());
+    navigator.mediaSession.setActionHandler("pause", () => $("playButton").click());
+  } catch { /* older browsers */ }
+}
+
+function playRecorded(src) {
+  player.mode = "rec";
+  audioEl.src = src;
+  audioEl.playbackRate = Number($("voiceRate").value);
+  audioEl.currentTime = 0;
+  audioEl.play().then(() => {
+    setPlayerStatus("playing");
+    setMediaSession(document.title);
+  }).catch(() => {
+    // File missing or blocked — fall back to device narration.
+    player.mode = "tts";
+    speakDay();
+  });
+  setPlayerStatus("playing");
+}
 
 function pickVoice() {
   const english = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith("en"));
@@ -139,16 +189,17 @@ function setPlayerStatus(status) {
 }
 
 function stopAudio() {
-  if (!canSpeak) return;
   clearInterval(player.keepAlive);
   clearTimeout(player.sleepTimer);
   // Go idle before cancel(): cancel can fire onend synchronously, and repeat
   // mode must not treat that as a natural end and restart.
   setPlayerStatus("idle");
-  speechSynthesis.cancel();
+  audioEl.pause();
+  if (canSpeak) speechSynthesis.cancel();
 }
 
 function speakDay() {
+  player.mode = "tts";
   const script = fullScript(day);
   const utterance = new SpeechSynthesisUtterance(script);
   utterance.rate = Number($("voiceRate").value);
@@ -185,20 +236,22 @@ function armSleepTimer() {
 }
 
 function startAudio() {
-  speakDay();
+  const src = recordedFor(day);
+  if (src) playRecorded(src);
+  else speakDay();
   armSleepTimer();
 }
 
 $("playButton").onclick = () => {
-  if (!canSpeak) {
+  if (!canSpeak && !recordedFor(day)) {
     $("audioTime").textContent = "Audio is not supported on this device";
     return;
   }
   if (player.status === "playing") {
-    speechSynthesis.pause();
+    player.mode === "rec" ? audioEl.pause() : speechSynthesis.pause();
     setPlayerStatus("paused");
   } else if (player.status === "paused") {
-    speechSynthesis.resume();
+    player.mode === "rec" ? audioEl.play().catch(stopAudio) : speechSynthesis.resume();
     setPlayerStatus("playing");
   } else {
     startAudio();
@@ -206,7 +259,11 @@ $("playButton").onclick = () => {
 };
 
 $("voiceRate").onchange = () => {
-  if (player.status !== "idle") startAudio();
+  if (player.mode === "rec" && player.status !== "idle") {
+    audioEl.playbackRate = Number($("voiceRate").value);
+  } else if (player.status !== "idle") {
+    startAudio();
+  }
 };
 
 $("repeatButton").onclick = () => {
@@ -354,15 +411,28 @@ function sosAnchor() {
   listen.className = "text-button";
   listen.textContent = "▶ Hear this prayed";
   listen.onclick = () => {
-    if (!canSpeak) return;
     stopAudio();
+    const src = recordedAudio.sos[sosSets.indexOf(sos.set)];
+    if (src) {
+      player.mode = "rec";
+      audioEl.src = src;
+      audioEl.playbackRate = 1;
+      audioEl.currentTime = 0;
+      audioEl.play().catch(() => { player.mode = "tts"; sosSpeak(); });
+      return;
+    }
+    sosSpeak();
+  };
+
+  function sosSpeak() {
+    if (!canSpeak) return;
     const utterance = new SpeechSynthesisUtterance(
       `${sos.set.verse} ${sos.set.ref}. ${sos.set.prayer} Amen. ${sos.set.declaration}`);
     utterance.rate = 0.95;
     utterance.pitch = 0.96;
     if (narrationVoice) utterance.voice = narrationVoice;
     speechSynthesis.speak(utterance);
-  };
+  }
 
   const actions = document.createElement("div");
   actions.className = "sos-actions";
@@ -599,6 +669,7 @@ function render() {
   $("declaration").textContent = declaration;
   $("action").textContent = action;
   $("notes").value = tdata().notes[day] || "";
+  $("audioTime").textContent = recordedFor(day) ? "Recorded narration · about 3 minutes" : "About 3 minutes";
 
   const streak = currentStreak();
   $("progressLabel").textContent = `Day ${day + 1} of ${DAYS()}`;

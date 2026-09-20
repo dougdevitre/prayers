@@ -79,4 +79,15 @@ const tracks = {
   }
 };
 
-if (typeof module !== "undefined" && module.exports) module.exports = { themes, weeks, tracks };
+// Recorded narration files that exist under audio/. Keys for days are
+// "<trackId>-<dayIndex>"; SOS entries are indexed by sosSets order.
+// Add entries here as new recordings land — days without one fall back
+// to the device's text-to-speech narration.
+const recordedAudio = {
+  days: {
+    // "core-0": "audio/day-01.mp3"  — add entries as recordings land
+  },
+  sos: []
+};
+
+if (typeof module !== "undefined" && module.exports) module.exports = { themes, weeks, tracks, recordedAudio };

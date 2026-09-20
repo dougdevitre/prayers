@@ -9,5 +9,11 @@
 .day-card{position:relative}
 .day-card .fav-mark{position:absolute;top:12px;right:12px;color:var(--gold)}
 .empty-note{margin:6px 0;color:var(--muted)}
+.title-actions{display:flex;gap:2px;align-items:flex-start}
+.share-button{font-size:1.45rem;padding-top:8px}
+.journal-entry{padding:18px 0;border-bottom:1px solid var(--line)}
+.journal-entry p:last-child{margin:8px 0 0;white-space:pre-line}
+#exportButton{margin-top:22px}
+#exportButton:disabled{opacity:.4;cursor:default}
 :is(a,button,select,textarea):focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}

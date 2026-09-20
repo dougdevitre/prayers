@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#132a3a" />
   <meta name="description" content="A 30-day audio-ready prayer journey from fear to faith, confusion to truth, and conflict to peace." />
+  <meta property="og:title" content="Stand — 30 Days of Spiritual Combat" />
+  <meta property="og:description" content="A 30-day audio-ready prayer journey from fear to faith, confusion to truth, and conflict to peace." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23132a3a'/%3E%3Cpath d='M32 11v42M18 24h28' stroke='%23f1c879' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E" />
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -17,6 +22,7 @@
       <a class="brand" href="#" aria-label="Stand home"><span class="brand-mark">✦</span><span>STAND</span></a>
       <div class="top-actions">
         <button class="icon-button" id="themeButton" aria-label="Toggle dark mode">◐</button>
+        <button class="icon-button" id="journalButton" aria-label="Open my reflections journal">✎</button>
         <button class="icon-button" id="libraryButton" aria-label="Open the 30-day library">☰</button>
       </div>
     </header>
@@ -31,7 +37,10 @@
         <p class="eyebrow" id="weekLabel">WEEK ONE · ESTABLISH THE GROUND</p>
         <div class="title-row">
           <div><p class="day-number" id="dayNumber">DAY 01</p><h1 id="dayTitle">Stand</h1></div>
-          <button class="favorite-button" id="favoriteButton" aria-label="Save this day to favorites" aria-pressed="false">♡</button>
+          <div class="title-actions">
+            <button class="favorite-button share-button" id="shareButton" aria-label="Share this day">↗</button>
+            <button class="favorite-button" id="favoriteButton" aria-label="Save this day to favorites" aria-pressed="false">♡</button>
+          </div>
         </div>
 
         <blockquote class="scripture">
@@ -88,6 +97,12 @@
       <button class="filter-tab" data-filter="completed">Completed</button>
     </div>
     <div class="day-grid" id="dayGrid"></div>
+  </dialog>
+
+  <dialog id="journalDialog">
+    <div class="dialog-header"><div><p class="eyebrow">MY REFLECTIONS</p><h2>Journal</h2></div><button class="icon-button" id="closeJournal" aria-label="Close journal">×</button></div>
+    <div id="journalList"></div>
+    <button class="complete-button" id="exportButton">Download my reflections (.txt)</button>
   </dialog>
   <script src="app.js"></script>
 </body>

@@ -9,6 +9,9 @@ A mobile-first, audio-ready devotional app built with plain HTML, CSS, and JavaS
 - **Library filters** — browse all days, favorites, or completed days from the ☰ menu.
 - **Keyboard navigation** — use ← and → to move between days.
 - **Installable and offline-ready** — a web app manifest and service worker let you add it to your home screen and use it without a connection.
+- **Reflections journal** — open ✎ to read every note in one place and download them as a text file.
+- **Daily streak** — completing days on consecutive calendar days builds a streak shown in the progress bar.
+- **Share a day** — the ↗ button shares the day's verse via the device share sheet (or copies it to the clipboard).
 - **Dark mode** follows your device setting until you choose a theme with ◐.
 - Notes, favorites, and progress are stored privately on your device (localStorage).
 

@@ -47,7 +47,7 @@ const canSpeak = "speechSynthesis" in window;
 /* ---------- Persistent state ---------- */
 
 function loadState() {
-  const fallback = { completed: [], favorites: [], notes: {}, theme: null };
+  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, theme: null };
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!raw || typeof raw !== "object") return fallback;
@@ -86,6 +86,24 @@ $("themeButton").onclick = () => {
   save();
   applyTheme();
 };
+
+/* ---------- Progress & streak ---------- */
+
+const localISO = date => date.toLocaleDateString("en-CA");
+
+function currentStreak() {
+  const days = new Set(Object.values(state.completedDates));
+  if (!days.size) return 0;
+  let streak = 0;
+  const cursor = new Date();
+  // A streak survives until a full calendar day is missed.
+  if (!days.has(localISO(cursor))) cursor.setDate(cursor.getDate() - 1);
+  while (days.has(localISO(cursor))) {
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
 
 /* ---------- Current day ---------- */
 
@@ -266,8 +284,10 @@ function render() {
   $("action").textContent = action;
   $("notes").value = state.notes[day] || "";
 
+  const streak = currentStreak();
   $("progressLabel").textContent = `Day ${day + 1} of ${TOTAL_DAYS}`;
-  $("progressPercent").textContent = `${state.completed.length} of ${TOTAL_DAYS} complete`;
+  $("progressPercent").textContent =
+    `${state.completed.length} of ${TOTAL_DAYS} complete${streak > 1 ? ` · ${streak}-day streak` : ""}`;
   $("progressBar").style.width = `${Math.round((state.completed.length / TOTAL_DAYS) * 100)}%`;
 
   $("favoriteButton").textContent = fav ? "♥" : "♡";
@@ -287,9 +307,31 @@ function render() {
 
 $("completeButton").onclick = () => {
   const i = state.completed.indexOf(day);
-  i < 0 ? state.completed.push(day) : state.completed.splice(i, 1);
+  if (i < 0) {
+    state.completed.push(day);
+    state.completedDates[day] = localISO(new Date());
+  } else {
+    state.completed.splice(i, 1);
+    delete state.completedDates[day];
+  }
   save();
   render();
+};
+
+$("shareButton").onclick = async () => {
+  const [title, ref, verse] = themes[day];
+  const text = `“${verse}” — ${ref}`;
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: `Day ${day + 1}: ${title} — Stand`, text, url: location.href });
+    } else {
+      await navigator.clipboard.writeText(`${text}\n${location.href}`);
+      $("shareButton").textContent = "✓";
+      setTimeout(() => { $("shareButton").textContent = "↗"; }, 1200);
+    }
+  } catch {
+    // The user closed the share sheet, or clipboard access was denied.
+  }
 };
 
 $("favoriteButton").onclick = () => {
@@ -316,9 +358,56 @@ $("nextButton").onclick = () => go(day + 1);
 $("libraryButton").onclick = () => $("libraryDialog").showModal();
 $("closeLibrary").onclick = () => $("libraryDialog").close();
 
+/* ---------- Journal ---------- */
+
+const daysWithNotes = () =>
+  Object.keys(state.notes).map(Number).filter(d => (state.notes[d] || "").trim()).sort((a, b) => a - b);
+
+function renderJournal() {
+  const list = $("journalList");
+  list.textContent = "";
+  const entries = daysWithNotes();
+  $("exportButton").disabled = !entries.length;
+  if (!entries.length) {
+    const empty = document.createElement("p");
+    empty.className = "empty-note";
+    empty.textContent = "No reflections yet — notes you write on any day will appear here.";
+    list.append(empty);
+    return;
+  }
+  for (const d of entries) {
+    const entry = document.createElement("article");
+    entry.className = "journal-entry";
+    const kicker = document.createElement("p");
+    kicker.className = "section-kicker";
+    kicker.textContent = `DAY ${String(d + 1).padStart(2, "0")} · ${themes[d][0].toUpperCase()}`;
+    const body = document.createElement("p");
+    body.textContent = state.notes[d];
+    entry.append(kicker, body);
+    list.append(entry);
+  }
+}
+
+$("journalButton").onclick = () => { renderJournal(); $("journalDialog").showModal(); };
+$("closeJournal").onclick = () => $("journalDialog").close();
+
+$("exportButton").onclick = () => {
+  const lines = ["STAND — MY REFLECTIONS", `Exported ${localISO(new Date())}`, ""];
+  for (const d of daysWithNotes()) {
+    lines.push(`DAY ${String(d + 1).padStart(2, "0")} · ${themes[d][0]}`, state.notes[d].trim(), "");
+  }
+  const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "stand-reflections.txt";
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
 addEventListener("keydown", event => {
   if (event.altKey || event.ctrlKey || event.metaKey) return;
-  if (event.target.closest("input, textarea, select") || $("libraryDialog").open) return;
+  if (event.target.closest("input, textarea, select") || document.querySelector("dialog[open]")) return;
   if (event.key === "ArrowLeft") go(day - 1);
   if (event.key === "ArrowRight") go(day + 1);
 });

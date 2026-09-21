@@ -6,7 +6,8 @@ A mobile-first, audio-ready devotional app built with plain HTML, CSS, and JavaS
 
 - **SOS mode — "Steady me now"** — a 90-second guided rescue for fearful moments: slow breathing, an anchoring verse, a short prayer, and a declaration. Always one tap away (including a home-screen shortcut), fully offline, with crisis-support resources always visible.
 - **Fear-specific tracks** — alongside the 30-day core journey, focused 5-day tracks (Fear of the Unknown, Night Fear & Sleep) with their own progress, notes, and favorites; switch journeys from the ☰ library.
-- **Courage stories** — thirteen four-day modules, each built on a single heroic account, covering overwhelming problems, accusation, panic, speaking up, opposition, fear for your children, health fears, and financial fear. Each walks the same four beats — the fear, the choice, the outcome, what you carry forward — and ends every day with one concrete exercise. Scripture in these tracks is public domain (World English Bible, lightly modernized).
+- **Courage stories** — seventeen four-day modules, each built on a single heroic account, covering overwhelming problems, accusation, panic, speaking up, opposition, fear for your children, health fears, financial fear, stepping into the unknown, inadequacy, an unchosen crisis, and starting over. Each walks the same four beats — the fear, the choice, the outcome, what you carry forward — and ends every day with one concrete exercise. Scripture in these tracks is public domain (World English Bible, lightly modernized).
+- **"Where are you right now?"** — the ☰ library opens with a plain-language list of situations ("I have a court date", "I'm afraid for my child", "I don't know how I'm going to pay for it") that jumps straight into the journey that meets it, so nobody has to browse twenty titles while afraid. The mapping lives in `fearIndex` in `content.js`.
 - **Grouped journey picker** — the ☰ library groups journeys under the heading in each track's `group` field (the 30-day journey, fear tracks, courage stories), so the list stays scannable as tracks are added.
 - **Fear check-ins and a calm ledger** — optional 1–5 check-ins before and after SOS and on any day; the journal shows your own evidence, like the average fear drop after prayer.
 - **Guided narration** with play/pause, adjustable speed, and an automatically selected English voice.
@@ -36,7 +37,7 @@ npm run dev
 
 ## Tests
 
-A 72-scenario end-to-end smoke suite drives the app in headless Chromium against a server that enforces the production Content Security Policy. It runs in CI (GitHub Actions) on every push and pull request, alongside syntax checks and a guard that the generated SEO pages match `content.js`.
+An 80-scenario end-to-end smoke suite drives the app in headless Chromium against a server that enforces the production Content Security Policy. It runs in CI (GitHub Actions) on every push and pull request, alongside syntax checks and a guard that the generated SEO pages match `content.js`.
 
 ```bash
 npm install

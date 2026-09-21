@@ -51,7 +51,7 @@ Optional 1-tap check-in before and after each day and each SOS: "Where is your f
 ### Fear-specific tracks
 Beyond the core 30 days: short 5–7 day tracks — Fear of the Unknown, Night Fear & Sleep, Health Fears, Financial Fear, Conflict & Court, Fear for Your Children. Requires refactoring content from `app.js` into JSON track files (also the prerequisite for translations and SEO pages).
 
-### Courage stories (shipped: thirteen modules)
+### Courage stories (shipped: seventeen modules)
 Narrative tracks that teach courage through one heroic account rather than one topic. Each is four days following the same beats — the fear, the choice, the outcome, the carry-forward — with a concrete exercise per day.
 
 First batch: The Furnace (Daniel 3, outcome anxiety), The Giant (1 Samuel 17, an overwhelming problem), The Den (Daniel 6, accusation and unjust process), The Storm (Mark 4, panic — pairs with SOS), The Unseen Army (2 Kings 6, feeling outnumbered, night fear).
@@ -60,9 +60,12 @@ Second batch: The Throne Room (Esther 4–5, speaking up at cost), The Wall (Neh
 
 The two health tracks and the financial track carry explicit guardrails in the content itself: prayer is never framed as an alternative to medical care, an outcome is never framed as a grade on anyone's faith, and the Zarephath track states plainly that it is not a transaction or a technique for producing money.
 
-Remaining candidates: Joshua at the Jordan (the river parts only after the priests' feet are already in it), Gideon's three hundred (fear of inadequacy), Paul in the shipwreck (calm leadership in a crisis you did not choose), Ruth in the barley field (starting over with nothing). All are `content.js` additions.
+Third batch: The River (Joshua 3–4, the water parts only after the step), The Three Hundred (Judges 6–7, inadequacy), The Shipwreck (Acts 27, a crisis you did not choose), The Barley Field (Ruth 1–2, starting over with nothing).
 
-With sixteen journeys, the library picker now groups tracks by each track's `group` field. The next scale problem is the reverse lookup — a user arriving with one fear ("my court date is Thursday") has to recognize which story fits. A fear-to-track index, or a short intake on the welcome screen, is the natural follow-on.
+### Finding the right track (shipped)
+With twenty journeys, browsing titles is the wrong entry point for someone already afraid. The library now opens with "Where are you right now?" — a plain-language list of situations mapped to tracks in `fearIndex` (`content.js`), one entry per journey, which switches track and opens the first unfinished day in a single interaction.
+
+Next on this thread: the same list as a static landing page, since the entries are close to what people actually search ("prayer before court", "scripture for fear at night"); and surfacing it on the welcome screen once there is evidence about where first-time users get stuck.
 
 ### Verse cards
 Share a day as a beautiful generated image (Canvas API) — the app's typography and palette, verse + reference. Images travel where links don't; this is the organic growth loop.

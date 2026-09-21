@@ -251,8 +251,86 @@ const tracks = {
       ["The Jar Did Not Empty","1 Kings 17:16","The jar of meal was not emptied, and the jar of oil did not fail.","What she got was never a stockpile. It was a jar that kept not being empty — enough each time she went to it, and never more than that, which is a harder gift to trust than a lump sum.","Father, I keep asking for a surplus so I can stop depending on You daily. Teach me to trust a jar that refills instead of a pile that reassures.","Enough, repeatedly, is a real kind of provision.","Look back over the last twelve months and write down three times the jar did not empty — the unexpected work, the bill that shrank, the help that arrived."],
       ["Many Days","1 Kings 17:15","She went and did according to the word of Elijah; and she, he, and her household ate for many days.","There is no dramatic scene at the end of this story — just many ordinary days of a household eating. Provision that keeps arriving quietly is easy to stop noticing, and noticing it is most of what steadies a frightened mind.","God, let me notice what keeps arriving. Before I count what is missing tomorrow, let me count what was actually on the table today.","Today's table was not empty.","Tonight, name out loud three things that were provided today. Do this again tomorrow — the practice is the repetition."]
     ]
+  },
+  jordan: {
+    id: "jordan",
+    group: "COURAGE STORIES",
+    name: "The River — Joshua 3–4",
+    short: "The River",
+    weeks: ["COURAGE STORY · THE RIVER · JOSHUA 3–4"],
+    days: [
+      ["At Flood Stage","Joshua 3:15","The Jordan overflows all its banks throughout the time of harvest.","They arrived at the crossing in the one season when the river was highest. The timing feels like a mistake, and it is worth noticing how often the thing you are asked to do arrives when conditions are at their worst.","God, the timing of this is terrible and I keep reading that as a sign I have it wrong. Give me the steadiness to look at the water honestly and still move toward it.","Bad timing is not the same as a closed door.","Write down what specifically makes this the wrong moment. Then ask whether any of it is actually within your control."],
+      ["Feet in the Water","Joshua 3:13","As soon as the soles of the feet of the priests rest in the waters of the Jordan, the waters will be cut off.","The river parted after they stepped in, not before. The order is the whole lesson: the evidence you are waiting for is on the far side of the move you are refusing to make.","Lord, I have been asking You to part this before I step. Give me the nerve to put a foot in while it is still deep, and meet me there.","The way opens after the step, not before it.","Take the step you have been holding until you felt sure. Today, not once conditions improve."],
+      ["Standing in the Middle","Joshua 3:17","The priests who bore the ark stood firm on dry ground in the middle of the Jordan, and all Israel crossed over on dry ground.","While everyone crossed, some people stood still in the riverbed and held the weight. Not every role in a rescue is dramatic — some of it is standing in an uncomfortable place long enough for other people to get across.","Father, give me the patience to hold my position while others get through. Keep me from resenting a part that nobody watches and everybody needs.","Holding steady for others is its own kind of crossing.","Name the person who is crossing on the strength of your steadiness. Do one thing that makes it easier for them today."],
+      ["Twelve Stones","Joshua 4:6–7","When your children ask, What do these stones mean to you? — then you shall tell them.","They carried stones out of the riverbed and stacked them, because they knew they would forget. Memory is not automatic; fear overwrites it fast, and a deliverance you cannot recall cannot steady you next time.","God, I have forgotten things You have already done. Help me mark this one so that the next frightened version of me has something solid to look at.","I will build something I can point at later.","Write down this crossing in plain detail — the date, what you feared, what happened. Put it where you will find it again."]
+    ]
+  },
+  torches: {
+    id: "torches",
+    group: "COURAGE STORIES",
+    name: "The Three Hundred — Judges 6–7",
+    short: "The Three Hundred",
+    weeks: ["COURAGE STORY · THE THREE HUNDRED · JUDGES 6–7"],
+    days: [
+      ["The Least in My Father's House","Judges 6:15","My family is the poorest in Manasseh, and I am the least in my father's house.","His first response was a résumé of reasons he was the wrong person. Fear of inadequacy is persuasive precisely because its facts are usually accurate — he really was the youngest of the smallest family.","God, everything I listed about why this should not be me is true, and You have not withdrawn the ask. Let me stop auditioning for it and simply begin.","Being the wrong person on paper has not disqualified me.","Write your honest list of why you are not the one. Then do the first small piece of it anyway."],
+      ["Called in the Winepress","Judges 6:11–12","Gideon was beating out wheat in the wine press, to hide it. The angel of the Lord said to him, The Lord is with you, you mighty man of valor.","He was hiding when he was called a mighty man of valor — which was either a joke or a description of something not yet visible. People are regularly named for who they are becoming rather than where they are standing.","Lord, I am being addressed as something I do not recognize. Let me receive it instead of arguing with it, and let me grow toward it slowly.","I can be called something I have not become yet.","Ask someone who knows you well what they see in you that you dismiss. Write down their words verbatim."],
+      ["Too Many","Judges 7:2","The people with you are too many for me to give the Midianites into their hand.","He started with thirty-two thousand and was told it was too many. Fear counts resources and concludes it cannot be done; the reduction to three hundred says the size was never the point.","Father, I keep asking for more before I will start — more money, more time, more certainty, more people. Show me what is actually sufficient and let me go with it.","I have been waiting for more than this requires.","Name the one resource you insist you need first. Plan today's next step without it."],
+      ["Torches Inside Jars","Judges 7:20","They broke the pitchers and held the torches in their left hands.","The light had been burning the whole time, hidden inside clay. Nothing was added at the decisive moment — something was broken, and what had been carried quietly finally showed.","God, I have spent a long time keeping the cracked parts covered. If what is inside is Yours, let it show through the break rather than in spite of it.","What I carry shows most clearly where I am broken.","Tell one person about a hard thing you came through — not the cleaned-up version. Let it be useful to them."]
+    ]
+  },
+  shipwreck: {
+    id: "shipwreck",
+    group: "COURAGE STORIES",
+    name: "The Shipwreck — Acts 27",
+    short: "The Shipwreck",
+    weeks: ["COURAGE STORY · THE SHIPWRECK · ACTS 27"],
+    days: [
+      ["Neither Sun Nor Stars","Acts 27:20","When neither sun nor stars appeared for many days and the storm continued raging, all hope of being saved was at last abandoned.","Fourteen days with no sky means no navigation and no sense of time passing. The hardest part of a long crisis is rarely the first night; it is the featureless middle, when you can no longer tell whether you are moving.","God, I have lost track of where I am in this. I cannot see anything to steer by. Hold the course I cannot see, and keep me from giving up in the middle.","Losing my bearings does not mean I am lost.","Mark today's date and one true sentence about where things stand. You are building the sky you cannot see."],
+      ["I Believe God","Acts 27:22–25","Keep up your courage, for there will be no loss of life among you. I believe God, that it will be exactly as I was told.","Paul was a prisoner on that ship with no authority over anyone, and he became the calmest person in the hold. In a crisis, one person's steadiness is a resource everybody else draws on.","Lord, make me the steady one in this room. Not falsely cheerful and not pretending — just steady enough that someone frightened can stand near me.","My steadiness is something other people can borrow.","Say one true, calm thing to someone who is frightened today. No forced optimism, no minimizing."],
+      ["Take Some Food","Acts 27:33–35","Today is the fourteenth day you have been in suspense and have gone without food. I urge you to take some food; you need it to survive. He took bread, gave thanks to God, and began to eat.","With the ship about to break up, the leadership move was a meal. Crisis convinces you that ordinary care is a luxury, and the opposite is true — eating, sleeping and resting are what make endurance possible.","Father, I have been running on nothing and calling it urgency. Return me to basic care. Let me eat, sleep, and keep going at a pace a body can survive.","Ordinary care is not a distraction from the crisis.","Do one physical thing you have been skipping: a real meal, water, an hour of sleep, a walk outside."],
+      ["On Broken Pieces","Acts 27:44","The rest were to get there on planks or on broken pieces of the ship. And so it was that everyone reached land safely.","Nobody arrived on the ship. They arrived on its wreckage, holding whatever floated, and the text calls that safe. Survival is allowed to look undignified, and coming through in pieces still counts as coming through.","God, I wanted to come through this intact and I am coming through it in pieces. Let me count that as rescue, and keep me from despising the way I got here.","Arriving on wreckage is still arriving.","Name one thing that got you through this season that you have been embarrassed about. Thank God for it instead."]
+    ]
+  },
+  barley: {
+    id: "barley",
+    group: "COURAGE STORIES",
+    name: "The Barley Field — Ruth 1–2",
+    short: "The Barley Field",
+    weeks: ["COURAGE STORY · THE BARLEY FIELD · RUTH 1–2"],
+    days: [
+      ["I Went Out Full","Ruth 1:21","I went out full, and the Lord has brought me home again empty.","Naomi came back to her hometown with less than she left with, and said so out loud without softening it. Starting over in front of people who remember your better years is its own specific fear.","God, I am back at a beginning I did not choose, and I am tired of explaining it. Let me say plainly what I have lost without letting the loss name me.","I can name what I lost without it becoming who I am.","Say or write the honest sentence about what this season has cost you. No silver lining attached to it."],
+      ["Where You Go","Ruth 1:16","Where you go, I will go; and where you stay, I will stay. Your people will be my people, and your God my God.","Ruth committed to someone at the exact moment it made no practical sense — two widows, no income, no prospects. The most consequential choices are often made by people with nothing to bargain with.","Lord, I have very little to offer anyone right now. Let me still choose someone, still show up, still commit — and let that be enough.","Having nothing does not disqualify me from showing up.","Make one commitment today that costs you something you do not really have to spare: time, presence, an honest conversation."],
+      ["She Happened Upon the Field","Ruth 2:3","She went and gleaned in the field after the harvesters, and she happened to come to the part of the field belonging to Boaz.","The text says she happened upon it, which is the storyteller's dry joke. What changed her circumstances arrived while she was doing unglamorous work she had no reason to believe would lead anywhere.","Father, I cannot see where today's ordinary effort leads, and I am tempted to stop. Keep me working the row in front of me and let You handle the coincidences.","Ordinary work is where most provision arrives.","Do the unremarkable task you have been skipping because it seems unlikely to matter."],
+      ["Handfuls on Purpose","Ruth 2:16","Pull out some stalks for her from the bundles and leave them for her to pick up, and do not rebuke her.","He arranged for extra grain to be dropped where she was working, and told his men not to shame her for gathering it. She still did the gathering — the help came in a form that left her dignity intact.","God, make me the kind of person who helps that way: quietly, without spectacle, leaving people their dignity. And give me the grace to receive help in that form too.","Help that protects dignity is the best kind to give and to take.","Help one person today in a way they will not have to thank you for publicly."]
+    ]
   }
 };
+
+// Plain-language entry points into the library: what a person would actually
+// say about their fear, mapped to the track that meets it. Rendered by the
+// "Where are you right now?" picker; order is the order shown.
+const fearIndex = [
+  ["I'm panicking right now", "storm"],
+  ["I can't sleep — the fear comes at night", "night"],
+  ["I don't know what's coming and I can't stop imagining it", "unknown"],
+  ["I'm facing something far bigger than me", "giant"],
+  ["The outcome is out of my hands", "furnace"],
+  ["I have a court date, or I've been accused", "den"],
+  ["I feel completely outnumbered", "unseen"],
+  ["I have to say something hard, and it could cost me", "throne"],
+  ["People are mocking or opposing what I'm building", "wall"],
+  ["I started something and I'm afraid I can't finish", "water"],
+  ["I'm afraid for my child", "basket"],
+  ["I've been praying for the same thing for years", "shiloh"],
+  ["I've had frightening news about my health", "turning"],
+  ["I've been unwell a long time and I'm worn out", "hem"],
+  ["I don't know how I'm going to pay for it", "zarephath"],
+  ["I'm about to step into something new", "jordan"],
+  ["I don't feel like the right person for this", "torches"],
+  ["I'm in the middle of a crisis I didn't choose", "shipwreck"],
+  ["I'm starting over with nothing", "barley"],
+  ["I want the full thirty-day journey", "core"]
+];
 
 // Recorded narration files that exist under audio/. Keys for days are
 // "<trackId>-<dayIndex>"; SOS entries are indexed by sosSets order.
@@ -265,4 +343,4 @@ const recordedAudio = {
   sos: []
 };
 
-if (typeof module !== "undefined" && module.exports) module.exports = { themes, weeks, tracks, recordedAudio };
+if (typeof module !== "undefined" && module.exports) module.exports = { themes, weeks, tracks, fearIndex, recordedAudio };

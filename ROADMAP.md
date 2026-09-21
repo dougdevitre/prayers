@@ -107,7 +107,9 @@ A calm, permanent line in settings and SOS: educational/spiritual support framin
 ### SEO day pages
 Pre-render each day and track as a real static page (`/day/8-fear`, `/track/night-fear`) with proper titles and meta. Currently the SPA's hash routes are invisible to search — this unlocks the long-tail acquisition channel at zero cost.
 
-**ASSUMPTION:** current scripture excerpts read as NIV. Before any commercial or store release, either license NIV or swap excerpts to public-domain KJV/WEB. Phase 1 should add a translation layer to the content JSON so this is a data change, not a code change.
+**RESOLVED.** The 30-day journey, both fear tracks and the four SOS sets read as NIV and were unlicensed. All 44 excerpts now come from the public-domain World English Bible, and `npm run verify:scripture` fails CI if any drifts back — checked against a committed 20 KB fixture of the WEB text for every reference the app cites. Reintroducing an NIV line fails the check, which was confirmed rather than assumed.
+
+Still open, and a labelling question rather than a licensing one: 56 of the 68 courage-story excerpts are condensed from the WEB rather than quoted from it — clauses dropped to fit a card, and in a few places wording from outside the WEB (Mark 4:38 reads "perishing" where the WEB has "dying"). The text is public domain either way, so nothing is at risk; but they are described in the app as scripture excerpts and they are closer to paraphrase. Converting them to true WEB substrings is the same exercise as the 44, just longer.
 
 ## Phase 2 — Sound (v1.5, ~4–6 weeks)
 
@@ -182,7 +184,7 @@ If that ever needs to change, the constraint comes first and the pricing second:
 
 - Educational/spiritual framing throughout; no claims to treat, cure, or replace care for anxiety disorders — in-app and in all marketing copy ("supports your practice," never "treats anxiety").
 - Crisis resources surfaced calmly and persistently (988, Crisis Text Line), especially inside SOS.
-- Scripture licensing resolved before commercial release (see Phase 1 assumption).
+- Scripture licensing resolved (see Phase 1): everything quoted is public-domain WEB, gated in CI. The remaining item is honest labelling of the condensed courage-story excerpts, not a licence.
 - Accessibility as a feature: the current a11y baseline (ARIA states, focus styles, reduced-motion) is table stakes for an audience that includes people in distress.
 
 ## Edge cases to hold the line on
@@ -232,4 +234,4 @@ Each phase ships behind the same discipline as v1.0–v1.2: small validated comm
 
 ---
 
-**ASSUMPTIONS (labeled):** solo developer or very small team; ~zero infra budget until Phase 3; English-first with translations later; the fear/anxiety focus is the intended brand direction rather than general devotionals; NIV-style excerpts in current content are unlicensed and must be resolved before commercial release.
+**ASSUMPTIONS (labeled):** solo developer or very small team; ~zero infra budget until Phase 3; English-first with translations later; the fear/anxiety focus is the intended brand direction rather than general devotionals; scripture is now public-domain WEB throughout, verified in CI.

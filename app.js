@@ -278,16 +278,16 @@ $("sleepTimer").onchange = () => {
 
 // Verses reuse the day excerpts already in `themes`, keeping one translation surface.
 const sosSets = [
-  { ref: "Psalm 27:1", verse: "The Lord is my light and my salvation—whom shall I fear?",
+  { ref: "Psalm 27:1", verse: "The LORD is my light and my salvation. Whom shall I fear?",
     prayer: "Lord, bring me back to this moment. Slow my heart, steady my breath, and stand with me here. I hand You what I cannot control.",
     declaration: "Fear may speak, but it does not get the final word." },
-  { ref: "Joshua 1:9", verse: "Be strong and courageous. Do not be afraid.",
+  { ref: "Joshua 1:9", verse: "Be strong and courageous. Don’t be afraid. Don’t be dismayed, for the LORD your God is with you wherever you go.",
     prayer: "God, give me courage for the next few minutes—nothing more is asked of me right now. Be near, and steady my steps.",
     declaration: "I can be afraid and still be faithful." },
-  { ref: "Matthew 6:34", verse: "Do not worry about tomorrow, for tomorrow will worry about itself.",
+  { ref: "Matthew 6:34", verse: "Don’t be anxious for tomorrow, for tomorrow will be anxious for itself.",
     prayer: "Father, I release the futures my fear keeps writing. Keep me in today, in this breath, in Your hands.",
     declaration: "I am responsible for faithfulness, not control of every outcome." },
-  { ref: "Psalm 42:11", verse: "Put your hope in God, for I will yet praise him.",
+  { ref: "Psalm 42:11", verse: "Hope in God! For I shall still praise him.",
     prayer: "God, when my feelings shout in absolutes, remind me this moment is not the whole story. Give me hope enough for one step.",
     declaration: "I do not need all the hope—only enough for the next step." }
 ];

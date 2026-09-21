@@ -85,9 +85,11 @@ Side by side shipped. “Show both languages” renders each line with its trans
 Next on this thread: recorded narration for the traditional prayers in both languages via the same generator REMAM uses — the pacing metadata is already generator-ready and validated, so this needs an ElevenLabs key and an S3 bucket rather than more code. And, if the composer proves useful, an SOS variant that composes rather than reads a fixed script.
 
 ### Landing page (shipped)
-`/about` — a hand-written static page (not generated) covering what Stand does and what it costs, built from the same stylesheet and the same components as the app and the day pages, so the marketing surface and the product read as one thing. It is in the sitemap and linked from the library.
+`/about` — a hand-written static page describing what Stand does, built from the same stylesheet and the same components as the app and the day pages, so the marketing surface and the product read as one thing. It is in the sitemap, and `/fears` carries the same nav and footer.
 
-Plans are presented honestly rather than aspirationally: Free is marked available and lists what ships today; Supporter and Churches & groups are marked planned, quote no price, and carry no purchase flow, because neither exists yet. The page states the commitment from this roadmap — SOS is free in every tier, permanently. When pricing is decided, the page is where it lands.
+A call to action appears in three places: the hero (open the app, plus a direct "Steady me now"), the nav, and the footer. The nav pairs an always-visible primary action with a `<details>` disclosure menu for everything else — chosen over a scripted dropdown so the static pages stay script-free under the strict CSP, and so the open state is announced natively rather than needing `aria-expanded` bookkeeping.
+
+No pricing. The page states plainly that Stand is free with no account, and says nothing about tiers or future paid options. If that changes, this page is where it lands.
 
 ### Verse cards
 Share a day as a beautiful generated image (Canvas API) — the app's typography and palette, verse + reference. Images travel where links don't; this is the organic growth loop.

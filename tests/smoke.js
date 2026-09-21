@@ -11,6 +11,8 @@ catch { ({ chromium } = require("playwright-core")); }
 
 const launchOptions = process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {};
 const ROOT = path.join(__dirname, "..");
+const { tracks } = require("../content.js");
+const TRACK_COUNT = Object.keys(tracks).length;
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".webmanifest": "application/manifest+json" };
 
 const server = http.createServer((req, res) => {
@@ -45,7 +47,7 @@ const server = http.createServer((req, res) => {
 
   // first-visit welcome with path choice
   check("welcome shows on first visit", await page.evaluate(() => document.getElementById("welcomeDialog").open));
-  check("welcome offers 3 paths", (await page.$$(".path-button")).length === 3);
+  check("welcome offers 4 paths", (await page.$$(".path-button")).length === 4);
   await page.click("#beginButton");
   check("welcome closes on Begin", !(await page.evaluate(() => document.getElementById("welcomeDialog").open)));
   check("install hint hidden on desktop", await page.evaluate(() => document.getElementById("installHint").hidden));
@@ -116,7 +118,7 @@ const server = http.createServer((req, res) => {
 
   // tracks: switch to Fear of the Unknown, verify isolation, switch back
   await page.click("#libraryButton");
-  check("track picker shows 3 journeys", (await page.$$(".track-chip")).length === 3);
+  check("track picker lists every journey", (await page.$$(".track-chip")).length === TRACK_COUNT);
   await page.click(".track-chip:nth-child(2)");
   check("track day 1 title", (await page.textContent("#dayTitle")) === "The Unwritten Page");
   check("track length is 5", (await page.textContent("#progressLabel")) === "Day 1 of 5");
@@ -196,6 +198,10 @@ const server = http.createServer((req, res) => {
   check("track SEO page links into app", await page.isVisible('a[href="/?track=night#1"]'));
   await page.goto("http://localhost:8123/?track=unknown#2", { waitUntil: "networkidle" });
   check("?track deep link switches journey", (await page.textContent("#dayTitle")) === "Daily Bread");
+  await page.goto("http://localhost:8123/?track=furnace#2", { waitUntil: "networkidle" });
+  check("courage story deep link", (await page.textContent("#dayTitle")) === "Even If");
+  check("courage story week label", (await page.textContent("#weekLabel")).includes("COURAGE STORY"));
+  check("courage story length is 4", (await page.textContent("#progressLabel")) === "Day 2 of 4");
   await page.goto("http://localhost:8123/?track=core#1", { waitUntil: "networkidle" });
 
   // daily reminder ICS

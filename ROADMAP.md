@@ -51,6 +51,11 @@ Optional 1-tap check-in before and after each day and each SOS: "Where is your f
 ### Fear-specific tracks
 Beyond the core 30 days: short 5–7 day tracks — Fear of the Unknown, Night Fear & Sleep, Health Fears, Financial Fear, Conflict & Court, Fear for Your Children. Requires refactoring content from `app.js` into JSON track files (also the prerequisite for translations and SEO pages).
 
+### Courage stories (shipped: five modules)
+Narrative tracks that teach courage through one heroic account rather than one topic. Each is four days following the same beats — the fear, the choice, the outcome, the carry-forward — with a concrete exercise per day: The Furnace (Daniel 3, outcome anxiety), The Giant (1 Samuel 17, an overwhelming problem), The Den (Daniel 6, accusation and unjust process), The Storm (Mark 4, panic — pairs with SOS), The Unseen Army (2 Kings 6, feeling outnumbered, night fear).
+
+Next candidates, one story per remaining fear type: Esther before the king (speaking up at cost), Nehemiah rebuilding under threat (working through opposition), Peter on the water (fear mid-attempt), Jochebed's basket and Hannah at Shiloh (fear for your children), Hezekiah's illness and the woman in the crowd (health fears), Elijah and the widow of Zarephath (financial fear). All are pure `content.js` additions — no code changes.
+
 ### Verse cards
 Share a day as a beautiful generated image (Canvas API) — the app's typography and palette, verse + reference. Images travel where links don't; this is the organic growth loop.
 

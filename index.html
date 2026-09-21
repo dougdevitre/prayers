@@ -1,216 +1,196 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="theme-auto">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#132a3a" />
-  <meta name="description" content="A 30-day audio-ready prayer journey from fear to faith, confusion to truth, and conflict to peace." />
-  <meta property="og:title" content="Stand — 30 Days of Spiritual Combat" />
-  <meta property="og:description" content="A 30-day audio-ready prayer journey from fear to faith, confusion to truth, and conflict to peace." />
+  <meta name="description" content="Stand is a prayer companion for fear: a 90-second guided rescue when fear spikes, twenty guided journeys, and a prayer composer in English and Spanish. Free, no account, works offline." />
+  <meta property="og:title" content="Stand — a prayer companion for fear" />
+  <meta property="og:description" content="A 90-second guided rescue when fear spikes, twenty guided journeys, and a prayer composer in English and Spanish. Free, no account, works offline." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://prayers.dougdevitre.org/" />
   <meta property="og:image" content="https://prayers.dougdevitre.org/og-card.png" />
   <meta property="og:site_name" content="Stand" />
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="canonical" href="https://prayers.dougdevitre.org/" />
-  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23132a3a'/%3E%3Cpath d='M32 11v42M18 24h28' stroke='%23f1c879' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E" />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <link rel="stylesheet" href="styles.css" />
-  <title>Stand — 30 Days of Spiritual Combat</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <title>Stand — a prayer companion for fear</title>
+  <script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://prayers.dougdevitre.org/#website",
+        "url": "https://prayers.dougdevitre.org/",
+        "name": "Stand",
+        "description": "A prayer companion for fear.",
+        "inLanguage": [
+          "en",
+          "es"
+        ]
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://prayers.dougdevitre.org/#app",
+        "name": "Stand",
+        "url": "https://prayers.dougdevitre.org/app",
+        "applicationCategory": "LifestyleApplication",
+        "operatingSystem": "Any (progressive web app)",
+        "description": "A prayer companion for fear: a ninety-second guided rescue when fear spikes, twenty guided journeys, and a prayer composer in English and Spanish. Works offline, with no account.",
+        "inLanguage": [
+          "en",
+          "es"
+        ],
+        "isAccessibleForFree": true,
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
-  <noscript><p class="noscript-note">Stand needs JavaScript to play audio, save notes, and track your journey. Please enable JavaScript and reload.</p></noscript>
   <div class="app-shell">
     <header class="topbar">
-      <a class="brand" href="#" aria-label="Stand home"><span class="brand-mark">✦</span><span>STAND</span></a>
-      <div class="top-actions">
-        <button class="icon-button" id="themeButton" aria-label="Toggle dark mode">◐</button>
-        <button class="icon-button" id="journalButton" aria-label="Open my reflections journal">✎</button>
-        <button class="icon-button" id="prayerButton" aria-label="Open the prayer composer">✛</button>
-        <button class="icon-button" id="libraryButton" aria-label="Open the 30-day library">☰</button>
-      </div>
+      <a class="brand" href="/" aria-label="Stand home"><span class="brand-mark">✦</span><span>STAND</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="nav-cta" href="/app">Open the app</a>
+        <details class="nav-menu">
+          <summary>Menu</summary>
+          <ul>
+            <li><a href="/app">Open the app</a></li>
+            <li><a href="/app?sos=1">Steady me now</a></li>
+            <li><a href="/fears">Start from a fear</a></li>
+            <li><a href="/day/01-stand">Begin at day one</a></li>
+            <li><a href="#see">What it looks like</a></li>
+            <li><a href="#inside">What's inside</a></li>
+            <li><a href="#privacy">How it works</a></li>
+          </ul>
+        </details>
+      </nav>
     </header>
 
     <main>
-      <section class="progress-wrap" aria-label="Journey progress">
-        <div class="progress-copy"><span id="progressLabel">Day 1 of 30</span><span id="progressPercent">0% complete</span></div>
-        <div class="progress-track"><span id="progressBar"></span></div>
+      <section class="landing-hero">
+        <p class="eyebrow">A PRAYER COMPANION FOR FEAR</p>
+        <h1>Steady, when fear will not sit still.</h1>
+        <p class="landing-lead">At 3 a.m., before the hearing, in the waiting room — Stand is one tap from a guided moment that slows your breathing and returns you to what is true. Then it becomes the daily practice that makes you harder to shake.</p>
+        <div class="hero-actions">
+          <a class="complete-button" href="/app">Open the app</a>
+          <a class="complete-button hero-secondary" href="/app?sos=1">Steady me now</a>
+        </div>
+        <p class="landing-fineprint">Free. No account. Works offline, and nothing leaves your device.</p>
       </section>
 
-      <article class="devotional" id="devotional">
-        <p class="eyebrow" id="weekLabel">WEEK ONE · ESTABLISH THE GROUND</p>
-        <div class="title-row">
-          <div><p class="day-number" id="dayNumber">DAY 01</p><h1 id="dayTitle">Stand</h1></div>
-          <div class="title-actions">
-            <button class="favorite-button share-button" id="shareButton" aria-label="Share this day">↗</button>
-            <button class="favorite-button" id="favoriteButton" aria-label="Save this day to favorites" aria-pressed="false">♡</button>
+      <section class="landing-section">
+        <p class="section-kicker">WHEN FEAR SPIKES</p>
+        <h2>Ninety seconds, always one tap away</h2>
+        <p>A breathing pacer, one anchoring verse, a short spoken prayer, a declaration. It ends by asking whether you are steadier, and chains another round if you are not.</p>
+        <p>It works with no signal, no voices installed, and storage blocked — it degrades to text and a breathing animation, never to a blank screen. Crisis-support resources stay visible throughout.</p>
+        <a class="complete-button" href="/app?sos=1">Try it now</a>
+      </section>
+
+      <section class="landing-section" id="see">
+        <p class="section-kicker">WHAT IT LOOKS LIKE</p>
+        <h2>The actual screens</h2>
+        <p>Not mockups — these are captures of the running app, regenerated from it, so they cannot promise something it does not do.</p>
+        <div class="shot-grid">
+          <figure class="shot">
+            <picture>
+              <source srcset="/shots/sos-dark.png" media="(prefers-color-scheme: dark)" />
+              <img src="/shots/sos.png" width="549" height="687" loading="lazy" decoding="async"
+                   alt="The SOS screen: a gold breathing circle reading &quot;Breathe in...&quot;, the text &quot;3 slow breaths to go&quot;, a Continue button, and a link reading &quot;Fear feels unmanageable? Get support&quot;." />
+            </picture>
+            <figcaption>The ninety-second rescue. Crisis support stays on screen throughout.</figcaption>
+          </figure>
+          <figure class="shot">
+            <picture>
+              <source srcset="/shots/day-dark.png" media="(prefers-color-scheme: dark)" />
+              <img src="/shots/day.png" width="585" height="1266" loading="lazy" decoding="async"
+                   alt="Day 1 of the journey, titled Stand, with Ephesians 6:10-13, a guided prayer player of about three minutes with speed, repeat and sleep-timer controls, and a Steady me now button always in reach." />
+            </picture>
+            <figcaption>A day of the journey, with narration you can slow down, repeat, or sleep to.</figcaption>
+          </figure>
+          <figure class="shot">
+            <picture>
+              <source srcset="/shots/composer-dark.png" media="(prefers-color-scheme: dark)" />
+              <img src="/shots/composer.png" width="528" height="1116" loading="lazy" decoding="async"
+                   alt="The prayer composer showing a composed prayer titled &quot;Prayer — In fear&quot;, with Another prayer, Listen and Copy actions, and a note that 54 prayers can be composed from this corpus for this intention." />
+            </picture>
+            <figcaption>A prayer composed for the moment — from a written corpus, not generated as you read.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="landing-section" id="inside">
+        <p class="section-kicker">WHAT'S INSIDE</p>
+        <h2>What Stand does</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h3>Twenty guided journeys</h3>
+            <p>The 30-day journey through the armour of Ephesians; focused tracks for fear of the unknown and fear at night; and seventeen four-day courage stories, each built on one biblical account — the furnace, the giant, the den, the storm, the shipwreck.</p>
+          </div>
+          <div class="feature-card">
+            <h3>Start from the fear itself</h3>
+            <p>Say it plainly — "I have a court date", "I'm afraid for my child", "I don't know how I'm going to pay for it" — and Stand opens the journey that meets it, at the first day you have not finished. <a href="/fears">Browse them all</a>.</p>
+          </div>
+          <div class="feature-card">
+            <h3>A prayer, composed for the moment</h3>
+            <p>Choose a kind and an intention and Stand composes a whole prayer from a reviewed corpus, with room to name a personal intention. Nothing is generated at the moment of use: every line it can say is written down and reviewable.</p>
+          </div>
+          <div class="feature-card">
+            <h3>English and Spanish</h3>
+            <p>Every prayer and every label carries both languages, and the same prayer can be shown in both at once, the way a bilingual prayer book sets them. The traditional prayers are grouped and named, including those that are specifically Roman Catholic devotions.</p>
+          </div>
+          <div class="feature-card">
+            <h3>Read aloud, at your pace</h3>
+            <p>Every day and every prayer can be spoken, with adjustable speed, a repeat mode, and a 5–30 minute sleep timer for night-time listening. Prayers pause where their own pacing says to, so you can pray along rather than just listen.</p>
+          </div>
+          <div class="feature-card">
+            <h3>Your own evidence</h3>
+            <p>A one-tap check-in before and after — "where is your fear right now?" — builds a quiet ledger over time, so you can see your own average drop after prayer rather than take anyone's word for it.</p>
+          </div>
+          <div class="feature-card">
+            <h3>A private journal</h3>
+            <p>Notes on any day, gathered in one place you can read back and download as a text file. Favourites, completed days, and a streak that survives switching between journeys.</p>
+          </div>
+          <div class="feature-card">
+            <h3>Yours to keep</h3>
+            <p>Back everything up as a file and restore it on another device, or erase all of it in one action. No account, no sign-up, no analytics following you around.</p>
           </div>
         </div>
+      </section>
 
-        <blockquote class="scripture">
-          <p id="scriptureText"></p>
-          <cite id="scriptureRef"></cite>
-        </blockquote>
+      <section class="landing-section" id="privacy">
+        <p class="section-kicker">HOW IT WORKS</p>
+        <h2>Privacy, plainly</h2>
+        <p>Stand has no account and no server to sign in to. Your notes, your progress, your check-ins and your prayers stay in your own browser's storage, on your own device. There is nothing for anyone to read, because none of it is sent anywhere.</p>
+        <p>That is also why backup is a file you download and keep, rather than a cloud someone else holds. The devotional content is reviewable in the open too: the prayer corpus is a plain data file, and prayers are composed from it rather than generated, so what the app can say is knowable in advance.</p>
+        <p class="landing-fineprint">Stand supports spiritual practice. It is not treatment for an anxiety disorder, and it points to real help when fear feels unmanageable.</p>
+      </section>
 
-        <div class="audio-card">
-          <button class="play-button" id="playButton" aria-label="Play daily prayer"><span id="playIcon">▶</span></button>
-          <div class="audio-main">
-            <div class="audio-labels"><strong>Guided prayer</strong><span id="audioTime">About 3 minutes</span></div>
-            <div class="audio-track"><span id="audioProgress"></span></div>
-          </div>
-          <div class="audio-extras">
-            <select id="voiceRate" aria-label="Narration speed"><option value="0.85">0.85×</option><option value="1" selected>1×</option><option value="1.15">1.15×</option></select>
-            <button class="repeat-button" id="repeatButton" aria-label="Repeat this prayer until stopped" aria-pressed="false">⟳</button>
-            <select id="sleepTimer" aria-label="Sleep timer"><option value="0">No timer</option><option value="5">5 min</option><option value="10">10 min</option><option value="15">15 min</option><option value="30">30 min</option></select>
-          </div>
-        </div>
-
-        <section class="content-section">
-          <h2>Reflection</h2>
-          <p id="reflection"></p>
-        </section>
-
-        <section class="prayer-panel">
-          <p class="section-kicker">PRAY</p>
-          <p id="prayer"></p>
-          <p class="amen">Amen.</p>
-        </section>
-
-        <section class="declaration-panel">
-          <p class="section-kicker">DECLARE</p>
-          <p id="declaration"></p>
-        </section>
-
-        <section class="action-panel">
-          <div class="action-icon">→</div><div><p class="section-kicker">TODAY'S PRACTICE</p><p id="action"></p></div>
-        </section>
-
-        <section class="checkin-section">
-          <p class="section-kicker">FEAR CHECK-IN</p>
-          <p class="checkin-question">Where is your fear right now?</p>
-          <div class="checkin-scale" id="dayCheckin" role="group" aria-label="Fear level, 1 calm to 5 overwhelming">
-            <button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button>
-          </div>
-          <p class="checkin-note" id="checkinNote" aria-live="polite">1 = calm · 5 = overwhelming</p>
-        </section>
-
-        <section class="notes-section">
-          <label for="notes">My reflection</label>
-          <textarea id="notes" rows="4" placeholder="What is God showing me today?"></textarea>
-          <p class="save-status" id="saveStatus" aria-live="polite">Saved on this device</p>
-        </section>
-
-        <button class="complete-button" id="completeButton">Mark day complete</button>
-        <nav class="day-nav" aria-label="Day navigation"><button id="prevButton">← Previous</button><button id="nextButton">Next →</button></nav>
-      </article>
+      <section class="landing-section landing-close">
+        <h2>Start where you are.</h2>
+        <p>You do not have to begin at day one, and you do not have to know which journey you need. Open the app, say what you are afraid of, and it will take you to the right place.</p>
+        <a class="complete-button" href="/app">Open Stand</a>
+      </section>
     </main>
+
+    <footer class="landing-footer">
+      <a class="complete-button" href="/app">Open the app</a>
+      <p class="footer-links">
+        <a href="/app?sos=1">Steady me now</a> ·
+        <a href="/fears">Start from a fear</a> ·
+        <a href="/day/01-stand">Begin at day one</a> ·
+        <a href="/track/furnace/01-the-decree">A courage story</a>
+      </p>
+      <p>Free, and private by default.</p>
+    </footer>
   </div>
-
-  <dialog id="libraryDialog">
-    <div class="dialog-header"><div><p class="eyebrow">YOUR JOURNEYS</p><h2>Choose your path</h2></div><button class="icon-button" id="closeLibrary" aria-label="Close library">×</button></div>
-    <div class="fear-finder">
-      <label for="fearFinder">Where are you right now?</label>
-      <select id="fearFinder"><option value="">Choose what fits…</option></select>
-    </div>
-    <div class="track-picker" id="trackPicker" aria-label="Choose a journey"></div>
-    <div class="filter-tabs" aria-label="Filter days">
-      <button class="filter-tab active" data-filter="all">All</button>
-      <button class="filter-tab" data-filter="favorites">Favorites</button>
-      <button class="filter-tab" data-filter="completed">Completed</button>
-    </div>
-    <div class="day-grid" id="dayGrid"></div>
-    <div class="reminder-row">
-      <label for="reminderTime">Daily reminder</label>
-      <input type="time" id="reminderTime" value="07:00" />
-      <button class="text-button" id="reminderButton">Add to my calendar</button>
-    </div>
-    <p class="library-about"><a class="text-button" href="/fears">Start from a fear</a> · <a class="text-button" href="/about">What Stand does</a></p>
-  </dialog>
-
-  <dialog id="prayerDialog">
-    <div class="dialog-header"><div><p class="eyebrow" id="prayerEyebrow">PRAY</p><h2 id="prayerHeading">Compose a prayer</h2></div><button class="icon-button" id="closePrayer" aria-label="Close prayer composer">×</button></div>
-    <div class="prayer-controls">
-      <div><label for="prayerLang" id="prayerLangLabel">Language</label><select id="prayerLang"></select></div>
-      <div><label for="prayerMode" id="prayerModeLabel">Kind</label><select id="prayerMode"></select></div>
-      <div><label for="prayerIntention" id="prayerIntentionLabel">Intention</label><select id="prayerIntention"></select></div>
-      <div><label for="prayerLength" id="prayerLengthLabel">Length</label><select id="prayerLength"></select></div>
-      <div><label for="prayerClosing" id="prayerClosingLabel">Closing</label><select id="prayerClosing"></select></div>
-      <div class="prayer-both"><label for="prayerBoth"><input type="checkbox" id="prayerBoth" /> <span id="prayerBothLabel">Show both languages</span></label></div>
-    </div>
-    <div class="prayer-petition">
-      <label for="prayerPetition" id="prayerPetitionLabel">A personal intention (optional — it stays on your device)</label>
-      <input type="text" id="prayerPetition" maxlength="200" />
-    </div>
-    <div class="prayer-card" id="prayerCard" aria-live="polite"></div>
-    <div class="prayer-actions">
-      <button class="text-button" id="prayerAnother">Another prayer</button>
-      <button class="text-button" id="prayerListen">▶ Listen</button>
-      <button class="text-button" id="prayerCopy">Copy</button>
-    </div>
-    <p class="prayer-meta" id="prayerMeta"></p>
-    <div class="traditional-list" id="traditionalList"></div>
-    <div class="prayer-card" id="traditionalCard" aria-live="polite" hidden></div>
-  </dialog>
-
-  <dialog id="journalDialog">
-    <div class="dialog-header"><div><p class="eyebrow">MY REFLECTIONS</p><h2>Journal</h2></div><button class="icon-button" id="closeJournal" aria-label="Close journal">×</button></div>
-    <div class="ledger" id="ledger"></div>
-    <div id="journalList"></div>
-    <button class="complete-button" id="exportButton">Download my reflections (.txt)</button>
-    <div class="data-actions">
-      <button class="text-button" id="backupButton">Back up all data (.json)</button>
-      <label class="text-button" for="restoreInput">Restore from backup<input type="file" id="restoreInput" accept="application/json,.json" hidden /></label>
-      <button class="text-button danger" id="eraseButton">Erase all data</button>
-    </div>
-  </dialog>
-
-  <dialog id="welcomeDialog">
-    <p class="eyebrow">WELCOME</p>
-    <h2>Thirty days to stand</h2>
-    <p>Each day pairs Scripture with a short reflection, a guided prayer you can listen to, a declaration to speak, and one small practice.</p>
-    <ul class="welcome-list">
-      <li>Press ▶ to hear the guided prayer, or read at your own pace.</li>
-      <li>Save favorites with ♡ and keep private notes with ✎ — everything stays on your device.</li>
-      <li>Mark each day complete to track progress and build a daily streak.</li>
-    </ul>
-    <p class="section-kicker">WHERE WOULD YOU LIKE TO BEGIN?</p>
-    <div class="welcome-paths">
-      <button class="path-button" id="beginButton" data-track="core"><strong>The 30-day journey</strong><small>The full path from fear to faith</small></button>
-      <button class="path-button" data-track="unknown"><strong>Fear of the unknown</strong><small>A focused five-day track</small></button>
-      <button class="path-button" data-track="night"><strong>Fear at night</strong><small>Five days toward rest</small></button>
-      <button class="path-button" data-track="giant"><strong>A courage story</strong><small>Four days in one heroic account</small></button>
-    </div>
-  </dialog>
-
-  <div class="install-hint" id="installHint" hidden>
-    <p>Keep Stand one tap away: in Safari, tap <strong>Share</strong> → <strong>Add to Home Screen</strong>.</p>
-    <button class="icon-button" id="dismissHint" aria-label="Dismiss install tip">×</button>
-  </div>
-
-  <button class="sos-button" id="sosButton">Steady me now</button>
-
-  <dialog id="sosDialog" class="sos-dialog">
-    <button class="icon-button sos-close" id="closeSos" aria-label="Close">×</button>
-    <div class="sos-stage" id="sosStage"></div>
-    <div class="sos-footer">
-      <button class="text-button" id="sosSupport" aria-expanded="false">Fear feels unmanageable? Get support</button>
-      <div class="sos-resources" id="sosResources" hidden>
-        <p>If fear feels bigger than you can carry right now, you don't have to carry it alone:</p>
-        <ul>
-          <li><strong>988</strong> — Suicide &amp; Crisis Lifeline (call or text, 24/7)</li>
-          <li>Text <strong>HOME</strong> to <strong>741741</strong> — Crisis Text Line</li>
-          <li><strong>911</strong> — if you are in immediate physical danger</li>
-        </ul>
-        <p>Stand offers spiritual encouragement. It isn't medical or crisis care, and reaching out for more help is its own act of courage.</p>
-      </div>
-    </div>
-  </dialog>
-  <script src="content.js"></script>
-  <script src="prayers.js"></script>
-  <script src="compose.js"></script>
-  <script src="logic.js"></script>
-  <script src="app.js"></script>
 </body>
 </html>

@@ -57,7 +57,7 @@ const url = p => `http://localhost:${PORT}${p}`;
   // still covering the screen.
   const freshPage = async scheme => {
     const p = await browser.newPage({ viewport: VIEWPORT, deviceScaleFactor: 1.5, colorScheme: scheme });
-    await p.goto(url("/"), { waitUntil: "networkidle" });
+    await p.goto(url("/app"), { waitUntil: "networkidle" });
     // Dismiss the first-run welcome so captures show the app in use.
     if (await p.evaluate(() => Boolean(document.getElementById("welcomeDialog")?.open))) {
       await p.click("#beginButton");

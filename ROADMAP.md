@@ -163,7 +163,9 @@ DELETE /api/me                   full account + data deletion
 
 ## Sustainability
 
-Free forever: the 30-day journey, SOS mode, device narration, notes, backup. Paid (later): recorded-audio packs, additional tracks, church/group licensing. Never paywall a person in the middle of fear — SOS is free in every tier, permanently.
+Stand is free, with no account and no tiers, and the landing page says so plainly. There is no paid plan, no trial, and nothing held back — every journey, SOS mode, narration, notes and backup are simply part of the app.
+
+If that ever needs to change, the constraint comes first and the pricing second: never paywall a person in the middle of fear. SOS stays free unconditionally, whatever else does not. The likeliest candidates that would not violate that are recorded-audio packs and church/group licensing (see Phase 4) — a B2B channel that charges an institution rather than an anxious person at 3 a.m. Until such a decision is actually made, no surface in the app, the landing page, or this document should imply that tiers exist.
 
 ## Security & privacy commitments
 

@@ -377,6 +377,9 @@ const server = http.createServer((req, res) => {
   await page.click("#libraryButton");
   check("app links to the landing page", await page.isVisible('.library-about a[href="/about"]'));
   check("app links to the fear index", await page.isVisible('.library-about a[href="/fears"]'));
+  // The library link used to read "Features and plans". There are no plans, so
+  // it must not promise any — in the app or on the page it opens.
+  check("app promises no plans", !/plans|pricing|per month|subscription/i.test(await page.textContent(".library-about")));
   await page.click("#closeLibrary");
 
   check("no page errors (incl. CSP violations)", errors.length === 0);

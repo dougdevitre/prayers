@@ -329,6 +329,10 @@ const server = http.createServer((req, res) => {
   check("landing states the never-paywall commitment", (await page.textContent(".landing-section .declaration-panel")).includes("free in every tier"));
   check("landing names the Roman Catholic prayers", (await page.textContent(".feature-grid")).includes("Roman Catholic"));
   check("landing links into the app", await page.isVisible('a.complete-button[href="/"]'));
+  check("landing heading levels do not skip", await page.evaluate(() => {
+    const levels = [...document.querySelectorAll("h1,h2,h3,h4,h5,h6")].map(h => Number(h.tagName[1]));
+    return !levels.some((l, i) => i > 0 && l - levels[i - 1] > 1);
+  }));
   const landingScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   check("landing has no horizontal scroll", !landingScroll);
   // fear index: the finder's phrases as a crawlable page
@@ -339,6 +343,13 @@ const server = http.createServer((req, res) => {
   check("fear index offers SOS for the rest", await page.isVisible('a[href="/?sos=1"]'));
   const fearNoScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   check("fear index has no horizontal scroll", !fearNoScroll);
+  // Heading levels must not skip: an h1 followed by card h3s reads as a broken
+  // outline to a screen reader, which is what axe flagged here.
+  const headingsSkip = async () => page.evaluate(() => {
+    const levels = [...document.querySelectorAll("h1,h2,h3,h4,h5,h6")].map(h => Number(h.tagName[1]));
+    return levels.some((l, i) => i > 0 && l - levels[i - 1] > 1);
+  });
+  check("fear index heading levels do not skip", !(await headingsSkip()));
   // every generated link must resolve, or the page quietly sends people to 404s
   const hrefs = await page.$$eval(".feature-card h3 a", els => els.map(e => e.getAttribute("href")));
   let broken = 0;

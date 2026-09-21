@@ -122,19 +122,21 @@
       <input type="time" id="reminderTime" value="07:00" />
       <button class="text-button" id="reminderButton">Add to my calendar</button>
     </div>
+    <p class="library-about"><a class="text-button" href="/about">Features and plans</a></p>
   </dialog>
 
   <dialog id="prayerDialog">
-    <div class="dialog-header"><div><p class="eyebrow">PRAY</p><h2>Compose a prayer</h2></div><button class="icon-button" id="closePrayer" aria-label="Close prayer composer">×</button></div>
+    <div class="dialog-header"><div><p class="eyebrow" id="prayerEyebrow">PRAY</p><h2 id="prayerHeading">Compose a prayer</h2></div><button class="icon-button" id="closePrayer" aria-label="Close prayer composer">×</button></div>
     <div class="prayer-controls">
-      <div><label for="prayerMode">Kind</label><select id="prayerMode"></select></div>
-      <div><label for="prayerIntention">Intention</label><select id="prayerIntention"></select></div>
-      <div><label for="prayerLength">Length</label><select id="prayerLength"><option value="full">Full</option><option value="short">Short</option></select></div>
-      <div><label for="prayerClosing">Closing</label><select id="prayerClosing"></select></div>
+      <div><label for="prayerLang" id="prayerLangLabel">Language</label><select id="prayerLang"></select></div>
+      <div><label for="prayerMode" id="prayerModeLabel">Kind</label><select id="prayerMode"></select></div>
+      <div><label for="prayerIntention" id="prayerIntentionLabel">Intention</label><select id="prayerIntention"></select></div>
+      <div><label for="prayerLength" id="prayerLengthLabel">Length</label><select id="prayerLength"></select></div>
+      <div><label for="prayerClosing" id="prayerClosingLabel">Closing</label><select id="prayerClosing"></select></div>
     </div>
     <div class="prayer-petition">
-      <label for="prayerPetition">A personal intention (optional — it stays on your device)</label>
-      <input type="text" id="prayerPetition" maxlength="200" placeholder="Someone or something to name" />
+      <label for="prayerPetition" id="prayerPetitionLabel">A personal intention (optional — it stays on your device)</label>
+      <input type="text" id="prayerPetition" maxlength="200" />
     </div>
     <div class="prayer-card" id="prayerCard" aria-live="polite"></div>
     <div class="prayer-actions">
@@ -143,11 +145,8 @@
       <button class="text-button" id="prayerCopy">Copy</button>
     </div>
     <p class="prayer-meta" id="prayerMeta"></p>
-    <div class="traditional-list">
-      <p class="section-kicker">TRADITIONAL PRAYERS</p>
-      <div class="traditional-chips" id="traditionalList"></div>
-      <div class="prayer-card" id="traditionalCard" aria-live="polite" hidden></div>
-    </div>
+    <div class="traditional-list" id="traditionalList"></div>
+    <div class="prayer-card" id="traditionalCard" aria-live="polite" hidden></div>
   </dialog>
 
   <dialog id="journalDialog">

@@ -12,7 +12,7 @@ catch { ({ chromium } = require("playwright-core")); }
 const launchOptions = process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {};
 const ROOT = path.join(__dirname, "..");
 const { tracks, fearIndex } = require("../content.js");
-const { prayerCorpus } = require("../prayers.js");
+const { prayerCorpus, prayerUi } = require("../prayers.js");
 const TRACK_COUNT = Object.keys(tracks).length;
 const GROUP_COUNT = new Set(Object.values(tracks).map(t => t.group)).size;
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".webmanifest": "application/manifest+json" };
@@ -20,7 +20,13 @@ const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css
 const server = http.createServer((req, res) => {
   let file = req.url.split("#")[0].split("?")[0];
   if (file === "/") file = "/index.html";
-  const full = path.join(ROOT, file);
+  // Mirror Vercel's cleanUrls: /about -> about/index.html, /day/x -> day/x.html
+  let full = path.join(ROOT, file);
+  if (!fs.existsSync(full) || fs.statSync(full).isDirectory()) {
+    for (const candidate of [full + ".html", path.join(full, "index.html")]) {
+      if (fs.existsSync(candidate)) { full = candidate; break; }
+    }
+  }
   try {
     const data = fs.readFileSync(full);
     res.writeHead(200, {
@@ -276,12 +282,44 @@ const server = http.createServer((req, res) => {
   await page.selectOption("#prayerIntention", "fear");
   await page.fill("#prayerPetition", "my hearing on Thursday");
   check("petition is woven into the prayer", (await page.textContent("#prayerCard")).includes("my hearing on Thursday"));
-  const traditionalCount = prayerCorpus.traditional.filter(t => prayerCorpus.meta.defaultTraditions.includes(t.tradition)).length;
-  check("traditional prayers listed by default tradition", (await page.$$(".traditional-chip")).length === traditionalCount);
-  await page.click(".traditional-chip");
+  check("every traditional prayer is listed", (await page.$$(".traditional-chip")).length === prayerCorpus.traditional.length);
+  const rcCount = prayerCorpus.traditional.filter(t => t.tradition === "roman-catholic").length;
+  check("Roman Catholic prayers are a named group", (await page.$$('.traditional-chips[data-tradition="roman-catholic"] .traditional-chip')).length === rcCount);
+  check("Roman Catholic group is labelled", (await page.textContent("#traditionalList")).includes("Roman Catholic prayers"));
+  await page.click('.traditional-chips[data-tradition="roman-catholic"] .traditional-chip');
   check("traditional prayer opens", await page.isVisible("#traditionalCard"));
+  check("Roman Catholic prayer says so", (await page.textContent("#traditionalCard")).includes("Roman Catholic"));
+  // language is app-wide state: switching repaints the corpus and the chrome
+  await page.selectOption("#prayerLang", "es");
+  check("Spanish switches the heading", (await page.textContent("#prayerHeading")) === prayerUi.es.title);
+  check("Spanish switches the group label", (await page.textContent("#traditionalList")).includes(prayerCorpus.meta.traditionLabels["roman-catholic"].es));
+  check("Spanish switches the composed prayer", (await page.textContent("#prayerCard")).includes("\u00f3") || (await page.textContent("#prayerCard")).includes("\u00e1"));
+  check("language persists to storage", await page.evaluate(() => JSON.parse(localStorage.getItem("stand-state")).lang === "es"));
+  const esSeed = await page.textContent("#prayerCard");
+  await page.selectOption("#prayerLang", "en");
+  check("English returns", (await page.textContent("#prayerHeading")) === prayerUi.en.title);
+  check("switching language keeps the same prayer", (await page.textContent("#prayerCard")) !== esSeed);
   await page.click("#closePrayer");
   check("prayer dialog closes", !(await page.evaluate(() => document.getElementById("prayerDialog").open)));
+
+  // landing page: features and plans, in the same brand
+  await page.goto("http://localhost:8123/about", { waitUntil: "networkidle" });
+  check("landing page loads", (await page.title()).includes("features and plans"));
+  check("landing uses the app shell", await page.isVisible(".app-shell .topbar .brand"));
+  check("landing lists features", (await page.$$(".feature-card")).length >= 8);
+  check("landing lists three plans", (await page.$$(".plan-card")).length === 3);
+  check("one plan is available now", (await page.$$(".plan-card.plan-current")).length === 1);
+  check("planned plans quote no price", (await page.textContent(".plan-grid")).includes("no price set"));
+  check("free plan keeps SOS", (await page.textContent(".plan-current")).includes("SOS"));
+  check("landing states the never-paywall commitment", (await page.textContent(".landing-section .declaration-panel")).includes("free in every tier"));
+  check("landing names the Roman Catholic prayers", (await page.textContent(".feature-grid")).includes("Roman Catholic"));
+  check("landing links into the app", await page.isVisible('a.complete-button[href="/"]'));
+  const landingScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  check("landing has no horizontal scroll", !landingScroll);
+  await page.goto("http://localhost:8123/", { waitUntil: "networkidle" });
+  await page.click("#libraryButton");
+  check("app links to the landing page", await page.isVisible('.library-about a[href="/about"]'));
+  await page.click("#closeLibrary");
 
   check("no page errors (incl. CSP violations)", errors.length === 0);
   if (errors.length) console.log(errors.join("\n"));

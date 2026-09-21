@@ -9,7 +9,9 @@ A mobile-first, audio-ready devotional app built with plain HTML, CSS, and JavaS
 - **Courage stories** — seventeen four-day modules, each built on a single heroic account, covering overwhelming problems, accusation, panic, speaking up, opposition, fear for your children, health fears, financial fear, stepping into the unknown, inadequacy, an unchosen crisis, and starting over. Each walks the same four beats — the fear, the choice, the outcome, what you carry forward — and ends every day with one concrete exercise. Scripture in these tracks is public domain (World English Bible, lightly modernized).
 - **"Where are you right now?"** — the ☰ library opens with a plain-language list of situations ("I have a court date", "I'm afraid for my child", "I don't know how I'm going to pay for it") that jumps straight into the journey that meets it, so nobody has to browse twenty titles while afraid. The mapping lives in `fearIndex` in `content.js`.
 - **Grouped journey picker** — the ☰ library groups journeys under the heading in each track's `group` field (the 30-day journey, fear tracks, courage stories), so the list stays scannable as tracks are added.
-- **Prayer composer** (✛) — composes a whole prayer from a reviewed corpus: pick a kind (prayer, forgiveness, grace) and an intention, add an optional personal intention, and reseed for another. Composition is deterministic and offline — nothing is generated at runtime, so every line a user can see is reviewable in `prayers.js`. Includes the traditional public-domain prayers, with device narration that pauses where each prayer's pacing metadata says to.
+- **Prayer composer** (✛) — composes a whole prayer from a reviewed corpus: pick a language, a kind (prayer, forgiveness, grace) and an intention, add an optional personal intention, and reseed for another. Composition is deterministic and offline — nothing is generated at runtime, so every line a reader can see is reviewable in `prayers.js`. Also lists the traditional prayers, with device narration that pauses where each prayer's pacing metadata says to.
+- **English and Spanish** — every prayer and every label on the prayer surface carries both languages, and the choice is app-wide and saved. The same seed composes the same prayer in either language, so switching translates the prayer rather than replacing it. (The 30-day devotional days are still English only.)
+- **Roman Catholic prayers named as such** — the traditional prayers are grouped and labelled: those shared across the wider Christian tradition, and those that are specifically Roman Catholic devotions. The Marian and Franciscan closings are labelled the same way in the composer, and "As composed" only draws on the traditions in `meta.defaultClosingTraditions`, so a Roman Catholic closing is always a deliberate choice.
 - **Fear check-ins and a calm ledger** — optional 1–5 check-ins before and after SOS and on any day; the journal shows your own evidence, like the average fear drop after prayer.
 - **Guided narration** with play/pause, adjustable speed, and an automatically selected English voice.
 - **Picks up where you left off** — opening the app jumps to your first incomplete day.
@@ -20,6 +22,7 @@ A mobile-first, audio-ready devotional app built with plain HTML, CSS, and JavaS
 - **Daily streak** — completing days on consecutive calendar days builds a streak shown in the progress bar.
 - **Verse cards** — the ↗ button shares the day's verse as a designed image via the device share sheet (desktop saves the card and copies the text).
 - **Repeat & sleep timer** — loop the guided prayer and let a 5–30 minute timer stop it, for night-time listening.
+- **Landing page** — `/about` outlines the features and the plans in the app's own type, palette, and components (it links `styles.css` and reuses `.app-shell`, `.topbar`, `.eyebrow`, and the rest, exactly as the generated day pages do). Plans describe what is free now and what is planned; no price is quoted for anything that does not exist yet, and there is no purchase flow.
 - **SEO day pages** — `npm run build:seo` regenerates the static, crawlable pages under `day/` (core) and `track/<id>/` (tracks) from `content.js` (set `SITE_URL=https://yourdomain` to also emit `sitemap.xml` and canonical links). `?track=<id>` links deep-link into a journey.
 - **Personalized start** — first-time visitors choose where to begin: the 30-day journey or a focused fear track.
 - **Daily calendar reminder** — the library can generate a recurring calendar event (.ics) at your chosen time, with no notifications permission or server needed.
@@ -38,7 +41,7 @@ npm run dev
 
 ## Tests
 
-An 89-scenario end-to-end smoke suite drives the app in headless Chromium against a server that enforces the production Content Security Policy. It runs in CI (GitHub Actions) on every push and pull request, alongside syntax checks and a guard that the generated SEO pages match `content.js`.
+A 110-scenario end-to-end smoke suite drives the app in headless Chromium against a server that enforces the production Content Security Policy. It runs in CI (GitHub Actions) on every push and pull request, alongside syntax checks and a guard that the generated SEO pages match `content.js`.
 
 ```bash
 npm install
@@ -61,9 +64,9 @@ The player prefers recorded narration and falls back to the browser's built-in S
 
 `prayers.js` holds the prayer corpus and `compose.js` the composition engine, both ported from the REMAM project (`dougdevitre/remam`) and reduced to English. The corpus keeps REMAM's shape: modes, each with intentions and ordered slots, where every block is a complete sentence or two so any one block per slot reads as a whole prayer.
 
-`npm run validate` checks the corpus the way REMAM validates its own — every mode composes at both lengths, closings carry a style, and the audio pacing stays inside the generator's limits (speed 0.7–1.2, stability and style 0–1, at most 6 breaks, each 0–3 seconds, every break anchor an exact substring appearing exactly once). It runs in CI.
+`npm run validate` checks the corpus the way REMAM validates its own, in every language it declares — every mode composes at both lengths with no missing translation, closings carry a style and a tradition, the UI strings are complete, and the audio pacing stays inside the generator's limits (speed 0.7–1.2, stability and style 0–1, at most 6 breaks per language, each 0–3 seconds, every break anchor an exact substring appearing exactly once in that language's text). It also checks that one seed picks the same blocks in both languages. It runs in CI.
 
-Two settings in `prayers.js` control voice rather than code: `meta.defaultClosingStyles` (which closing styles "As composed" draws from) and `meta.defaultTraditions` (which traditional prayers are listed). Stand ships with the universal set; widening either is a one-line edit.
+`meta.defaultClosingTraditions` decides which closings "As composed" draws on; it ships as `["universal"]`. Every traditional prayer is listed either way, under its own labelled heading.
 
 ## Content note
 

@@ -19,7 +19,7 @@ function tdata() {
 /* ---------- Persistent state ---------- */
 
 function loadState() {
-  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, checkins: [], sos: [], track: "core", tracks: {}, theme: null, welcomed: false, installHintDismissed: false };
+  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, checkins: [], sos: [], track: "core", tracks: {}, theme: null, lang: "en", welcomed: false, installHintDismissed: false };
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!raw || typeof raw !== "object") return fallback;
@@ -965,6 +965,7 @@ function sanitizeBackup(raw) {
     track: tracks[raw.track] ? raw.track : "core",
     tracks: trackData,
     theme: raw.theme === "light" || raw.theme === "dark" ? raw.theme : null,
+    lang: prayerUi[raw.lang] ? raw.lang : "en",
     welcomed: true,
     installHintDismissed: raw.installHintDismissed === true
   };
@@ -1096,20 +1097,26 @@ if (new URLSearchParams(location.search).has("sos")) {
 
 /* ---------- Prayer composer ----------
    Composes from the reviewed corpus in prayers.js (see compose.js). Nothing is
-   generated at runtime and nothing leaves the device — the personal intention
-   is inserted into the corpus's own template and never stored. */
+   generated at runtime and nothing leaves the device \u2014 the personal intention is
+   inserted into the corpus's own template and never stored. The chosen language
+   is app-wide state, so every prayer surface follows it. */
 
-const prayerState = { mode: "prayer", intention: null, seed: 1 };
+const prayerState = { mode: "prayer", intention: null, seed: 1, openTraditional: null };
+
+// A function declaration, not a const: stopAudio() reaches this via
+// stopPrayerNarration() on the first render, before this section is evaluated.
+function ui() { return prayerUi[state.lang] || prayerUi.en; }
 
 function prayerOptions() {
   return {
-    length: $("prayerLength").value,
-    closing: $("prayerClosing").value,
+    length: $("prayerLength").value || "full",
+    closing: $("prayerClosing").value || "auto",
     petition: $("prayerPetition").value
   };
 }
 
-function fillSelect(el, items) {
+function fillSelect(el, items, keep) {
+  const previous = keep && el.value;
   el.textContent = "";
   for (const { value, label } of items) {
     const option = document.createElement("option");
@@ -1117,19 +1124,47 @@ function fillSelect(el, items) {
     option.textContent = label;
     el.append(option);
   }
+  if (previous && items.some(i => i.value === previous)) el.value = previous;
 }
 
-function renderPrayerControls() {
-  if ($("prayerMode").options.length) return;
-  fillSelect($("prayerMode"), Object.entries(prayerCorpus.modes).map(([id, m]) => ({ value: id, label: m.name })));
-  fillSelect($("prayerClosing"), CLOSING_STYLES.map(s => ({ value: s, label: s === "auto" ? "As composed" : s[0].toUpperCase() + s.slice(1) })));
-  renderIntentions();
+/** Paints every label, option and button in the chosen language. */
+function renderPrayerChrome() {
+  const t = ui();
+  $("prayerEyebrow").textContent = t.eyebrow;
+  $("prayerHeading").textContent = t.title;
+  $("closePrayer").setAttribute("aria-label", t.close);
+  $("prayerLangLabel").textContent = t.language;
+  $("prayerModeLabel").textContent = t.kind;
+  $("prayerIntentionLabel").textContent = t.intention;
+  $("prayerLengthLabel").textContent = t.length;
+  $("prayerClosingLabel").textContent = t.closing;
+  $("prayerPetitionLabel").textContent = t.petitionLabel;
+  $("prayerPetition").placeholder = t.petitionPlaceholder;
+  $("prayerAnother").textContent = t.another;
+  $("prayerCopy").textContent = t.copy;
+  updatePrayerButton($("prayerListen"), prayerAudio.playing);
+
+  fillSelect($("prayerLang"), prayerCorpus.meta.languages.map(l => ({ value: l.id, label: l.label })), true);
+  $("prayerLang").value = state.lang;
+  fillSelect($("prayerMode"), Object.entries(prayerCorpus.modes).map(([id, m]) => ({ value: id, label: m.name[state.lang] })), true);
+  $("prayerMode").value = prayerState.mode;
+  fillSelect($("prayerLength"), [{ value: "full", label: t.full }, { value: "short", label: t.short }], true);
+  // Closing styles say which tradition they belong to, so a Roman Catholic
+  // closing is always chosen knowingly.
+  fillSelect($("prayerClosing"), CLOSING_STYLES.map(style => {
+    if (style === "auto") return { value: style, label: t.auto };
+    const block = prayerCorpus.modes[prayerState.mode].slots.closing.find(c => c.style === style);
+    const label = t.styles[style] || style;
+    return { value: style, label: block && block.tradition === "roman-catholic" ? `${label} (${t.romanCatholic})` : label };
+  }), true);
+  renderIntentions(true);
 }
 
-function renderIntentions() {
+function renderIntentions(keep) {
   const mode = prayerCorpus.modes[prayerState.mode];
-  fillSelect($("prayerIntention"), mode.intentions.map(i => ({ value: i.id, label: i.label })));
-  prayerState.intention = mode.intentions[0].id;
+  fillSelect($("prayerIntention"), mode.intentions.map(i => ({ value: i.id, label: i.label[state.lang] })), keep);
+  prayerState.intention = $("prayerIntention").value || mode.intentions[0].id;
+  $("prayerIntention").value = prayerState.intention;
 }
 
 function currentPrayer() {
@@ -1138,82 +1173,95 @@ function currentPrayer() {
     mode: prayerState.mode,
     intention: prayerState.intention,
     seed: prayerState.seed,
+    lang: state.lang,
     options: prayerOptions()
   });
 }
 
-function renderPrayer() {
-  stopPrayerNarration();
-  const result = currentPrayer();
-  const card = $("prayerCard");
+function paintPrayerCard(card, title, lines, note) {
   card.textContent = "";
-  const title = document.createElement("h3");
-  title.className = "prayer-title";
-  title.textContent = result.title;
-  card.append(title);
-  for (const line of result.lines) {
+  const heading = document.createElement("h3");
+  heading.className = "prayer-title";
+  heading.textContent = title;
+  card.append(heading);
+  for (const line of lines) {
     const p = document.createElement("p");
     p.className = "prayer-line";
     p.textContent = line;
     card.append(p);
   }
-  if (result.note) {
-    const note = document.createElement("p");
-    note.className = "prayer-note";
-    note.textContent = result.note;
-    card.append(note);
+  if (note) {
+    const el = document.createElement("p");
+    el.className = "prayer-note";
+    el.textContent = note;
+    card.append(el);
   }
-  const combos = prayerCombinations(prayerCorpus, prayerState.mode, prayerState.intention, prayerOptions());
-  $("prayerMeta").textContent =
-    `${combos.toLocaleString()} prayers can be composed from this corpus for this intention. ${prayerCorpus.meta.reviewNote}`;
 }
 
+function renderPrayer() {
+  stopPrayerNarration();
+  const result = currentPrayer();
+  paintPrayerCard($("prayerCard"), result.title, result.lines, result.note);
+  const combos = prayerCombinations(prayerCorpus, prayerState.mode, prayerState.intention, prayerOptions());
+  $("prayerMeta").textContent =
+    `${ui().combinations.replace("{n}", combos.toLocaleString(state.lang))} ${prayerCorpus.meta.reviewNote[state.lang]}`;
+}
+
+/** Traditional prayers, grouped under their tradition so the Roman Catholic
+ * ones are named as such rather than folded in with the rest. */
 function renderTraditional() {
   const el = $("traditionalList");
-  if (el.children.length) return;
-  for (const item of traditionalFor(prayerCorpus)) {
-    const chip = document.createElement("button");
-    chip.className = "traditional-chip";
-    chip.dataset.prayer = item.id;
-    chip.textContent = item.name;
-    chip.onclick = () => showTraditional(item);
-    el.append(chip);
+  el.textContent = "";
+  for (const tradition of traditionsOf(prayerCorpus)) {
+    const heading = document.createElement("p");
+    heading.className = "section-kicker";
+    heading.textContent = prayerCorpus.meta.traditionLabels[tradition][state.lang];
+    const note = document.createElement("p");
+    note.className = "tradition-note";
+    note.textContent = prayerCorpus.meta.traditionNotes[tradition][state.lang];
+    const chips = document.createElement("div");
+    chips.className = "traditional-chips";
+    chips.dataset.tradition = tradition;
+    for (const item of traditionalFor(prayerCorpus, tradition)) {
+      const chip = document.createElement("button");
+      chip.className = "traditional-chip";
+      chip.dataset.prayer = item.id;
+      chip.textContent = item.name[state.lang];
+      chip.onclick = () => showTraditional(item);
+      chips.append(chip);
+    }
+    el.append(heading, note, chips);
   }
 }
 
 function showTraditional(item) {
   stopPrayerNarration();
+  prayerState.openTraditional = item.id;
   const card = $("traditionalCard");
   card.hidden = false;
-  card.textContent = "";
-  const title = document.createElement("h3");
-  title.className = "prayer-title";
-  title.textContent = item.name;
-  const body = document.createElement("p");
-  body.className = "prayer-line";
-  body.textContent = item.text;
+  const note = item.tradition === "roman-catholic"
+    ? prayerCorpus.meta.traditionNotes["roman-catholic"][state.lang]
+    : undefined;
+  paintPrayerCard(card, item.name[state.lang], [item.text[state.lang]], note);
   const listen = document.createElement("button");
   listen.className = "text-button";
   listen.id = "traditionalListen";
-  listen.textContent = "▶ Listen";
-  // Traditional prayers carry REMAM's pacing metadata, so narration pauses
-  // where the audio generator would insert a break.
-  listen.onclick = () => speakPrayer(narrationSegments(item.text, item.audio), listen);
-  card.append(title, body, listen);
+  listen.textContent = ui().listen;
+  // Pacing metadata is per language, so narration pauses where that language's
+  // generator run would insert a break.
+  listen.onclick = () => speakPrayer(narrationSegments(item.text[state.lang], item.audio, state.lang), listen);
+  card.append(listen);
 }
 
 function updatePrayerButton(button, playing) {
-  button.textContent = playing ? "■ Stop" : "▶ Listen";
+  if (button) button.textContent = playing ? ui().stop : ui().listen;
 }
 
 function stopPrayerNarration() {
   clearTimeout(prayerAudio.timer);
   if (prayerAudio.playing && canSpeak) speechSynthesis.cancel();
   prayerAudio.playing = false;
-  for (const id of ["prayerListen", "traditionalListen"]) {
-    const button = $(id);
-    if (button) updatePrayerButton(button, false);
-  }
+  for (const id of ["prayerListen", "traditionalListen"]) updatePrayerButton($(id), false);
 }
 
 // Speaks segments in order, holding the silence each one asks for afterwards.
@@ -1232,7 +1280,10 @@ function speakPrayer(segments, button) {
     const utterance = new SpeechSynthesisUtterance(segment.text);
     utterance.rate = Number($("voiceRate").value) * 0.95;
     utterance.pitch = 0.96;
-    if (narrationVoice) utterance.voice = narrationVoice;
+    utterance.lang = state.lang === "es" ? "es-ES" : "en-US";
+    // The day narration voice is English; Spanish falls back to the device's
+    // own default for the language rather than reading Spanish in an English voice.
+    if (narrationVoice && state.lang === "en") utterance.voice = narrationVoice;
     utterance.onend = () => {
       if (!prayerAudio.playing) return;
       prayerAudio.timer = setTimeout(next, (segment.pause || 0) * 1000);
@@ -1243,18 +1294,26 @@ function speakPrayer(segments, button) {
   next();
 }
 
-$("prayerButton").onclick = () => {
-  renderPrayerControls();
+function renderPrayerSurface() {
+  renderPrayerChrome();
   renderTraditional();
   renderPrayer();
-  $("prayerDialog").showModal();
-};
+  const open = prayerState.openTraditional && prayerCorpus.traditional.find(t => t.id === prayerState.openTraditional);
+  if (open) showTraditional(open);
+}
+
+$("prayerButton").onclick = () => { renderPrayerSurface(); $("prayerDialog").showModal(); };
 $("closePrayer").onclick = () => $("prayerDialog").close();
 $("prayerDialog").addEventListener("close", stopPrayerNarration);
 
+$("prayerLang").onchange = () => {
+  state.lang = $("prayerLang").value;
+  save();
+  renderPrayerSurface();
+};
 $("prayerMode").onchange = () => {
   prayerState.mode = $("prayerMode").value;
-  renderIntentions();
+  renderPrayerChrome();
   renderPrayer();
 };
 $("prayerIntention").onchange = () => { prayerState.intention = $("prayerIntention").value; renderPrayer(); };
@@ -1267,12 +1326,12 @@ $("prayerListen").onclick = () => speakPrayer(
 );
 $("prayerCopy").onclick = async () => {
   const text = prayerToText(currentPrayer());
+  const reset = () => setTimeout(() => { $("prayerCopy").textContent = ui().copy; }, 1500);
   try {
     await navigator.clipboard.writeText(text);
-    $("prayerCopy").textContent = "Copied";
-    setTimeout(() => { $("prayerCopy").textContent = "Copy"; }, 1500);
+    $("prayerCopy").textContent = ui().copied;
   } catch {
-    $("prayerCopy").textContent = "Copy failed";
-    setTimeout(() => { $("prayerCopy").textContent = "Copy"; }, 1500);
+    $("prayerCopy").textContent = ui().copyFailed;
   }
+  reset();
 };

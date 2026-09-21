@@ -84,7 +84,8 @@ for (const track of Object.values(tracks)) {
 
 let robots = "User-agent: *\nAllow: /\n";
 if (SITE_URL) {
-  const urls = [`${SITE_URL}/`, ...allPaths.map(p => `${SITE_URL}${p}`)];
+  // The landing page is hand-written, not generated, but belongs in the sitemap.
+  const urls = [`${SITE_URL}/`, `${SITE_URL}/about`, ...allPaths.map(p => `${SITE_URL}${p}`)];
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `  <url><loc>${u}</loc></url>`).join("\n")}\n</urlset>\n`;
   fs.writeFileSync(path.join(root, "sitemap.xml"), sitemap);
   robots += `Sitemap: ${SITE_URL}/sitemap.xml\n`;

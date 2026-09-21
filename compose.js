@@ -1,6 +1,7 @@
 // Prayer composition — ported from REMAM's packages/ui/compose-prayer.js and
 // adapted to Stand's no-build convention (globals in the browser, CommonJS in
-// Node) instead of ES modules.
+// Node) instead of ES modules. Every corpus block carries both languages, so
+// composing is the same operation in English and Spanish.
 //
 // Composes a whole prayer from the reviewed corpus in prayers.js: one block per
 // slot, chosen by a seeded PRNG, so a given (mode, intention, seed, options)
@@ -54,10 +55,12 @@ function activeSlots(mode, options) {
 function poolFor(corpus, m, slot, intention, options) {
   if (slot === "body") return m.slots.body[intention];
   if (slot !== "closing") return m.slots[slot];
-  const wanted = options.closing && options.closing !== "auto"
-    ? [options.closing]
-    : corpus.meta.defaultClosingStyles;
-  const filtered = m.slots.closing.filter(c => wanted.includes(c.style));
+  // An explicit style wins; otherwise "As composed" stays inside the traditions
+  // the corpus nominates, so a Roman Catholic closing is only ever chosen
+  // deliberately rather than at random.
+  const filtered = options.closing && options.closing !== "auto"
+    ? m.slots.closing.filter(c => c.style === options.closing)
+    : m.slots.closing.filter(c => corpus.meta.defaultClosingTraditions.includes(c.tradition));
   return filtered.length ? filtered : m.slots.closing;
 }
 
@@ -67,7 +70,7 @@ function poolFor(corpus, m, slot, intention, options) {
  * style name; petition — a personal intention woven into meta.petitionTemplate.
  * Returns { mode, intention, seed, title, lines, note }.
  */
-function composePrayer({ corpus, mode, intention, seed = 1, options = {} }) {
+function composePrayer({ corpus, mode, intention, seed = 1, lang = "en", options = {} }) {
   const m = corpus.modes[mode];
   if (!m) throw new Error(`unknown mode: ${mode}`);
   const intentions = m.intentions.map(i => i.id);
@@ -77,11 +80,11 @@ function composePrayer({ corpus, mode, intention, seed = 1, options = {} }) {
   const lines = [];
   for (const slot of activeSlots(mode, options)) {
     const picked = pickFrom(poolFor(corpus, m, slot, intention, options), r);
-    lines.push(slot === "closing" ? picked.text : picked);
+    lines.push(picked[lang]);
     if (slot === "body") {
       const petition = String(options.petition || "").trim().slice(0, PETITION_MAX);
       if (petition && corpus.meta.petitionTemplate) {
-        lines.push(corpus.meta.petitionTemplate.replace("{petition}", petition));
+        lines.push(corpus.meta.petitionTemplate[lang].replace("{petition}", petition));
       }
     }
   }
@@ -90,9 +93,10 @@ function composePrayer({ corpus, mode, intention, seed = 1, options = {} }) {
     mode,
     intention,
     seed,
-    title: `${m.name} — ${m.intentions.find(i => i.id === intention).label}`,
+    lang,
+    title: `${m.name[lang]} — ${m.intentions.find(i => i.id === intention).label[lang]}`,
     lines,
-    note: m.note
+    note: m.note ? m.note[lang] : undefined
   };
 }
 
@@ -111,16 +115,23 @@ function prayerToText(result) {
   return [result.title, "", ...result.lines].join("\n");
 }
 
-/** Traditional prayers Stand shows by default (meta.defaultTraditions). */
-function traditionalFor(corpus) {
-  return corpus.traditional.filter(t => corpus.meta.defaultTraditions.includes(t.tradition));
+/** Traditional prayers of one tradition ("universal" or "roman-catholic"),
+ * so the app can group and label them instead of blurring the two. */
+function traditionalFor(corpus, tradition) {
+  return corpus.traditional.filter(t => t.tradition === tradition);
+}
+
+/** The traditions present in the corpus, in the order meta.traditionLabels
+ * declares them. */
+function traditionsOf(corpus) {
+  return Object.keys(corpus.meta.traditionLabels).filter(t => corpus.traditional.some(x => x.tradition === t));
 }
 
 /** Split a text into spoken segments at its audio break anchors, so device
  * narration can pause where REMAM's generator would insert an SSML break.
  * Returns [{ text, pause }] in order; pause is seconds of silence after. */
-function narrationSegments(text, audio) {
-  const breaks = (audio && audio.breaks) || [];
+function narrationSegments(text, audio, lang = "en") {
+  const breaks = (audio && audio.breaks && audio.breaks[lang]) || [];
   const segments = [];
   let rest = text;
   for (const b of breaks) {
@@ -137,7 +148,7 @@ function narrationSegments(text, audio) {
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     prayerRng, composePrayer, prayerCombinations, prayerToText,
-    traditionalFor, narrationSegments,
+    traditionalFor, traditionsOf, narrationSegments,
     PRAYER_MODES, PRAYER_SHAPE, PRAYER_OPTIONAL, CLOSING_STYLES, PETITION_MAX
   };
 }

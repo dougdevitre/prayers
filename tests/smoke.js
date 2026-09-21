@@ -12,7 +12,7 @@ catch { ({ chromium } = require("playwright-core")); }
 const launchOptions = process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {};
 const ROOT = path.join(__dirname, "..");
 const { tracks, fearIndex } = require("../content.js");
-const { prayerCorpus } = require("../prayers.js");
+const { prayerCorpus, prayerUi } = require("../prayers.js");
 const TRACK_COUNT = Object.keys(tracks).length;
 const GROUP_COUNT = new Set(Object.values(tracks).map(t => t.group)).size;
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".webmanifest": "application/manifest+json" };
@@ -276,10 +276,23 @@ const server = http.createServer((req, res) => {
   await page.selectOption("#prayerIntention", "fear");
   await page.fill("#prayerPetition", "my hearing on Thursday");
   check("petition is woven into the prayer", (await page.textContent("#prayerCard")).includes("my hearing on Thursday"));
-  const traditionalCount = prayerCorpus.traditional.filter(t => prayerCorpus.meta.defaultTraditions.includes(t.tradition)).length;
-  check("traditional prayers listed by default tradition", (await page.$$(".traditional-chip")).length === traditionalCount);
-  await page.click(".traditional-chip");
+  check("every traditional prayer is listed", (await page.$$(".traditional-chip")).length === prayerCorpus.traditional.length);
+  const rcCount = prayerCorpus.traditional.filter(t => t.tradition === "roman-catholic").length;
+  check("Roman Catholic prayers are a named group", (await page.$$('.traditional-chips[data-tradition="roman-catholic"] .traditional-chip')).length === rcCount);
+  check("Roman Catholic group is labelled", (await page.textContent("#traditionalList")).includes("Roman Catholic prayers"));
+  await page.click('.traditional-chips[data-tradition="roman-catholic"] .traditional-chip');
   check("traditional prayer opens", await page.isVisible("#traditionalCard"));
+  check("Roman Catholic prayer says so", (await page.textContent("#traditionalCard")).includes("Roman Catholic"));
+  // language is app-wide state: switching repaints the corpus and the chrome
+  await page.selectOption("#prayerLang", "es");
+  check("Spanish switches the heading", (await page.textContent("#prayerHeading")) === prayerUi.es.title);
+  check("Spanish switches the group label", (await page.textContent("#traditionalList")).includes(prayerCorpus.meta.traditionLabels["roman-catholic"].es));
+  check("Spanish switches the composed prayer", (await page.textContent("#prayerCard")).includes("\u00f3") || (await page.textContent("#prayerCard")).includes("\u00e1"));
+  check("language persists to storage", await page.evaluate(() => JSON.parse(localStorage.getItem("stand-state")).lang === "es"));
+  const esSeed = await page.textContent("#prayerCard");
+  await page.selectOption("#prayerLang", "en");
+  check("English returns", (await page.textContent("#prayerHeading")) === prayerUi.en.title);
+  check("switching language keeps the same prayer", (await page.textContent("#prayerCard")) !== esSeed);
   await page.click("#closePrayer");
   check("prayer dialog closes", !(await page.evaluate(() => document.getElementById("prayerDialog").open)));
 

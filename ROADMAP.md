@@ -72,9 +72,12 @@ Ported from REMAM (`dougdevitre/remam`), English only: a reviewed corpus of bloc
 
 Carried over from REMAM's audio framework: per-prayer pacing metadata (`speed`/`stability`/`style` and ordered `{after, seconds}` break anchors). Device narration honours the anchors today by splitting the text and holding the silence; because the metadata stays inside the same limits REMAM's ElevenLabs generator enforces (validated in CI), recorded MP3s can be generated from it later without changing the data.
 
-Deliberately not carried over: Spanish, the Laudato Si' slot, and the creation/defenders intentions, all specific to REMAM's ecological mission. Catholic-specific material — Marian and Franciscan closings, and six of the traditional prayers — was imported but is tagged and off by default, since Stand's existing voice is the Ephesians armour with no Marian devotion. `meta.defaultClosingStyles` and `meta.defaultTraditions` turn it on.
+Deliberately not carried over: the Laudato Si' slot and the creation/defenders intentions, both specific to REMAM's ecological mission.
 
-Next on this thread: a decision on whether Stand wants the Catholic set on by default; recorded narration for the traditional prayers via the same generator REMAM uses; and, if the composer proves useful, an SOS variant that composes rather than reads a fixed script.
+Both languages ship. Every corpus block carries `{ en, es }`, the chosen language is app-wide state (`state.lang`, saved with the rest), and one seed picks the same blocks in either language — so switching translates the prayer rather than composing a different one. Narration sets the utterance language and uses that language's break anchors. The 30-day devotional content is still English only; the translation layer in Phase 1 is what would change that.
+
+Roman Catholic material is present and named. Six of the traditional prayers, and the Marian and Franciscan closings, are tagged `roman-catholic` and shown under their own labelled heading with a one-line note, rather than folded in with the prayers shared across the wider Christian tradition. `meta.defaultClosingTraditions` (shipping as `["universal"]`) governs only what "As composed" draws on, so a Roman Catholic closing is a deliberate pick.
+Next on this thread: recorded narration for the traditional prayers in both languages via the same generator REMAM uses (the pacing metadata is already generator-ready); a bilingual option to show both languages side by side, which is how printed prayer books usually handle it; and, if the composer proves useful, an SOS variant that composes rather than reads a fixed script.
 
 ### Verse cards
 Share a day as a beautiful generated image (Canvas API) — the app's typography and palette, verse + reference. Images travel where links don't; this is the organic growth loop.

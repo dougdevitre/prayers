@@ -85,7 +85,11 @@ Side by side shipped. “Show both languages” renders each line with its trans
 Next on this thread: recorded narration for the traditional prayers in both languages via the same generator REMAM uses — the pacing metadata is already generator-ready and validated, so this needs an ElevenLabs key and an S3 bucket rather than more code. And, if the composer proves useful, an SOS variant that composes rather than reads a fixed script.
 
 ### Landing page (shipped)
-`/about` — a hand-written static page describing what Stand does, built from the same stylesheet and the same components as the app and the day pages, so the marketing surface and the product read as one thing. It is in the sitemap, and `/fears` carries the same nav and footer.
+`/` — a hand-written static page describing what Stand does, built from the same stylesheet and the same components as the app and the day pages, so the marketing surface and the product read as one thing. It is in the sitemap, and `/fears` carries the same nav and footer.
+
+The app lives at `/app`. It held the root until v1.8, which meant the domain opened a hash-routed SPA instead of the page explaining it. `/about` redirects permanently to `/`. Two things make that move safe rather than merely tidy: the manifest's `start_url` moved to `/app`, so an installed copy still opens the app rather than the marketing page; and the service worker's cached shell moved with it, since a shell still keyed to `/` would be served to everyone opening the site. Reader data is untouched — `localStorage` is scoped to the origin, not the path.
+
+One transitional wrinkle, by design rather than oversight: a visitor whose browser still holds the previous service worker will see the old cached app shell once at `/` before the new worker activates and takes over. It self-heals on the next load, and an installed copy keeps working throughout.
 
 A call to action appears in three places: the hero (open the app, plus a direct "Steady me now"), the nav, and the footer. The nav pairs an always-visible primary action with a `<details>` disclosure menu for everything else — chosen over a scripted dropdown so the static pages stay script-free under the strict CSP, and so the open state is announced natively rather than needing `aria-expanded` bookkeeping.
 

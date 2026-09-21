@@ -31,12 +31,14 @@ const pageName = (track, i) => `${String(i + 1).padStart(2, "0")}-${slugify(trac
 // until now those pages were dead ends: a brand mark, one button into the
 // app, and prev/next. `current` is the page's own path, left out of its own
 // menu.
+// The app lives at /app; the root is the landing page.
+const APP = "/app";
 const NAV_LINKS = [
-  { href: "/", label: "Open the app" },
-  { href: "/?sos=1", label: "Steady me now" },
+  { href: APP, label: "Open the app" },
+  { href: `${APP}?sos=1`, label: "Steady me now" },
   { href: "/fears", label: "Start from a fear" },
   { href: "/day/01-stand", label: "Begin at day one" },
-  { href: "/about", label: "What Stand does" }
+  { href: "/", label: "What Stand does" }
 ];
 
 // A <details> disclosure rather than a scripted dropdown: these pages carry
@@ -46,7 +48,7 @@ function siteNav(current) {
   const items = NAV_LINKS.filter(l => l.href !== current)
     .map(l => `            <li><a href="${l.href}">${l.label}</a></li>`).join("\n");
   return `      <nav class="site-nav" aria-label="Main">
-        <a class="nav-cta" href="/">Open the app</a>
+        <a class="nav-cta" href="${APP}">Open the app</a>
         <details class="nav-menu">
           <summary>Menu</summary>
           <ul>
@@ -57,10 +59,10 @@ ${items}
 }
 
 function siteFooter(current) {
-  const links = NAV_LINKS.filter(l => l.href !== current && l.href !== "/")
+  const links = NAV_LINKS.filter(l => l.href !== current && l.href !== APP)
     .map(l => `<a href="${l.href}">${l.label}</a>`).join(" \u00b7 ");
   return `    <footer class="landing-footer">
-      <a class="complete-button" href="/">Open the app</a>
+      <a class="complete-button" href="${APP}">Open the app</a>
       <p class="footer-links">${links}</p>
       <p>Free, and private by default.</p>
     </footer>`;
@@ -117,7 +119,7 @@ ${socialMeta({ title: pageTitle, description, type: "article", relPath })}
 <body>
   <div class="app-shell">
     <header class="topbar">
-      <a class="brand" href="/about" aria-label="Stand home"><span class="brand-mark">✦</span><span>STAND</span></a>
+      <a class="brand" href="/" aria-label="Stand home"><span class="brand-mark">✦</span><span>STAND</span></a>
 ${siteNav(relPath)}
     </header>
     <main>
@@ -129,7 +131,7 @@ ${siteNav(relPath)}
         <section class="prayer-panel"><p class="section-kicker">PRAY</p><p>${esc(prayer)}</p><p class="amen">Amen.</p></section>
         <section class="declaration-panel"><p class="section-kicker">DECLARE</p><p>${esc(declaration)}</p></section>
         <section class="action-panel"><div class="action-icon">→</div><div><p class="section-kicker">TODAY'S PRACTICE</p><p>${esc(action)}</p></div></section>
-        <a class="complete-button" href="/${appQuery}#${i + 1}">Open Day ${i + 1} in the app — with guided audio</a>
+        <a class="complete-button" href="${APP}${appQuery}#${i + 1}">Open Day ${i + 1} in the app — with guided audio</a>
         <nav class="day-nav" aria-label="Day navigation">${prev}${next}</nav>
       </article>
     </main>
@@ -169,7 +171,7 @@ ${siteFooter(relPath)}
         <div class="feature-grid">
 ${group.rows.map(row => `          <div class="feature-card">
             <h3><a href="${row.href}">${esc(row.label)}</a></h3>
-            <p>${esc(row.track.name)} \u00b7 ${row.track.days.length} days \u00b7 <a href="/${row.id === "core" ? "" : `?track=${row.id}`}">open in the app</a></p>
+            <p>${esc(row.track.name)} \u00b7 ${row.track.days.length} days \u00b7 <a href="${APP}${row.id === "core" ? "" : `?track=${row.id}`}">open in the app</a></p>
           </div>`).join("\n")}
         </div>
       </section>`).join("\n");
@@ -191,7 +193,7 @@ ${socialMeta({ title, description, type: "website", relPath: "/fears" })}
 <body>
   <div class="app-shell">
     <header class="topbar">
-      <a class="brand" href="/about" aria-label="Stand home"><span class="brand-mark">\u2726</span><span>STAND</span></a>
+      <a class="brand" href="/" aria-label="Stand home"><span class="brand-mark">\u2726</span><span>STAND</span></a>
 ${siteNav("/fears")}
     </header>
     <main>
@@ -199,13 +201,13 @@ ${siteNav("/fears")}
         <p class="eyebrow">START WHERE YOU ARE</p>
         <h1>Where are you right now?</h1>
         <p class="landing-lead">You do not have to start at day one, and you do not have to know which journey you need. Find the sentence that sounds like your week, and begin there.</p>
-        <a class="complete-button" href="/">Open the app</a>
+        <a class="complete-button" href="${APP}">Open the app</a>
       </section>
 ${sections}
       <section class="landing-section landing-close">
         <h2>None of these quite fit?</h2>
         <p>Open the app and press \u201cSteady me now\u201d. It takes ninety seconds and asks nothing of you first.</p>
-        <a class="complete-button" href="/?sos=1">Steady me now</a>
+        <a class="complete-button" href="${APP}?sos=1">Steady me now</a>
       </section>
     </main>
 ${siteFooter("/fears")}
@@ -218,7 +220,9 @@ ${siteFooter("/fears")}
 }
 
 // The landing page is hand-written, not generated, but belongs in the sitemap.
-const urls = [`${SITE_URL}/`, `${SITE_URL}/about`, `${SITE_URL}/fears`, ...allPaths.map(p => `${SITE_URL}${p}`)];
+// /about is gone (it redirects to the root), and /app is the SPA shell with
+// no crawlable content of its own — the day pages carry that.
+const urls = [`${SITE_URL}/`, `${SITE_URL}/fears`, ...allPaths.map(p => `${SITE_URL}${p}`)];
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `  <url><loc>${u}</loc></url>`).join("\n")}\n</urlset>\n`;
 fs.writeFileSync(path.join(root, "sitemap.xml"), sitemap);
 fs.writeFileSync(path.join(root, "robots.txt"), `User-agent: *\nAllow: /\nSitemap: ${SITE_URL}/sitemap.xml\n`);

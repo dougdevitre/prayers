@@ -20,8 +20,15 @@ const SITE = "https://prayers.dougdevitre.org";
 const DAY_PAGE_COUNT = Object.values(tracks).reduce((n, t) => n + t.days.length, 0);
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".xml": "application/xml", ".txt": "text/plain", ".webmanifest": "application/manifest+json" };
 
+// Mirrors the redirects in vercel.json, so the suite covers old links too.
+const REDIRECTS = { "/about": "/" };
+
 const server = http.createServer((req, res) => {
   let file = req.url.split("#")[0].split("?")[0];
+  if (REDIRECTS[file]) {
+    res.writeHead(308, { Location: REDIRECTS[file] });
+    return res.end();
+  }
   if (file === "/") file = "/index.html";
   // Mirror Vercel's cleanUrls: /about -> about/index.html, /day/x -> day/x.html
   let full = path.join(ROOT, file);
@@ -54,7 +61,7 @@ const server = http.createServer((req, res) => {
 
   const check = (name, cond) => { console.log((cond ? "PASS" : "FAIL") + " " + name); if (!cond) process.exitCode = 1; };
 
-  await page.goto("http://localhost:8123/", { waitUntil: "networkidle" });
+  await page.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
 
   // first-visit welcome with path choice
   check("welcome shows on first visit", await page.evaluate(() => document.getElementById("welcomeDialog").open));
@@ -202,19 +209,19 @@ const server = http.createServer((req, res) => {
   await page.goto("http://localhost:8123/day/08-fear.html", { waitUntil: "networkidle" });
   check("SEO page title", (await page.title()).includes("Day 8: Fear"));
   check("SEO page has prayer", (await page.textContent("body")).includes("worship fear"));
-  check("SEO page links into app", await page.isVisible('a[href="/#8"]'));
+  check("SEO page links into app", await page.isVisible('a[href="/app#8"]'));
 
   // static SEO track page + deep link
   await page.goto("http://localhost:8123/track/night/01-lying-down.html", { waitUntil: "networkidle" });
   check("track SEO page title", (await page.title()).includes("Lying Down"));
-  check("track SEO page links into app", await page.isVisible('a[href="/?track=night#1"]'));
-  await page.goto("http://localhost:8123/?track=unknown#2", { waitUntil: "networkidle" });
+  check("track SEO page links into app", await page.isVisible('a[href="/app?track=night#1"]'));
+  await page.goto("http://localhost:8123/app?track=unknown#2", { waitUntil: "networkidle" });
   check("?track deep link switches journey", (await page.textContent("#dayTitle")) === "Daily Bread");
-  await page.goto("http://localhost:8123/?track=furnace#2", { waitUntil: "networkidle" });
+  await page.goto("http://localhost:8123/app?track=furnace#2", { waitUntil: "networkidle" });
   check("courage story deep link", (await page.textContent("#dayTitle")) === "Even If");
   check("courage story week label", (await page.textContent("#weekLabel")).includes("COURAGE STORY"));
   check("courage story length is 4", (await page.textContent("#progressLabel")) === "Day 2 of 4");
-  await page.goto("http://localhost:8123/?track=core#1", { waitUntil: "networkidle" });
+  await page.goto("http://localhost:8123/app?track=core#1", { waitUntil: "networkidle" });
 
   // daily reminder ICS
   await page.click("#libraryButton");
@@ -223,16 +230,16 @@ const server = http.createServer((req, res) => {
   await page.click("#closeLibrary");
 
   // reload: resumes at first incomplete day (day 1 complete -> day 2)
-  await page.goto("http://localhost:8123/", { waitUntil: "networkidle" });
+  await page.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
   check("resumes at first incomplete day (Day 2)", (await page.textContent("#dayNumber")) === "DAY 02");
   check("welcome not shown on return visit", !(await page.evaluate(() => document.getElementById("welcomeDialog").open)));
 
   // deep link still wins
-  await page.goto("http://localhost:8123/#15", { waitUntil: "networkidle" });
+  await page.goto("http://localhost:8123/app#15", { waitUntil: "networkidle" });
   check("deep link #15 opens Day 15", (await page.textContent("#dayNumber")) === "DAY 15");
 
   // ?sos=1 home-screen shortcut auto-opens SOS
-  await page.goto("http://localhost:8123/?sos=1", { waitUntil: "networkidle" });
+  await page.goto("http://localhost:8123/app?sos=1", { waitUntil: "networkidle" });
   check("?sos=1 auto-opens SOS", await page.evaluate(() => document.getElementById("sosDialog").open));
   await page.click("#closeSos");
 
@@ -249,7 +256,7 @@ const server = http.createServer((req, res) => {
   check("service worker registered", swReady);
 
   // erase all data (confirm auto-accepted) -> reload -> welcome returns
-  await page.goto("http://localhost:8123/", { waitUntil: "networkidle" });
+  await page.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
   await page.click("#journalButton");
   await Promise.all([page.waitForNavigation(), page.click("#eraseButton")]);
   await page.waitForTimeout(300);
@@ -336,7 +343,7 @@ const server = http.createServer((req, res) => {
     return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
   }, sel);
   // landing page: what the app does, with a call to action in three places
-  await page.goto("http://localhost:8123/about", { waitUntil: "networkidle" });
+  await page.goto("http://localhost:8123/", { waitUntil: "networkidle" });
   check("landing page loads", (await page.title()).includes("prayer companion for fear"));
   check("landing uses the app shell", await page.isVisible(".app-shell .topbar .brand"));
   check("landing describes what the app does", (await page.$$(".feature-card")).length >= 8);
@@ -344,10 +351,10 @@ const server = http.createServer((req, res) => {
   check("landing quotes no prices", !/\$|price|pricing|per month|subscription/i.test(await page.textContent("main")));
   check("no plan cards remain", (await page.$$(".plan-card")).length === 0);
   // a call to action in the hero, the nav, and the footer
-  check("hero has a call to action", await page.isVisible('.landing-hero a.complete-button[href="/"]'));
-  check("hero also offers SOS", await page.isVisible('.landing-hero a[href="/?sos=1"]'));
-  check("nav has a call to action", await page.isVisible('.site-nav a.nav-cta[href="/"]'));
-  check("footer has a call to action", await page.isVisible('.landing-footer a.complete-button[href="/"]'));
+  check("hero has a call to action", await page.isVisible('.landing-hero a.complete-button[href="/app"]'));
+  check("hero also offers SOS", await page.isVisible('.landing-hero a[href="/app?sos=1"]'));
+  check("nav has a call to action", await page.isVisible('.site-nav a.nav-cta[href="/app"]'));
+  check("footer has a call to action", await page.isVisible('.landing-footer a.complete-button[href="/app"]'));
   // 13.6px at weight 800 is normal text by WCAG, so the bar is 4.5:1.
   check("landing footer CTA meets AA contrast", (await contrast(".landing-footer .complete-button")) >= 4.5);
   check("footer links onward", (await page.$$(".footer-links a")).length >= 3);
@@ -396,7 +403,7 @@ const server = http.createServer((req, res) => {
   check("menu starts closed", !(await page.evaluate(() => document.querySelector(".nav-menu").open)));
   await page.click(".nav-menu > summary");
   check("menu opens", await page.evaluate(() => document.querySelector(".nav-menu").open));
-  check("menu holds the call to action", await page.isVisible('.nav-menu a[href="/"]'));
+  check("menu holds the call to action", await page.isVisible('.nav-menu a[href="/app"]'));
   check("menu links to the fear index", await page.isVisible('.nav-menu a[href="/fears"]'));
   await page.click(".nav-menu > summary");
   check("menu closes again", !(await page.evaluate(() => document.querySelector(".nav-menu").open)));
@@ -407,7 +414,7 @@ const server = http.createServer((req, res) => {
   check("fear index groups by journey kind", (await page.$$(".landing-section .section-kicker")).length >= 3);
   // Scoped to the closing section: the nav menu also links to SOS, and its copy
   // sits inside a closed <details>, so a bare selector matches a hidden node.
-  check("fear index offers SOS for the rest", await page.isVisible('.landing-close a[href="/?sos=1"]'));
+  check("fear index offers SOS for the rest", await page.isVisible('.landing-close a[href="/app?sos=1"]'));
   const fearNoScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   check("fear index has no horizontal scroll", !fearNoScroll);
   // Heading levels must not skip: an h1 followed by card h3s reads as a broken
@@ -438,8 +445,8 @@ const server = http.createServer((req, res) => {
   check("day page names its own URL", await meta("og:url") === `${SITE}/day/01-stand`);
   check("day page carries the social card", await meta("og:image") === `${SITE}/og-card.png`);
   check("day page asks for a large card", await meta("twitter:card") === "summary_large_image");
-  check("day page has the site nav", await page.isVisible('.site-nav a.nav-cta[href="/"]'));
-  check("day page has the footer", await page.isVisible('.landing-footer a.complete-button[href="/"]'));
+  check("day page has the site nav", await page.isVisible('.site-nav a.nav-cta[href="/app"]'));
+  check("day page has the footer", await page.isVisible('.landing-footer a.complete-button[href="/app"]'));
   check("day page footer links onward", (await page.$$(".footer-links a")).length >= 3);
   // 13.6px at weight 800 is normal text by WCAG, so the bar is 4.5:1.
   check("day page footer CTA meets AA contrast", (await contrast(".landing-footer .complete-button")) >= 4.5);
@@ -459,20 +466,53 @@ const server = http.createServer((req, res) => {
   const sitemapRes = await page.request.get("http://localhost:8123/sitemap.xml");
   const sitemap = await sitemapRes.text();
   const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
-  check("sitemap lists every generated page", locs.length === DAY_PAGE_COUNT + 3);
+  check("sitemap lists every generated page", locs.length === DAY_PAGE_COUNT + 2);
   check("sitemap is absolute", locs.every(u => u.startsWith(SITE + "/")));
-  check("sitemap covers the landing page", locs.includes(`${SITE}/about`));
+  check("sitemap covers the landing page", locs.includes(`${SITE}/`));
+  check("sitemap omits the redirected /about", !locs.includes(`${SITE}/about`));
+  check("sitemap omits the app shell", !locs.includes(`${SITE}/app`));
   const robots = await (await page.request.get("http://localhost:8123/robots.txt")).text();
   check("robots points at the sitemap", robots.includes(`Sitemap: ${SITE}/sitemap.xml`));
 
-  await page.goto("http://localhost:8123/", { waitUntil: "networkidle" });
+  await page.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
   await page.click("#libraryButton");
-  check("app links to the landing page", await page.isVisible('.library-about a[href="/about"]'));
+  check("app links to the landing page", await page.isVisible('.library-about a[href="/"]'));
   check("app links to the fear index", await page.isVisible('.library-about a[href="/fears"]'));
   // The library link used to read "Features and plans". There are no plans, so
   // it must not promise any — in the app or on the page it opens.
   check("app promises no plans", !/plans|pricing|per month|subscription/i.test(await page.textContent(".library-about")));
   await page.click("#closeLibrary");
+
+  // ---------------------------------------------------------------------
+  // Routing. The root used to be the app, which meant the domain opened a
+  // hash-routed SPA rather than the page that explains it.
+  await page.goto("http://localhost:8123/", { waitUntil: "networkidle" });
+  check("the root is the landing page", (await page.title()).includes("prayer companion for fear"));
+  check("the root is not the app", (await page.$$("#dayNumber")).length === 0);
+  // The static pages are script-free by design, which is what lets the strict
+  // CSP stay strict and the <details> menu work with no JavaScript at all.
+  check("the root ships no script", (await page.$$("script:not([type='application/ld+json'])")).length === 0);
+
+  await page.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
+  check("/app is the app", (await page.$$("#dayNumber")).length === 1);
+  check("/app keeps its assets", await page.evaluate(() =>
+    Boolean(document.querySelector('link[rel="stylesheet"][href="/styles.css"]'))));
+
+  // Old links must not 404 — /about was the landing page for three releases.
+  const aboutRes = await page.request.get("http://localhost:8123/about", { maxRedirects: 0 });
+  check("/about redirects rather than 404s", aboutRes.status() === 308);
+  check("/about redirects to the root", aboutRes.headers()["location"] === "/");
+
+  // An installed copy must still open the app, not the marketing page.
+  const manifest = await (await page.request.get("http://localhost:8123/manifest.webmanifest")).json();
+  check("manifest starts at the app", manifest.start_url === "/app");
+  check("manifest SOS shortcut starts at the app", manifest.shortcuts[0].url === "/app?sos=1");
+
+  // The service worker serves its cached shell only for the app. Pointing it
+  // at "/" would hand the app shell to everyone opening the site.
+  const swSource = await (await page.request.get("http://localhost:8123/sw.js")).text();
+  check("service worker shell is /app", /APP_SHELL\s*=\s*"\/app"/.test(swSource));
+  check("service worker no longer precaches the root", !/ASSETS\s*=\s*\["\.\/"/.test(swSource));
 
   // ---------------------------------------------------------------------
   // Dark mode on the static pages.
@@ -488,19 +528,19 @@ const server = http.createServer((req, res) => {
   const bodyBg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
 
   await page.emulateMedia({ colorScheme: "dark" });
-  for (const url of ["/about", "/fears", "/day/01-stand"]) {
+  for (const url of ["/", "/fears", "/day/01-stand"]) {
     await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
     check(`${url} follows a dark device`, (await bodyBg()) === DARK_PAPER);
   }
   await page.emulateMedia({ colorScheme: "light" });
-  for (const url of ["/about", "/fears", "/day/01-stand"]) {
+  for (const url of ["/", "/fears", "/day/01-stand"]) {
     await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
     check(`${url} follows a light device`, (await bodyBg()) === LIGHT_PAPER);
   }
 
   // The app must still honour an explicit choice against the device setting.
   await page.emulateMedia({ colorScheme: "dark" });
-  await page.goto("http://localhost:8123/", { waitUntil: "domcontentloaded" });
+  await page.goto("http://localhost:8123/app", { waitUntil: "domcontentloaded" });
   await page.evaluate(() => {
     const raw = JSON.parse(localStorage.getItem("stand-state") || "{}");
     raw.theme = "light";
@@ -579,7 +619,7 @@ const server = http.createServer((req, res) => {
     return bad;
   }, KNOWN_CONTRAST_DEBT);
 
-  const SWEEP_PAGES = ["/", "/about", "/fears", "/day/01-stand", "/track/furnace/01-the-decree"];
+  const SWEEP_PAGES = ["/", "/app", "/fears", "/day/01-stand", "/track/furnace/01-the-decree"];
   for (const url of SWEEP_PAGES) {
     await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
     const bad = await sweepContrast();

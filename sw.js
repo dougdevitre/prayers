@@ -1,5 +1,9 @@
-const CACHE = "stand-v18";
-const ASSETS = ["./", "styles.css", "app.js", "content.js", "prayers.js", "compose.js", "logic.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
+const CACHE = "stand-v19";
+// The app shell is /app, not "./" — the root is the landing page now, and
+// precaching it here would have served the app shell to anyone opening the
+// site. Paths are absolute so they do not depend on where sw.js is fetched.
+const APP_SHELL = "/app";
+const ASSETS = [APP_SHELL, "/styles.css", "/app.js", "/content.js", "/prayers.js", "/compose.js", "/logic.js", "/manifest.webmanifest", "/icon.svg", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"];
 
 self.addEventListener("install", event => {
   event.waitUntil(
@@ -25,11 +29,12 @@ self.addEventListener("fetch", event => {
   // Audio streams use range requests, which the Cache API can't store — let
   // the browser handle them directly.
   if (url.pathname.startsWith("/audio/")) return;
-  const isAppNavigation = request.mode === "navigate" && (url.pathname === "/" || url.pathname === "/index.html");
+  const isAppNavigation = request.mode === "navigate" && (url.pathname === APP_SHELL || url.pathname === "/app/index.html");
   // Only the app shell is served from cache on navigation; static pages
-  // (like the crawlable day/ pages) must reach the network untouched.
+  // (the landing page at /, the fear index, the crawlable day/ pages) must
+  // reach the network untouched.
   if (request.mode === "navigate" && !isAppNavigation) return;
-  const cacheKey = isAppNavigation ? "./" : request;
+  const cacheKey = isAppNavigation ? APP_SHELL : request;
   event.respondWith(
     caches.open(CACHE).then(async cache => {
       const cached = await cache.match(cacheKey);

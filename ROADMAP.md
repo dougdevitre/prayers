@@ -65,7 +65,9 @@ Third batch: The River (Joshua 3–4, the water parts only after the step), The 
 ### Finding the right track (shipped)
 With twenty journeys, browsing titles is the wrong entry point for someone already afraid. The library now opens with "Where are you right now?" — a plain-language list of situations mapped to tracks in `fearIndex` (`content.js`), one entry per journey, which switches track and opens the first unfinished day in a single interaction.
 
-Next on this thread: the same list as a static landing page, since the entries are close to what people actually search ("prayer before court", "scripture for fear at night"); and surfacing it on the welcome screen once there is evidence about where first-time users get stuck.
+The list is now also a crawlable page at `/fears`, generated from the same `fearIndex` by `scripts/build-day-pages.js` and guarded in CI, so the page and the dialog cannot drift. Each situation links to that journey's first day page, which gives the long-tail entries real internal linking instead of leaving them trapped inside a dialog. Its own test walks every generated link and fails if one 404s.
+
+Next on this thread: surfacing the list on the welcome screen once there is evidence about where first-time users get stuck, and watching which situations actually draw traffic — that is the cheapest signal available about which fears to write for next.
 
 ### Prayer composer (shipped)
 Ported from REMAM (`dougdevitre/remam`), English only: a reviewed corpus of blocks (`prayers.js`) plus a seeded, deterministic composer (`compose.js`). A given mode + intention + seed always yields the same prayer, and "another prayer" is seed + 1 — no generation at runtime, so the whole space of possible prayers is reviewable in the data file. The optional personal intention is inserted into the corpus's own template and never stored or sent.
@@ -195,7 +197,7 @@ Free forever: the 30-day journey, SOS mode, device narration, notes, backup. Pai
 
 ## Test plan
 
-- Keep and grow the Playwright smoke suite (117 scenarios today) — add SOS offline mode, check-in math, track switching, and sync merge cases as they land; run it in CI on every push.
+- Keep and grow the Playwright smoke suite (125 scenarios today) — add SOS offline mode, check-in math, track switching, and sync merge cases as they land; run it in CI on every push.
 - Unit tests for pure logic: streak calculation (timezone/DST cases), backup sanitizing, check-in aggregation.
 - Lighthouse budget in CI: PWA installability, a11y ≥ 95, performance ≥ 90.
 - Device matrix before each release: iOS Safari (TTS + install), Android Chrome (Media Session), desktop.

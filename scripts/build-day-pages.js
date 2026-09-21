@@ -10,7 +10,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const { tracks } = require("../content.js");
+const { tracks, fearIndex } = require("../content.js");
 
 const SITE_URL = (process.env.SITE_URL || "").replace(/\/+$/, "");
 const root = path.join(__dirname, "..");
@@ -82,14 +82,93 @@ for (const track of Object.values(tracks)) {
   }
 }
 
+// The fear index as a crawlable page. These phrases are close to what people
+// actually search for, and until now they existed only inside a dialog. Built
+// from the same `fearIndex` the app uses, so the two cannot drift.
+{
+  const rows = fearIndex
+    .filter(([, id]) => tracks[id])
+    .map(([label, id]) => {
+      const track = tracks[id];
+      const base = id === "core" ? "/day" : `/track/${id}`;
+      return { label, track, id, href: `${base}/${pageName(track, 0)}` };
+    });
+
+  const groups = [];
+  for (const row of rows) {
+    const name = row.track.group || "";
+    const group = groups.find(g => g.name === name);
+    if (group) group.rows.push(row);
+    else groups.push({ name, rows: [row] });
+  }
+
+  const sections = groups.map(group => `
+      <section class="landing-section">
+        <p class="section-kicker">${esc(group.name)}</p>
+        <div class="feature-grid">
+${group.rows.map(row => `          <div class="feature-card">
+            <h3><a href="${row.href}">${esc(row.label)}</a></h3>
+            <p>${esc(row.track.name)} \u00b7 ${row.track.days.length} days \u00b7 <a href="/${row.id === "core" ? "" : `?track=${row.id}`}">open in the app</a></p>
+          </div>`).join("\n")}
+        </div>
+      </section>`).join("\n");
+
+  const title = "Where are you right now? — Stand";
+  const description = "Say what you are afraid of \u2014 a court date, a diagnosis, a child, a bill, the dark \u2014 and start with the prayers written for it.";
+  const canonical = SITE_URL ? `\n  <link rel="canonical" href="${SITE_URL}/fears" />` : "";
+  const html = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#132a3a" />
+  <meta name="description" content="${esc(description)}" />
+  <meta property="og:title" content="${esc(title)}" />
+  <meta property="og:description" content="${esc(description)}" />
+  <meta property="og:type" content="website" />${canonical}
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <title>${esc(title)}</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Stand home"><span class="brand-mark">\u2726</span><span>STAND</span></a>
+      <div class="top-actions"><a class="text-button" href="/about">Features and plans</a></div>
+    </header>
+    <main>
+      <section class="landing-hero">
+        <p class="eyebrow">START WHERE YOU ARE</p>
+        <h1>Where are you right now?</h1>
+        <p class="landing-lead">You do not have to start at day one, and you do not have to know which journey you need. Find the sentence that sounds like your week, and begin there.</p>
+        <a class="complete-button" href="/">Open the app</a>
+      </section>
+${sections}
+      <section class="landing-section landing-close">
+        <h2>None of these quite fit?</h2>
+        <p>Open the app and press \u201cSteady me now\u201d. It takes ninety seconds and asks nothing of you first.</p>
+        <a class="complete-button" href="/?sos=1">Steady me now</a>
+      </section>
+    </main>
+    <footer class="landing-footer">
+      <p><a href="/">The app</a> \u00b7 <a href="/about">Features and plans</a></p>
+    </footer>
+  </div>
+</body>
+</html>
+`;
+  fs.mkdirSync(path.join(root, "fears"), { recursive: true });
+  fs.writeFileSync(path.join(root, "fears", "index.html"), html);
+}
+
 let robots = "User-agent: *\nAllow: /\n";
 if (SITE_URL) {
   // The landing page is hand-written, not generated, but belongs in the sitemap.
-  const urls = [`${SITE_URL}/`, `${SITE_URL}/about`, ...allPaths.map(p => `${SITE_URL}${p}`)];
+  const urls = [`${SITE_URL}/`, `${SITE_URL}/about`, `${SITE_URL}/fears`, ...allPaths.map(p => `${SITE_URL}${p}`)];
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `  <url><loc>${u}</loc></url>`).join("\n")}\n</urlset>\n`;
   fs.writeFileSync(path.join(root, "sitemap.xml"), sitemap);
   robots += `Sitemap: ${SITE_URL}/sitemap.xml\n`;
 }
 fs.writeFileSync(path.join(root, "robots.txt"), robots);
 
-console.log(`Wrote ${allPaths.length} pages${SITE_URL ? ", sitemap.xml" : ""} and robots.txt`);
+console.log(`Wrote ${allPaths.length} day pages, the fear index${SITE_URL ? ", sitemap.xml" : ""} and robots.txt`);

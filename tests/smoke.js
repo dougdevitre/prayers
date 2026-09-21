@@ -170,7 +170,9 @@ const server = http.createServer((req, res) => {
   await page.click('#sosStage .checkin-scale button:nth-child(4)'); // fear = 4
   check("SOS breathing stage", await page.isVisible(".breath-circle"));
   await page.click('#sosStage .complete-button'); // Continue past breathing
-  check("SOS anchor shows verse", (await page.textContent("#sosStage")).includes("whom shall I fear"));
+  // Capitalised since the scripture swap: the WEB renders Psalm 27:1 as two
+  // sentences ("...my salvation. Whom shall I fear?") where the NIV had one.
+  check("SOS anchor shows verse", (await page.textContent("#sosStage")).includes("Whom shall I fear"));
   await page.click('#sosStage .complete-button'); // I'm steadier
   check("SOS after check-in", (await page.textContent("#sosStage")).includes("And now"));
   await page.click('#sosStage .checkin-scale button:nth-child(2)'); // fear = 2

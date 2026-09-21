@@ -146,7 +146,10 @@ main{padding-bottom:78px}
 .landing-close{text-align:center}
 .landing-close .complete-button{max-width:420px;margin:22px auto 0}
 .landing-footer{margin:0 28px 48px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.85rem;text-align:center}
-.landing-footer a{color:var(--muted)}
+/* Scoped to the text links: `.landing-footer a` also matched the footer's
+   call to action, whose own .complete-button colour lost on specificity and
+   left white-on-ink button text rendering muted grey at 2.92:1. */
+.footer-links a{color:var(--muted)}
 /* A group label that is also a real heading, so the page does not jump h1 -> h3.
    Needs to out-specify `.landing-section h2`, which would otherwise size it as
    a section title, and to opt out of the serif h2 face. */

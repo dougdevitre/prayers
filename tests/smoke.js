@@ -15,7 +15,10 @@ const { tracks, fearIndex } = require("../content.js");
 const { prayerCorpus, prayerUi } = require("../prayers.js");
 const TRACK_COUNT = Object.keys(tracks).length;
 const GROUP_COUNT = new Set(Object.values(tracks).map(t => t.group)).size;
-const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".webmanifest": "application/manifest+json" };
+// Must match the generator's default; the suite checks the committed output.
+const SITE = "https://prayers.dougdevitre.org";
+const DAY_PAGE_COUNT = Object.values(tracks).reduce((n, t) => n + t.days.length, 0);
+const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".xml": "application/xml", ".txt": "text/plain", ".webmanifest": "application/manifest+json" };
 
 const server = http.createServer((req, res) => {
   let file = req.url.split("#")[0].split("?")[0];
@@ -317,6 +320,21 @@ const server = http.createServer((req, res) => {
   await page.click("#closePrayer");
   check("prayer dialog closes", !(await page.evaluate(() => document.getElementById("prayerDialog").open)));
 
+  // WCAG 2.1 contrast for a selector's own text against its own background.
+  // `.landing-footer a` used to beat `.complete-button` on specificity and
+  // painted the footer's call to action muted grey on ink at 2.92:1.
+  const contrast = sel => page.evaluate(s => {
+    const lum = c => {
+      const [r, g, b] = c.match(/\d+/g).slice(0, 3)
+        .map(n => { n /= 255; return n <= 0.03928 ? n / 12.92 : Math.pow((n + 0.055) / 1.055, 2.4); });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const el = document.querySelector(s);
+    if (!el) return 0;
+    const cs = getComputedStyle(el);
+    const a = lum(cs.color), b = lum(cs.backgroundColor);
+    return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+  }, sel);
   // landing page: what the app does, with a call to action in three places
   await page.goto("http://localhost:8123/about", { waitUntil: "networkidle" });
   check("landing page loads", (await page.title()).includes("prayer companion for fear"));
@@ -330,6 +348,8 @@ const server = http.createServer((req, res) => {
   check("hero also offers SOS", await page.isVisible('.landing-hero a[href="/?sos=1"]'));
   check("nav has a call to action", await page.isVisible('.site-nav a.nav-cta[href="/"]'));
   check("footer has a call to action", await page.isVisible('.landing-footer a.complete-button[href="/"]'));
+  // 13.6px at weight 800 is normal text by WCAG, so the bar is 4.5:1.
+  check("landing footer CTA meets AA contrast", (await contrast(".landing-footer .complete-button")) >= 4.5);
   check("footer links onward", (await page.$$(".footer-links a")).length >= 3);
   check("landing heading levels do not skip", await page.evaluate(() => {
     const levels = [...document.querySelectorAll("h1,h2,h3,h4,h5,h6")].map(h => Number(h.tagName[1]));
@@ -362,6 +382,7 @@ const server = http.createServer((req, res) => {
     return levels.some((l, i) => i > 0 && l - levels[i - 1] > 1);
   });
   check("fear index heading levels do not skip", !(await headingsSkip()));
+  check("fear index footer CTA meets AA contrast", (await contrast(".landing-footer .complete-button")) >= 4.5);
   // every generated link must resolve, or the page quietly sends people to 404s
   const hrefs = await page.$$eval(".feature-card h3 a", els => els.map(e => e.getAttribute("href")));
   let broken = 0;
@@ -372,6 +393,42 @@ const server = http.createServer((req, res) => {
   check("every fear links to a page that exists", broken === 0 && hrefs.length === fearIndex.length);
   await page.click(".feature-card h3 a");
   check("following a fear opens a day page", (await page.$$("article.devotional")).length === 1);
+
+  // Day pages are where search traffic actually lands, so they carry the same
+  // way onward as the landing page, and the same social card. Until now they
+  // were dead ends: a brand mark, one button, and prev/next.
+  await page.goto("http://localhost:8123/day/01-stand", { waitUntil: "networkidle" });
+  const meta = name => page.getAttribute(`meta[property="${name}"], meta[name="${name}"]`, "content");
+  check("day page is canonical", await page.getAttribute('link[rel="canonical"]', "href") === `${SITE}/day/01-stand`);
+  check("day page names its own URL", await meta("og:url") === `${SITE}/day/01-stand`);
+  check("day page carries the social card", await meta("og:image") === `${SITE}/og-card.png`);
+  check("day page asks for a large card", await meta("twitter:card") === "summary_large_image");
+  check("day page has the site nav", await page.isVisible('.site-nav a.nav-cta[href="/"]'));
+  check("day page has the footer", await page.isVisible('.landing-footer a.complete-button[href="/"]'));
+  check("day page footer links onward", (await page.$$(".footer-links a")).length >= 3);
+  // 13.6px at weight 800 is normal text by WCAG, so the bar is 4.5:1.
+  check("day page footer CTA meets AA contrast", (await contrast(".landing-footer .complete-button")) >= 4.5);
+  // A page should not link to itself in its own menu.
+  check("day one omits itself from its menu", (await page.$$('.nav-menu a[href="/day/01-stand"]')).length === 0);
+  check("day one still offers the other journeys", (await page.$$('.nav-menu a[href="/fears"]')).length === 1);
+  const dayNoScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  check("day page has no horizontal scroll", !dayNoScroll);
+
+  // The social card must actually exist and be an image — an og:image that
+  // 404s previews worse than none at all.
+  const ogCard = await page.request.get("http://localhost:8123/og-card.png");
+  check("the social card resolves", ogCard.ok());
+  check("the social card is a PNG", (await ogCard.body()).slice(1, 4).toString() === "PNG");
+
+  // The sitemap is the whole point of generating these pages.
+  const sitemapRes = await page.request.get("http://localhost:8123/sitemap.xml");
+  const sitemap = await sitemapRes.text();
+  const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
+  check("sitemap lists every generated page", locs.length === DAY_PAGE_COUNT + 3);
+  check("sitemap is absolute", locs.every(u => u.startsWith(SITE + "/")));
+  check("sitemap covers the landing page", locs.includes(`${SITE}/about`));
+  const robots = await (await page.request.get("http://localhost:8123/robots.txt")).text();
+  check("robots points at the sitemap", robots.includes(`Sitemap: ${SITE}/sitemap.xml`));
 
   await page.goto("http://localhost:8123/", { waitUntil: "networkidle" });
   await page.click("#libraryButton");

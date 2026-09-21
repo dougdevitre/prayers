@@ -67,6 +67,15 @@ With twenty journeys, browsing titles is the wrong entry point for someone alrea
 
 Next on this thread: the same list as a static landing page, since the entries are close to what people actually search ("prayer before court", "scripture for fear at night"); and surfacing it on the welcome screen once there is evidence about where first-time users get stuck.
 
+### Prayer composer (shipped)
+Ported from REMAM (`dougdevitre/remam`), English only: a reviewed corpus of blocks (`prayers.js`) plus a seeded, deterministic composer (`compose.js`). A given mode + intention + seed always yields the same prayer, and "another prayer" is seed + 1 — no generation at runtime, so the whole space of possible prayers is reviewable in the data file. The optional personal intention is inserted into the corpus's own template and never stored or sent.
+
+Carried over from REMAM's audio framework: per-prayer pacing metadata (`speed`/`stability`/`style` and ordered `{after, seconds}` break anchors). Device narration honours the anchors today by splitting the text and holding the silence; because the metadata stays inside the same limits REMAM's ElevenLabs generator enforces (validated in CI), recorded MP3s can be generated from it later without changing the data.
+
+Deliberately not carried over: Spanish, the Laudato Si' slot, and the creation/defenders intentions, all specific to REMAM's ecological mission. Catholic-specific material — Marian and Franciscan closings, and six of the traditional prayers — was imported but is tagged and off by default, since Stand's existing voice is the Ephesians armour with no Marian devotion. `meta.defaultClosingStyles` and `meta.defaultTraditions` turn it on.
+
+Next on this thread: a decision on whether Stand wants the Catholic set on by default; recorded narration for the traditional prayers via the same generator REMAM uses; and, if the composer proves useful, an SOS variant that composes rather than reads a fixed script.
+
 ### Verse cards
 Share a day as a beautiful generated image (Canvas API) — the app's typography and palette, verse + reference. Images travel where links don't; this is the organic growth loop.
 

@@ -119,6 +119,8 @@ function fullScript(d) {
 }
 
 const player = { status: "idle", keepAlive: 0, repeat: false, sleepTimer: 0, mode: "tts" };
+// Composer narration state; declared here because stopAudio() runs on first render.
+const prayerAudio = { timer: 0, playing: false };
 let narrationVoice = null;
 
 // Recorded narration (preferred when a file exists for the day).
@@ -200,6 +202,9 @@ function setPlayerStatus(status) {
 function stopAudio() {
   clearInterval(player.keepAlive);
   clearTimeout(player.sleepTimer);
+  // The composer shares this one speech synthesiser, so day narration always
+  // takes it back cleanly.
+  stopPrayerNarration();
   // Go idle before cancel(): cancel can fire onend synchronously, and repeat
   // mode must not treat that as a natural end and restart.
   setPlayerStatus("idle");
@@ -1088,3 +1093,186 @@ if (new URLSearchParams(location.search).has("sos")) {
 } else if (!state.welcomed) {
   $("welcomeDialog").showModal();
 }
+
+/* ---------- Prayer composer ----------
+   Composes from the reviewed corpus in prayers.js (see compose.js). Nothing is
+   generated at runtime and nothing leaves the device — the personal intention
+   is inserted into the corpus's own template and never stored. */
+
+const prayerState = { mode: "prayer", intention: null, seed: 1 };
+
+function prayerOptions() {
+  return {
+    length: $("prayerLength").value,
+    closing: $("prayerClosing").value,
+    petition: $("prayerPetition").value
+  };
+}
+
+function fillSelect(el, items) {
+  el.textContent = "";
+  for (const { value, label } of items) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    el.append(option);
+  }
+}
+
+function renderPrayerControls() {
+  if ($("prayerMode").options.length) return;
+  fillSelect($("prayerMode"), Object.entries(prayerCorpus.modes).map(([id, m]) => ({ value: id, label: m.name })));
+  fillSelect($("prayerClosing"), CLOSING_STYLES.map(s => ({ value: s, label: s === "auto" ? "As composed" : s[0].toUpperCase() + s.slice(1) })));
+  renderIntentions();
+}
+
+function renderIntentions() {
+  const mode = prayerCorpus.modes[prayerState.mode];
+  fillSelect($("prayerIntention"), mode.intentions.map(i => ({ value: i.id, label: i.label })));
+  prayerState.intention = mode.intentions[0].id;
+}
+
+function currentPrayer() {
+  return composePrayer({
+    corpus: prayerCorpus,
+    mode: prayerState.mode,
+    intention: prayerState.intention,
+    seed: prayerState.seed,
+    options: prayerOptions()
+  });
+}
+
+function renderPrayer() {
+  stopPrayerNarration();
+  const result = currentPrayer();
+  const card = $("prayerCard");
+  card.textContent = "";
+  const title = document.createElement("h3");
+  title.className = "prayer-title";
+  title.textContent = result.title;
+  card.append(title);
+  for (const line of result.lines) {
+    const p = document.createElement("p");
+    p.className = "prayer-line";
+    p.textContent = line;
+    card.append(p);
+  }
+  if (result.note) {
+    const note = document.createElement("p");
+    note.className = "prayer-note";
+    note.textContent = result.note;
+    card.append(note);
+  }
+  const combos = prayerCombinations(prayerCorpus, prayerState.mode, prayerState.intention, prayerOptions());
+  $("prayerMeta").textContent =
+    `${combos.toLocaleString()} prayers can be composed from this corpus for this intention. ${prayerCorpus.meta.reviewNote}`;
+}
+
+function renderTraditional() {
+  const el = $("traditionalList");
+  if (el.children.length) return;
+  for (const item of traditionalFor(prayerCorpus)) {
+    const chip = document.createElement("button");
+    chip.className = "traditional-chip";
+    chip.dataset.prayer = item.id;
+    chip.textContent = item.name;
+    chip.onclick = () => showTraditional(item);
+    el.append(chip);
+  }
+}
+
+function showTraditional(item) {
+  stopPrayerNarration();
+  const card = $("traditionalCard");
+  card.hidden = false;
+  card.textContent = "";
+  const title = document.createElement("h3");
+  title.className = "prayer-title";
+  title.textContent = item.name;
+  const body = document.createElement("p");
+  body.className = "prayer-line";
+  body.textContent = item.text;
+  const listen = document.createElement("button");
+  listen.className = "text-button";
+  listen.id = "traditionalListen";
+  listen.textContent = "▶ Listen";
+  // Traditional prayers carry REMAM's pacing metadata, so narration pauses
+  // where the audio generator would insert a break.
+  listen.onclick = () => speakPrayer(narrationSegments(item.text, item.audio), listen);
+  card.append(title, body, listen);
+}
+
+function updatePrayerButton(button, playing) {
+  button.textContent = playing ? "■ Stop" : "▶ Listen";
+}
+
+function stopPrayerNarration() {
+  clearTimeout(prayerAudio.timer);
+  if (prayerAudio.playing && canSpeak) speechSynthesis.cancel();
+  prayerAudio.playing = false;
+  for (const id of ["prayerListen", "traditionalListen"]) {
+    const button = $(id);
+    if (button) updatePrayerButton(button, false);
+  }
+}
+
+// Speaks segments in order, holding the silence each one asks for afterwards.
+function speakPrayer(segments, button) {
+  if (prayerAudio.playing) { stopPrayerNarration(); return; }
+  if (!canSpeak) return;
+  stopAudio();
+  prayerAudio.playing = true;
+  updatePrayerButton(button, true);
+
+  let i = 0;
+  const next = () => {
+    if (!prayerAudio.playing) return;
+    if (i >= segments.length) { stopPrayerNarration(); return; }
+    const segment = segments[i++];
+    const utterance = new SpeechSynthesisUtterance(segment.text);
+    utterance.rate = Number($("voiceRate").value) * 0.95;
+    utterance.pitch = 0.96;
+    if (narrationVoice) utterance.voice = narrationVoice;
+    utterance.onend = () => {
+      if (!prayerAudio.playing) return;
+      prayerAudio.timer = setTimeout(next, (segment.pause || 0) * 1000);
+    };
+    utterance.onerror = stopPrayerNarration;
+    speechSynthesis.speak(utterance);
+  };
+  next();
+}
+
+$("prayerButton").onclick = () => {
+  renderPrayerControls();
+  renderTraditional();
+  renderPrayer();
+  $("prayerDialog").showModal();
+};
+$("closePrayer").onclick = () => $("prayerDialog").close();
+$("prayerDialog").addEventListener("close", stopPrayerNarration);
+
+$("prayerMode").onchange = () => {
+  prayerState.mode = $("prayerMode").value;
+  renderIntentions();
+  renderPrayer();
+};
+$("prayerIntention").onchange = () => { prayerState.intention = $("prayerIntention").value; renderPrayer(); };
+for (const id of ["prayerLength", "prayerClosing"]) $(id).onchange = renderPrayer;
+$("prayerPetition").oninput = renderPrayer;
+$("prayerAnother").onclick = () => { prayerState.seed += 1; renderPrayer(); };
+$("prayerListen").onclick = () => speakPrayer(
+  currentPrayer().lines.map(text => ({ text, pause: 0.6 })),
+  $("prayerListen")
+);
+$("prayerCopy").onclick = async () => {
+  const text = prayerToText(currentPrayer());
+  try {
+    await navigator.clipboard.writeText(text);
+    $("prayerCopy").textContent = "Copied";
+    setTimeout(() => { $("prayerCopy").textContent = "Copy"; }, 1500);
+  } catch {
+    $("prayerCopy").textContent = "Copy failed";
+    setTimeout(() => { $("prayerCopy").textContent = "Copy"; }, 1500);
+  }
+};

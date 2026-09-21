@@ -24,6 +24,7 @@
       <div class="top-actions">
         <button class="icon-button" id="themeButton" aria-label="Toggle dark mode">◐</button>
         <button class="icon-button" id="journalButton" aria-label="Open my reflections journal">✎</button>
+        <button class="icon-button" id="prayerButton" aria-label="Open the prayer composer">✛</button>
         <button class="icon-button" id="libraryButton" aria-label="Open the 30-day library">☰</button>
       </div>
     </header>
@@ -123,6 +124,32 @@
     </div>
   </dialog>
 
+  <dialog id="prayerDialog">
+    <div class="dialog-header"><div><p class="eyebrow">PRAY</p><h2>Compose a prayer</h2></div><button class="icon-button" id="closePrayer" aria-label="Close prayer composer">×</button></div>
+    <div class="prayer-controls">
+      <div><label for="prayerMode">Kind</label><select id="prayerMode"></select></div>
+      <div><label for="prayerIntention">Intention</label><select id="prayerIntention"></select></div>
+      <div><label for="prayerLength">Length</label><select id="prayerLength"><option value="full">Full</option><option value="short">Short</option></select></div>
+      <div><label for="prayerClosing">Closing</label><select id="prayerClosing"></select></div>
+    </div>
+    <div class="prayer-petition">
+      <label for="prayerPetition">A personal intention (optional — it stays on your device)</label>
+      <input type="text" id="prayerPetition" maxlength="200" placeholder="Someone or something to name" />
+    </div>
+    <div class="prayer-card" id="prayerCard" aria-live="polite"></div>
+    <div class="prayer-actions">
+      <button class="text-button" id="prayerAnother">Another prayer</button>
+      <button class="text-button" id="prayerListen">▶ Listen</button>
+      <button class="text-button" id="prayerCopy">Copy</button>
+    </div>
+    <p class="prayer-meta" id="prayerMeta"></p>
+    <div class="traditional-list">
+      <p class="section-kicker">TRADITIONAL PRAYERS</p>
+      <div class="traditional-chips" id="traditionalList"></div>
+      <div class="prayer-card" id="traditionalCard" aria-live="polite" hidden></div>
+    </div>
+  </dialog>
+
   <dialog id="journalDialog">
     <div class="dialog-header"><div><p class="eyebrow">MY REFLECTIONS</p><h2>Journal</h2></div><button class="icon-button" id="closeJournal" aria-label="Close journal">×</button></div>
     <div class="ledger" id="ledger"></div>
@@ -177,6 +204,8 @@
     </div>
   </dialog>
   <script src="content.js"></script>
+  <script src="prayers.js"></script>
+  <script src="compose.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -45,7 +45,7 @@ npm run dev
 
 ## Tests
 
-A 153-scenario end-to-end smoke suite drives the app in headless Chromium against a server that enforces the production Content Security Policy. It runs in CI (GitHub Actions) on every push and pull request, alongside syntax checks and a guard that the generated SEO pages, sitemap and robots.txt match `content.js`. It includes WCAG contrast assertions on the footer call to action across all three static pages — that check was added after `.landing-footer a` was found to beat `.complete-button` on specificity and render the button's text at 2.92:1, under the 4.5:1 AA minimum.
+A 158-scenario end-to-end smoke suite drives the app in headless Chromium against a server that enforces the production Content Security Policy. It runs in CI (GitHub Actions) on every push and pull request, alongside syntax checks and a guard that the generated SEO pages, sitemap and robots.txt match `content.js`. It includes a contrast ratchet — a sweep of every element that renders its own text on the app shell and the four static page shapes, failing on any WCAG 2.1 shortfall that is not on a recorded known-debt list, so new failures break the build while existing ones stay visible. It also asserts the footer call to action directly across all three static pages — that check was added after `.landing-footer a` was found to beat `.complete-button` on specificity and render the button's text at 2.92:1, under the 4.5:1 AA minimum.
 
 ```bash
 npm install

@@ -439,6 +439,67 @@ const server = http.createServer((req, res) => {
   check("app promises no plans", !/plans|pricing|per month|subscription/i.test(await page.textContent(".library-about")));
   await page.click("#closeLibrary");
 
+  // ---------------------------------------------------------------------
+  // Contrast ratchet.
+  //
+  // Sweeps every element that renders its own text on the app shell and the
+  // four static page shapes, and computes the WCAG 2.1 ratio against the
+  // nearest painted ancestor background. Anything under the threshold must
+  // be a class already on KNOWN_CONTRAST_DEBT — so a NEW failure fails CI,
+  // while the existing debt stays visible in every run rather than living
+  // in someone's notes.
+  //
+  // All current debt is one token: --gold #b88732 as text on the light
+  // palette. Fixing it means a second token (--gold-text) for text, leaving
+  // --gold for borders and fills; it visibly changes the brand's signature
+  // label colour, so it is a design decision, not a defect to patch. Dark
+  // mode already passes (the dark --gold is #f1c879).
+  //
+  // <option> is excluded: its popup is painted by the OS, not in the page,
+  // so the nearest-ancestor background is the wrong comparison. The rule
+  // that sets it exists precisely so options read on the browser's own
+  // light popup while the closed select inherits the dark card's colour.
+  const KNOWN_CONTRAST_DEBT = ["brand-mark", "eyebrow", "section-kicker", "filter-tab"];
+  const sweepContrast = () => page.evaluate(debt => {
+    const lum = c => {
+      const m = c.match(/[\d.]+/g);
+      if (!m) return null;
+      const [r, g, b] = m.slice(0, 3)
+        .map(n => { n /= 255; return n <= 0.03928 ? n / 12.92 : Math.pow((n + 0.055) / 1.055, 2.4); });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const bgOf = el => {
+      for (let n = el; n; n = n.parentElement) {
+        const c = getComputedStyle(n).backgroundColor;
+        if (c && !/rgba\(0, 0, 0, 0\)|transparent/.test(c)) return c;
+      }
+      return "rgb(255, 255, 255)";
+    };
+    const bad = [];
+    for (const el of document.querySelectorAll("body *")) {
+      if (el.tagName === "OPTION") continue;
+      if (![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+      const cs = getComputedStyle(el);
+      if (cs.visibility === "hidden" || cs.display === "none" || Number(cs.opacity) === 0) continue;
+      const size = parseFloat(cs.fontSize), weight = Number(cs.fontWeight) || 400;
+      const need = (size >= 24 || (size >= 18.66 && weight >= 700)) ? 3 : 4.5;
+      const a = lum(cs.color), b = lum(bgOf(el));
+      if (a === null || b === null) continue;
+      const ratio = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      if (ratio >= need) continue;
+      if ([...el.classList].some(c => debt.includes(c))) continue;
+      bad.push(`${el.tagName.toLowerCase()}.${[...el.classList].join(".")} ${ratio.toFixed(2)}:1 (needs ${need}) "${el.textContent.trim().slice(0, 30)}"`);
+    }
+    return bad;
+  }, KNOWN_CONTRAST_DEBT);
+
+  for (const url of ["/", "/about", "/fears", "/day/01-stand", "/track/furnace/01-the-decree"]) {
+    await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
+    const bad = await sweepContrast();
+    if (bad.length) bad.forEach(b => console.log("       " + b));
+    check(`no new contrast failures on ${url}`, bad.length === 0);
+  }
+
   check("no page errors (incl. CSP violations)", errors.length === 0);
   if (errors.length) console.log(errors.join("\n"));
 

@@ -304,11 +304,37 @@ test("sanitizeTrackData returns empty structure for rubbish", () => {
 
 test("a restored backup is shaped like live state", () => {
   const clean = sanitizeBackup(validBackup({ completed: [0], completedDates: { 0: "2026-09-21" } }), DEPS);
-  for (const key of ["completed", "favorites", "notes", "completedDates", "checkins", "sos", "track", "tracks", "theme", "lang", "bilingual", "welcomed", "installHintDismissed"]) {
+  for (const key of ["completed", "favorites", "notes", "completedDates", "checkins", "sos", "track", "tracks", "theme", "lang", "bilingual", "welcomed", "installHintDismissed", "reminderTime", "reminderSeq"]) {
     assert.ok(key in clean, `restored state is missing ${key}`);
   }
   // and it feeds the streak maths without further massaging
   assert.strictEqual(completedDatesOf(clean).size, 1);
+});
+
+test("a restored backup keeps a valid reminder time", () => {
+  const clean = sanitizeBackup(validBackup({ reminderTime: "21:30", reminderSeq: 4 }), DEPS);
+  assert.strictEqual(clean.reminderTime, "21:30");
+  assert.strictEqual(clean.reminderSeq, 4);
+});
+
+test("a restored backup drops a reminder time that is not HH:MM", () => {
+  for (const bad of ["7am", "25:00", "07:60", "7:00", "", "07:00:00", null, 700, {}]) {
+    assert.strictEqual(sanitizeBackup(validBackup({ reminderTime: bad }), DEPS).reminderTime, null, `accepted ${JSON.stringify(bad)}`);
+  }
+});
+
+test("a restored backup accepts the edges of the clock", () => {
+  for (const good of ["00:00", "23:59", "09:05"]) {
+    assert.strictEqual(sanitizeBackup(validBackup({ reminderTime: good }), DEPS).reminderTime, good);
+  }
+});
+
+// The sequence is what makes a re-exported .ics out-rank the one already in
+// the calendar, so a nonsense value must floor at 0 rather than propagate.
+test("a restored backup floors a bad reminder sequence at zero", () => {
+  for (const bad of [-3, 1.5, "4", null, undefined, NaN]) {
+    assert.strictEqual(sanitizeBackup(validBackup({ reminderSeq: bad }), DEPS).reminderSeq, 0, `accepted ${String(bad)}`);
+  }
 });
 
 if (failures) {

@@ -33,7 +33,7 @@ A mobile-first, audio-ready devotional app built with plain HTML, CSS, and JavaS
 - **Every static page is a way in, not a dead end** — the day and track pages carry the same nav and footer as the landing page, generated from one `NAV_LINKS` list, so someone who arrives at day 14 of a courage story from a search result can reach SOS, the fear index, or the app itself. A page never links to itself in its own menu.
 - **One social card** — `og-card.png` is the shared `og:image` for all 111 pages, so a shared link previews as the brand rather than a blank grey box. Regenerate it with `node scripts/build-og-card.js`; the PNG is committed because social scrapers fetch it directly and never run JavaScript.
 - **Personalized start** — first-time visitors choose where to begin: the 30-day journey or a focused fear track.
-- **Daily calendar reminder** — the library can generate a recurring calendar event (.ics) at your chosen time, with no notifications permission or server needed.
+- **Daily calendar reminder** — the library generates a recurring calendar event (.ics) at your chosen time, with no notifications permission and no server. The time is saved, so it is there next visit and survives a backup restore. The event carries a fixed `UID` and an increasing `SEQUENCE`, so exporting again **updates** the existing reminder instead of leaving a second daily alarm running. Times are deliberately *floating* (no `Z`, no `TZID`): the reminder fires at the chosen wall-clock time wherever you are rather than drifting when you travel. Output is RFC 5545-conformant — TEXT values escaped, content lines folded at 75 octets (octets, not characters: the em dash in the summary is three bytes).
 - **iOS install tip** — Safari visitors get a one-time, dismissible Add-to-Home-Screen hint.
 - **Dark mode** follows your device setting until you choose a theme with ◐.
 - **Backup and restore** — download all data as a JSON file and restore it on any device; an erase option removes everything.
@@ -49,7 +49,7 @@ npm run dev
 
 ## Tests
 
-A 194-scenario end-to-end smoke suite drives the app in headless Chromium against a server that enforces the production Content Security Policy. It runs in CI (GitHub Actions) on every push and pull request, alongside syntax checks and a guard that the generated SEO pages, sitemap and robots.txt match `content.js`. It includes a contrast ratchet — a sweep of every element that renders its own text on the app shell and the four static page shapes, failing on any WCAG 2.1 shortfall that is not on a recorded known-debt list, so new failures break the build while existing ones stay visible. Dark mode is swept with no debt allowance at all — the dark `--gold` is 9.61:1, so every page passes outright there; the contrast debt is a light-mode problem only. It also asserts the footer call to action directly across all three static pages — that check was added after `.landing-footer a` was found to beat `.complete-button` on specificity and render the button's text at 2.92:1, under the 4.5:1 AA minimum.
+A 211-scenario end-to-end smoke suite drives the app in headless Chromium against a server that enforces the production Content Security Policy. It runs in CI (GitHub Actions) on every push and pull request, alongside syntax checks and a guard that the generated SEO pages, sitemap and robots.txt match `content.js`. It includes a contrast ratchet — a sweep of every element that renders its own text on the app shell and the four static page shapes, failing on any WCAG 2.1 shortfall that is not on a recorded known-debt list, so new failures break the build while existing ones stay visible. Dark mode is swept with no debt allowance at all — the dark `--gold` is 9.61:1, so every page passes outright there; the contrast debt is a light-mode problem only. It also asserts the footer call to action directly across all three static pages — that check was added after `.landing-footer a` was found to beat `.complete-button` on specificity and render the button's text at 2.92:1, under the 4.5:1 AA minimum.
 
 ```bash
 npm install
@@ -57,7 +57,7 @@ npx playwright install chromium
 npm test
 ```
 
-Alongside it, `npm run test:unit` runs 48 unit tests (no browser, no dependencies) over the pure logic in `logic.js` — streak arithmetic, backup sanitizing, and calm-ledger aggregation. The daylight-saving cases run in child processes with `TZ` set, so they exercise real zones rather than whichever one the machine happens to be in. Both suites run in CI.
+Alongside it, `npm run test:unit` runs 52 unit tests (no browser, no dependencies) over the pure logic in `logic.js` — streak arithmetic, backup sanitizing, and calm-ledger aggregation. The daylight-saving cases run in child processes with `TZ` set, so they exercise real zones rather than whichever one the machine happens to be in. Both suites run in CI.
 
 ## Publish with GitHub and Vercel
 

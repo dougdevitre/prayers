@@ -17,6 +17,8 @@ const TRACK_COUNT = Object.keys(tracks).length;
 const GROUP_COUNT = new Set(Object.values(tracks).map(t => t.group)).size;
 // Must match the generator's default; the suite checks the committed output.
 const SITE = "https://prayers.dougdevitre.org";
+// The app is served from the test server, so runtime URLs use its origin.
+const SITE_ORIGIN = "http://localhost:8123";
 const DAY_PAGE_COUNT = Object.values(tracks).reduce((n, t) => n + t.days.length, 0);
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".xml": "application/xml", ".txt": "text/plain", ".webmanifest": "application/manifest+json" };
 
@@ -483,6 +485,79 @@ const server = http.createServer((req, res) => {
   // The library link used to read "Features and plans". There are no plans, so
   // it must not promise any — in the app or on the page it opens.
   check("app promises no plans", !/plans|pricing|per month|subscription/i.test(await page.textContent(".library-about")));
+  await page.click("#closeLibrary");
+
+  // ---------------------------------------------------------------------
+  // Daily reminder (.ics). The generated file is parsed rather than eyeballed:
+  // every previous defect here was invisible from the UI.
+  await page.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
+  const readIcs = async () => {
+    const dl = await Promise.all([page.waitForEvent("download"), page.click("#reminderButton")]).then(r => r[0]);
+    return fs.readFileSync(await dl.path(), "utf8");
+  };
+  await page.click("#libraryButton");
+  await page.fill("#reminderTime", "21:30");
+  const ics1 = await readIcs();
+
+  check("reminder file is a calendar", ics1.startsWith("BEGIN:VCALENDAR") && ics1.includes("END:VCALENDAR"));
+  check("reminder repeats daily", ics1.includes("RRULE:FREQ=DAILY"));
+  check("reminder uses the chosen time", /DTSTART:\d{8}T213000/.test(ics1));
+  // Floating time on purpose: no Z and no TZID, so it fires at 21:30 wherever
+  // the reader is rather than drifting when they travel.
+  check("reminder time is floating, not UTC", !/DTSTART:[^\r\n]*Z/.test(ics1) && !/DTSTART;TZID/.test(ics1));
+  // It used to link to the origin, which became the landing page when the app
+  // moved to /app — so the 7am tap opened marketing instead of the prayer.
+  check("reminder links into the app", ics1.includes(`${SITE_ORIGIN}/app`) && !/DESCRIPTION:[^\r\n]*app: https?:\/\/[^\r\n/]+\r?\n/.test(ics1));
+
+  // RFC 5545 §3.1: no content line may exceed 75 octets.
+  //
+  // Asserting that over the generated file alone is NOT enough: on this test
+  // server the DESCRIPTION line is exactly 75 octets, while against the real
+  // origin it is 85. The check would pass with folding removed entirely, so
+  // icsFold is exercised directly with inputs that must fold.
+  const longLines = ics1.split("\r\n").filter(l => Buffer.byteLength(l, "utf8") > 75);
+  check("no line exceeds 75 octets", longLines.length === 0);
+
+  const folding = await page.evaluate(() => {
+    const bytes = s => new TextEncoder().encode(s).length;
+    const report = input => {
+      const lines = icsFold(input).split("\r\n");
+      return {
+        overLong: lines.filter(l => bytes(l) > 75).length,
+        continuationsIndented: lines.slice(1).every(l => l.startsWith(" ")),
+        // Unfolding (drop CRLF + one space) must return the original exactly.
+        roundTrips: lines.map((l, i) => (i ? l.slice(1) : l)).join("") === input,
+        folded: lines.length > 1
+      };
+    };
+    return {
+      ascii: report("DESCRIPTION:" + "x".repeat(300)),
+      // Multi-byte characters must never be split across a fold boundary.
+      emDash: report("SUMMARY:" + "Stand — daily prayer ".repeat(12)),
+      short: report("SUMMARY:Stand")
+    };
+  });
+  check("long lines are folded", folding.ascii.folded && folding.emDash.folded);
+  check("folded lines respect the 75-octet limit", folding.ascii.overLong === 0 && folding.emDash.overLong === 0);
+  check("folded lines are continued with a space", folding.ascii.continuationsIndented && folding.emDash.continuationsIndented);
+  check("folding round-trips without losing bytes", folding.ascii.roundTrips && folding.emDash.roundTrips);
+  check("short lines are left alone", !folding.short.folded);
+  check("the file uses CRLF line endings", ics1.includes("\r\n") && !/[^\r]\n/.test(ics1));
+
+  // Tapping twice used to leave two daily alarms running forever.
+  const uid = ics1.match(/UID:(.+)/)[1].trim();
+  const seq1 = Number(ics1.match(/SEQUENCE:(\d+)/)[1]);
+  await page.fill("#reminderTime", "06:15");
+  const ics2 = await readIcs();
+  check("a second export reuses the same event", ics2.includes(`UID:${uid}`));
+  check("a second export out-ranks the first", Number(ics2.match(/SEQUENCE:(\d+)/)[1]) > seq1);
+  check("a second export uses the new time", /DTSTART:\d{8}T061500/.test(ics2));
+  check("the button reports what happened", (await page.textContent("#reminderStatus")).includes("06:15"));
+
+  // The chosen time survives a reload; it used to reset to 07:00.
+  await page.reload({ waitUntil: "networkidle" });
+  await page.click("#libraryButton");
+  check("the reminder time is remembered", await page.inputValue("#reminderTime") === "06:15");
   await page.click("#closeLibrary");
 
   // ---------------------------------------------------------------------

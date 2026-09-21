@@ -128,7 +128,13 @@ function sanitizeBackup(raw, deps) {
     lang: langs.includes(raw.lang) ? raw.lang : "en",
     bilingual: raw.bilingual === true,
     welcomed: true,
-    installHintDismissed: raw.installHintDismissed === true
+    installHintDismissed: raw.installHintDismissed === true,
+    // The reminder settings are whitelisted like everything else, so a
+    // restore keeps the chosen time. reminderSeq has to survive too: it is
+    // what makes a re-exported .ics out-rank the one already in the calendar,
+    // and a reset to 0 would leave the update silently ignored.
+    reminderTime: /^([01]\d|2[0-3]):[0-5]\d$/.test(raw.reminderTime) ? raw.reminderTime : null,
+    reminderSeq: Number.isInteger(raw.reminderSeq) && raw.reminderSeq >= 0 ? raw.reminderSeq : 0
   };
 }
 

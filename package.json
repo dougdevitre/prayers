@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "npx serve .",
-    "check": "node --check app.js && node --check prayers.js && node --check compose.js && node --check content.js && node --check sw.js && node --check tests/smoke.js",
+    "check": "node --check app.js && node --check logic.js && node --check prayers.js && node --check compose.js && node --check content.js && node --check sw.js && node --check tests/smoke.js",
     "build:seo": "node scripts/build-day-pages.js",
     "test": "node tests/smoke.js",
-    "validate": "node scripts/validate-prayers.js"
+    "validate": "node scripts/validate-prayers.js",
+    "test:unit": "node tests/logic.test.js"
   },
   "devDependencies": {
     "playwright": "^1.49.0"

@@ -61,24 +61,8 @@ $("themeButton").onclick = () => {
 
 /* ---------- Progress & streak ---------- */
 
-const localISO = date => date.toLocaleDateString("en-CA");
-
 function currentStreak() {
-  // Completing a day on any track keeps the streak alive.
-  const days = new Set(Object.values(state.completedDates));
-  for (const t of Object.values(state.tracks)) {
-    for (const d of Object.values(t.completedDates || {})) days.add(d);
-  }
-  if (!days.size) return 0;
-  let streak = 0;
-  const cursor = new Date();
-  // A streak survives until a full calendar day is missed.
-  if (!days.has(localISO(cursor))) cursor.setDate(cursor.getDate() - 1);
-  while (days.has(localISO(cursor))) {
-    streak++;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-  return streak;
+  return streakFrom(completedDatesOf(state), new Date());
 }
 
 /* ---------- Current day ---------- */
@@ -546,13 +530,7 @@ $("dayCheckin").addEventListener("click", event => {
 function renderLedger() {
   const el = $("ledger");
   el.textContent = "";
-  const sessions = state.sos.filter(s => s.before != null && s.after != null);
-  const avgDrop = sessions.length
-    ? sessions.reduce((sum, s) => sum + (s.before - s.after), 0) / sessions.length
-    : null;
-  const weekAgo = Date.now() - 7 * 86400000;
-  const week = state.checkins.filter(c => new Date(c.t).getTime() >= weekAgo);
-  const avgWeek = week.length ? week.reduce((sum, c) => sum + c.v, 0) / week.length : null;
+  const { sessions, avgDrop, week, avgWeek } = ledgerStats(state.sos, state.checkins, Date.now());
 
   const kicker = document.createElement("p");
   kicker.className = "section-kicker";
@@ -910,66 +888,14 @@ $("exportButton").onclick = () => {
 
 /* ---------- Backup, restore, erase ---------- */
 
-function sanitizeTrackData(raw, length) {
-  const validDay = d => Number.isInteger(d) && d >= 0 && d < length;
-  const clean = { completed: [], favorites: [], notes: {}, completedDates: {} };
-  if (!raw || typeof raw !== "object") return clean;
-  if (Array.isArray(raw.completed)) clean.completed = raw.completed.filter(validDay);
-  if (Array.isArray(raw.favorites)) clean.favorites = raw.favorites.filter(validDay);
-  if (raw.notes && typeof raw.notes === "object") {
-    for (const [key, value] of Object.entries(raw.notes)) {
-      if (validDay(Number(key)) && typeof value === "string") clean.notes[key] = value;
-    }
-  }
-  if (raw.completedDates && typeof raw.completedDates === "object") {
-    for (const [key, value] of Object.entries(raw.completedDates)) {
-      if (validDay(Number(key)) && typeof value === "string") clean.completedDates[key] = value;
-    }
-  }
-  return clean;
-}
-
-function sanitizeBackup(raw) {
-  if (!raw || typeof raw !== "object") return null;
-  // The legacy top-level fields identify a Stand backup.
-  if (!Array.isArray(raw.completed) || !Array.isArray(raw.favorites) || !raw.notes || typeof raw.notes !== "object") return null;
-  const core = sanitizeTrackData(raw, themes.length);
-
-  const trackData = {};
-  if (raw.tracks && typeof raw.tracks === "object") {
-    for (const [id, sub] of Object.entries(raw.tracks)) {
-      if (id !== "core" && tracks[id]) trackData[id] = sanitizeTrackData(sub, tracks[id].days.length);
-    }
-  }
-
-  const validLevel = v => Number.isInteger(v) && v >= 1 && v <= 5;
-  const checkins = Array.isArray(raw.checkins)
-    ? raw.checkins
-        .filter(c => {
-          if (!c || typeof c !== "object" || typeof c.t !== "string" || !validLevel(c.v)) return false;
-          const length = tracks[c.track || "core"] ? tracks[c.track || "core"].days.length : 0;
-          return Number.isInteger(c.day) && c.day >= 0 && c.day < length;
-        })
-        .map(c => ({ t: c.t, track: tracks[c.track] ? c.track : "core", day: c.day, v: c.v }))
-    : [];
-  const sosSessions = Array.isArray(raw.sos)
-    ? raw.sos
-        .filter(s => s && typeof s === "object" && typeof s.t === "string"
-          && (s.before == null || validLevel(s.before)) && (s.after == null || validLevel(s.after)))
-        .map(s => ({ t: s.t, before: s.before ?? null, after: s.after ?? null }))
-    : [];
-  return {
-    ...core,
-    checkins,
-    sos: sosSessions,
-    track: tracks[raw.track] ? raw.track : "core",
-    tracks: trackData,
-    theme: raw.theme === "light" || raw.theme === "dark" ? raw.theme : null,
-    lang: prayerUi[raw.lang] ? raw.lang : "en",
-    bilingual: raw.bilingual === true,
-    welcomed: true,
-    installHintDismissed: raw.installHintDismissed === true
-  };
+// Backups are sanitized against the content this build actually has; the
+// validation itself lives in logic.js so it can be unit tested.
+function restoreFromBackup(raw) {
+  return sanitizeBackup(raw, {
+    coreDays: themes.length,
+    tracks,
+    langs: Object.keys(prayerUi)
+  });
 }
 
 $("backupButton").onclick = () =>
@@ -981,7 +907,7 @@ $("restoreInput").onchange = async event => {
   if (!file) return;
   let clean = null;
   try {
-    clean = sanitizeBackup(JSON.parse(await file.text()));
+    clean = restoreFromBackup(JSON.parse(await file.text()));
   } catch { /* unreadable or invalid JSON */ }
   if (!clean) {
     alert("That file doesn't look like a Stand backup.");

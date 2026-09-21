@@ -198,7 +198,9 @@ Free forever: the 30-day journey, SOS mode, device narration, notes, backup. Pai
 ## Test plan
 
 - Keep and grow the Playwright smoke suite (125 scenarios today) — add SOS offline mode, check-in math, track switching, and sync merge cases as they land; run it in CI on every push.
-- Unit tests for pure logic: streak calculation (timezone/DST cases), backup sanitizing, check-in aggregation.
+- Unit tests for pure logic (shipped): `logic.js` holds the streak arithmetic, backup sanitizing and ledger aggregation, extracted from `app.js` with every dependency passed in and "now" always injected, so `npm run test:unit` can cover them without a browser. 48 tests, including daylight-saving cases run in child processes with `TZ` set (New York both ways, Santiago where the jump deletes local midnight, Lord Howe's 30-minute shift, Auckland) at three times of day.
+  - The streak cursor is now anchored at local noon. That is hardening rather than a fix: a sweep of 13,140 combinations found no case where it disagreed with the previous wall-clock cursor, because JS normalizes a deleted wall-clock time forward within the same calendar day. It removes the need to re-derive that reasoning.
+  - Still worth adding here: sync merge cases, once there is a backend to merge against.
 - Lighthouse budget in CI: PWA installability, a11y ≥ 95, performance ≥ 90.
 - Device matrix before each release: iOS Safari (TTS + install), Android Chrome (Media Session), desktop.
 - The suite's “welcome shows on first visit” and “no page errors” checks are the guard against a broken first paint, and they have earned it — they caught both temporal-dead-zone crashes in `app.js`. Keep them first and last in the run.

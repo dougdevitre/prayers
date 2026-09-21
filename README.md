@@ -51,6 +51,8 @@ npx playwright install chromium
 npm test
 ```
 
+Alongside it, `npm run test:unit` runs 48 unit tests (no browser, no dependencies) over the pure logic in `logic.js` — streak arithmetic, backup sanitizing, and calm-ledger aggregation. The daylight-saving cases run in child processes with `TZ` set, so they exercise real zones rather than whichever one the machine happens to be in. Both suites run in CI.
+
 ## Publish with GitHub and Vercel
 
 1. Create an empty GitHub repository.

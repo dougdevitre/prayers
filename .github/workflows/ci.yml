@@ -17,8 +17,10 @@ jobs:
       - run: npm run check
       - run: npm run validate
       - run: npm run test:unit
-      # Generated pages must stay in sync with content.js
+      # Generated pages must stay in sync with content.js. sitemap.xml is in
+      # the guard because the generator now always writes it — previously it
+      # only appeared when SITE_URL was set, which it never was in CI.
       - run: npm run build:seo
-      - run: git diff --exit-code -- day track fears robots.txt
+      - run: git diff --exit-code -- day track fears robots.txt sitemap.xml
       - run: npx playwright install --with-deps chromium
       - run: npm test

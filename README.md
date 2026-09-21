@@ -25,7 +25,9 @@ A mobile-first, audio-ready devotional app built with plain HTML, CSS, and JavaS
 - **Repeat & sleep timer** — loop the guided prayer and let a 5–30 minute timer stop it, for night-time listening.
 - **Landing page** — `/about` describes what the app does, in the app's own type, palette, and components (it links `styles.css` and reuses `.app-shell`, `.topbar`, `.eyebrow`, and the rest, exactly as the generated day pages do). A call to action sits in the hero, in the nav's mobile menu, and in the footer. The menu is a `<details>` disclosure, so the static pages stay script-free and the open state is announced natively. No pricing.
 - **Fear index** — `/fears` is the finder's list as a crawlable page: every situation, grouped by kind of journey, each linking to that journey's first day. Generated from the same `fearIndex` the app uses, so the page and the dialog cannot drift, and CI fails if the committed page falls out of sync.
-- **SEO day pages** — `npm run build:seo` regenerates the static, crawlable pages under `day/` (core) and `track/<id>/` (tracks) from `content.js` (set `SITE_URL=https://yourdomain` to also emit `sitemap.xml` and canonical links). `?track=<id>` links deep-link into a journey.
+- **SEO day pages** — `npm run build:seo` regenerates the static, crawlable pages under `day/` (core) and `track/<id>/` (tracks) from `content.js`, plus `sitemap.xml` (111 URLs) and `robots.txt`. Every page carries a canonical link, an `og:url`, and the shared social card. `SITE_URL` defaults to production and can be overridden for a staging build. `?track=<id>` links deep-link into a journey.
+- **Every static page is a way in, not a dead end** — the day and track pages carry the same nav and footer as the landing page, generated from one `NAV_LINKS` list, so someone who arrives at day 14 of a courage story from a search result can reach SOS, the fear index, or the app itself. A page never links to itself in its own menu.
+- **One social card** — `og-card.png` is the shared `og:image` for all 111 pages, so a shared link previews as the brand rather than a blank grey box. Regenerate it with `node scripts/build-og-card.js`; the PNG is committed because social scrapers fetch it directly and never run JavaScript.
 - **Personalized start** — first-time visitors choose where to begin: the 30-day journey or a focused fear track.
 - **Daily calendar reminder** — the library can generate a recurring calendar event (.ics) at your chosen time, with no notifications permission or server needed.
 - **iOS install tip** — Safari visitors get a one-time, dismissible Add-to-Home-Screen hint.
@@ -43,7 +45,7 @@ npm run dev
 
 ## Tests
 
-A 133-scenario end-to-end smoke suite drives the app in headless Chromium against a server that enforces the production Content Security Policy. It runs in CI (GitHub Actions) on every push and pull request, alongside syntax checks and a guard that the generated SEO pages match `content.js`.
+A 158-scenario end-to-end smoke suite drives the app in headless Chromium against a server that enforces the production Content Security Policy. It runs in CI (GitHub Actions) on every push and pull request, alongside syntax checks and a guard that the generated SEO pages, sitemap and robots.txt match `content.js`. It includes a contrast ratchet — a sweep of every element that renders its own text on the app shell and the four static page shapes, failing on any WCAG 2.1 shortfall that is not on a recorded known-debt list, so new failures break the build while existing ones stay visible. It also asserts the footer call to action directly across all three static pages — that check was added after `.landing-footer a` was found to beat `.complete-button` on specificity and render the button's text at 2.92:1, under the 4.5:1 AA minimum.
 
 ```bash
 npm install

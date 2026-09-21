@@ -77,7 +77,10 @@ Deliberately not carried over: the Laudato Si' slot and the creation/defenders i
 Both languages ship. Every corpus block carries `{ en, es }`, the chosen language is app-wide state (`state.lang`, saved with the rest), and one seed picks the same blocks in either language — so switching translates the prayer rather than composing a different one. Narration sets the utterance language and uses that language's break anchors. The 30-day devotional content is still English only; the translation layer in Phase 1 is what would change that.
 
 Roman Catholic material is present and named. Six of the traditional prayers, and the Marian and Franciscan closings, are tagged `roman-catholic` and shown under their own labelled heading with a one-line note, rather than folded in with the prayers shared across the wider Christian tradition. `meta.defaultClosingTraditions` (shipping as `["universal"]`) governs only what "As composed" draws on, so a Roman Catholic closing is a deliberate pick.
-Next on this thread: recorded narration for the traditional prayers in both languages via the same generator REMAM uses (the pacing metadata is already generator-ready); a bilingual option to show both languages side by side, which is how printed prayer books usually handle it; and, if the composer proves useful, an SOS variant that composes rather than reads a fixed script.
+
+Side by side shipped. “Show both languages” renders each line with its translation beneath it, for the traditional prayers as well as composed ones, and the preference is saved with the rest of the state. It rests on the invariant above — one seed, the same blocks, two languages — so the two columns are one prayer rather than two. `composeBilingual` pairs them and the validator checks each column against what that language composes alone, which is the check that actually has teeth: an earlier version compared only the primary column and passed even with the pairing deliberately broken.
+
+Next on this thread: recorded narration for the traditional prayers in both languages via the same generator REMAM uses — the pacing metadata is already generator-ready and validated, so this needs an ElevenLabs key and an S3 bucket rather than more code. And, if the composer proves useful, an SOS variant that composes rather than reads a fixed script.
 
 ### Landing page (shipped)
 `/about` — a hand-written static page (not generated) covering what Stand does and what it costs, built from the same stylesheet and the same components as the app and the day pages, so the marketing surface and the product read as one thing. It is in the sitemap and linked from the library.
@@ -192,7 +195,7 @@ Free forever: the 30-day journey, SOS mode, device narration, notes, backup. Pai
 
 ## Test plan
 
-- Keep and grow the Playwright smoke suite (110 scenarios today) — add SOS offline mode, check-in math, track switching, and sync merge cases as they land; run it in CI on every push.
+- Keep and grow the Playwright smoke suite (117 scenarios today) — add SOS offline mode, check-in math, track switching, and sync merge cases as they land; run it in CI on every push.
 - Unit tests for pure logic: streak calculation (timezone/DST cases), backup sanitizing, check-in aggregation.
 - Lighthouse budget in CI: PWA installability, a11y ≥ 95, performance ≥ 90.
 - Device matrix before each release: iOS Safari (TTS + install), Android Chrome (Media Session), desktop.

@@ -11,6 +11,7 @@ A mobile-first, audio-ready devotional app built with plain HTML, CSS, and JavaS
 - **Grouped journey picker** — the ☰ library groups journeys under the heading in each track's `group` field (the 30-day journey, fear tracks, courage stories), so the list stays scannable as tracks are added.
 - **Prayer composer** (✛) — composes a whole prayer from a reviewed corpus: pick a language, a kind (prayer, forgiveness, grace) and an intention, add an optional personal intention, and reseed for another. Composition is deterministic and offline — nothing is generated at runtime, so every line a reader can see is reviewable in `prayers.js`. Also lists the traditional prayers, with device narration that pauses where each prayer's pacing metadata says to.
 - **English and Spanish** — every prayer and every label on the prayer surface carries both languages, and the choice is app-wide and saved. The same seed composes the same prayer in either language, so switching translates the prayer rather than replacing it. (The 30-day devotional days are still English only.)
+- **Side by side** — tick “Show both languages” and each line appears with its translation beneath it, the way a bilingual prayer book sets them. It is one prayer shown twice, not two prayers: the same seed picks the same blocks in both columns, and `npm run validate` checks that each column matches what that language composes on its own.
 - **Roman Catholic prayers named as such** — the traditional prayers are grouped and labelled: those shared across the wider Christian tradition, and those that are specifically Roman Catholic devotions. The Marian and Franciscan closings are labelled the same way in the composer, and "As composed" only draws on the traditions in `meta.defaultClosingTraditions`, so a Roman Catholic closing is always a deliberate choice.
 - **Fear check-ins and a calm ledger** — optional 1–5 check-ins before and after SOS and on any day; the journal shows your own evidence, like the average fear drop after prayer.
 - **Guided narration** with play/pause, adjustable speed, and an automatically selected English voice.
@@ -41,7 +42,7 @@ npm run dev
 
 ## Tests
 
-A 110-scenario end-to-end smoke suite drives the app in headless Chromium against a server that enforces the production Content Security Policy. It runs in CI (GitHub Actions) on every push and pull request, alongside syntax checks and a guard that the generated SEO pages match `content.js`.
+A 117-scenario end-to-end smoke suite drives the app in headless Chromium against a server that enforces the production Content Security Policy. It runs in CI (GitHub Actions) on every push and pull request, alongside syntax checks and a guard that the generated SEO pages match `content.js`.
 
 ```bash
 npm install
@@ -62,7 +63,7 @@ The player prefers recorded narration and falls back to the browser's built-in S
 
 ## Prayer corpus
 
-`prayers.js` holds the prayer corpus and `compose.js` the composition engine, both ported from the REMAM project (`dougdevitre/remam`) and reduced to English. The corpus keeps REMAM's shape: modes, each with intentions and ordered slots, where every block is a complete sentence or two so any one block per slot reads as a whole prayer.
+`prayers.js` holds the prayer corpus and `compose.js` the composition engine, both ported from the REMAM project (`dougdevitre/remam`). Every block carries English and Spanish. The corpus keeps REMAM's shape: modes, each with intentions and ordered slots, where every block is a complete sentence or two so any one block per slot reads as a whole prayer.
 
 `npm run validate` checks the corpus the way REMAM validates its own, in every language it declares — every mode composes at both lengths with no missing translation, closings carry a style and a tradition, the UI strings are complete, and the audio pacing stays inside the generator's limits (speed 0.7–1.2, stability and style 0–1, at most 6 breaks per language, each 0–3 seconds, every break anchor an exact substring appearing exactly once in that language's text). It also checks that one seed picks the same blocks in both languages. It runs in CI.
 

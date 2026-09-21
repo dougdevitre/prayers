@@ -299,6 +299,21 @@ const server = http.createServer((req, res) => {
   await page.selectOption("#prayerLang", "en");
   check("English returns", (await page.textContent("#prayerHeading")) === prayerUi.en.title);
   check("switching language keeps the same prayer", (await page.textContent("#prayerCard")) !== esSeed);
+  // side-by-side: one prayer shown twice, not two prayers
+  await page.check("#prayerBoth");
+  const altLines = await page.$$(".prayer-card .prayer-line-alt");
+  check("both languages render side by side", altLines.length >= 1);
+  check("each line has a translation beside it",
+    (await page.$$(".prayer-card .prayer-line")).length === altLines.length * 2);
+  check("the title is shown in both languages", await page.isVisible(".prayer-card .prayer-title-alt"));
+  const primaryLine = await page.textContent(".prayer-card .prayer-line:not(.prayer-line-alt)");
+  const altLine = await page.textContent(".prayer-card .prayer-line-alt");
+  check("the two columns differ", primaryLine.trim() !== altLine.trim());
+  check("side-by-side persists to storage", await page.evaluate(() => JSON.parse(localStorage.getItem("stand-state")).bilingual === true));
+  await page.click('.traditional-chips[data-tradition="universal"] .traditional-chip');
+  check("traditional prayers show both languages too", (await page.$$("#traditionalCard .prayer-line-alt")).length === 1);
+  await page.uncheck("#prayerBoth");
+  check("unchecking returns to one language", (await page.$$(".prayer-card .prayer-line-alt")).length === 0);
   await page.click("#closePrayer");
   check("prayer dialog closes", !(await page.evaluate(() => document.getElementById("prayerDialog").open)));
 

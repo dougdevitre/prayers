@@ -1121,6 +1121,7 @@ const prayerCorpus = {
 const prayerUi = {
   en: {
     eyebrow: "PRAY", title: "Compose a prayer", language: "Language",
+    both: "Show both languages",
     kind: "Kind", intention: "Intention", length: "Length", closing: "Closing",
     full: "Full", short: "Short", auto: "As composed",
     styles: { simple: "Simple", trinitarian: "Trinitarian", marian: "Marian", franciscan: "Franciscan" },
@@ -1134,6 +1135,7 @@ const prayerUi = {
   },
   es: {
     eyebrow: "ORAR", title: "Componer una oraci\u00f3n", language: "Idioma",
+    both: "Mostrar ambos idiomas",
     kind: "Tipo", intention: "Intenci\u00f3n", length: "Extensi\u00f3n", closing: "Despedida",
     full: "Completa", short: "Breve", auto: "Tal como se compone",
     styles: { simple: "Sencilla", trinitarian: "Trinitaria", marian: "Mariana", franciscan: "Franciscana" },

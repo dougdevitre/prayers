@@ -16,6 +16,11 @@
 .prayer-title{margin:0 0 14px;font-family:Georgia,serif;font-size:1.3rem;font-weight:500}
 .prayer-line{margin:0 0 12px;font:1.05rem/1.7 Georgia,serif}
 .prayer-line:last-of-type{margin-bottom:0}
+.prayer-line-alt{margin-top:-6px;color:var(--muted);font-style:italic}
+.prayer-title-alt{margin:-10px 0 14px;color:var(--muted);font-family:Georgia,serif;font-size:1.05rem;font-style:italic}
+.prayer-both{display:flex;align-items:flex-end}
+.prayer-both label{display:flex;align-items:center;gap:8px;margin:0;color:var(--ink);font-size:.9rem;font-weight:700;text-transform:none;letter-spacing:0;cursor:pointer}
+.prayer-both input{accent-color:var(--gold)}
 .prayer-note{margin:16px 0 0;color:var(--muted);font-size:.82rem;font-style:italic}
 .prayer-meta{margin:12px 0 0;color:var(--muted);font-size:.78rem}
 .prayer-actions{display:flex;flex-wrap:wrap;gap:16px;margin-top:16px}

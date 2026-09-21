@@ -14,7 +14,7 @@
 // exact substring appearing exactly once in that language's text.
 
 const { prayerCorpus, prayerUi } = require("../prayers.js");
-const { composePrayer, prayerCombinations, narrationSegments, PRAYER_SHAPE } = require("../compose.js");
+const { composePrayer, composeBilingual, prayerCombinations, narrationSegments, PRAYER_SHAPE } = require("../compose.js");
 
 const errors = [];
 const fail = m => errors.push(m);
@@ -164,6 +164,29 @@ for (const lang of LANGS) {
   const pool = prayerCorpus.modes.prayer.slots.invocation;
   const pair = pool.find(b => b.en === en.lines[0]);
   if (!pair || pair.es !== es.lines[0]) fail("composePrayer: the same seed picked different blocks per language");
+}
+
+// The side-by-side view pairs the two languages line for line, so a pair must
+// always be the same prayer twice — never two different ones.
+if (LANGS.length > 1) {
+  for (const [id, mode] of Object.entries(prayerCorpus.modes)) {
+    for (const intention of mode.intentions) {
+      const both = composeBilingual({ corpus: prayerCorpus, mode: id, intention: intention.id, seed: 11, langs: LANGS });
+      // Each column must match what that language composes on its own from the
+      // same seed. Checking only the primary column would let the second column
+      // drift to a different prayer unnoticed.
+      const singles = LANGS.map(lang => composePrayer({ corpus: prayerCorpus, mode: id, intention: intention.id, seed: 11, lang }));
+      const where = `composeBilingual ${id}/${intention.id}`;
+      if (both.pairs.length !== singles[0].lines.length) fail(`${where}: ${both.pairs.length} pairs for ${singles[0].lines.length} lines`);
+      both.pairs.forEach((pair, i) => {
+        pair.forEach((line, col) => {
+          if (typeof line !== "string" || !line.trim()) fail(`${where}: pair ${i} column ${col} is blank`);
+          if (line !== singles[col].lines[i]) fail(`${where}: pair ${i} column ${col} (${LANGS[col]}) is not that language's line for this seed`);
+        });
+        if (pair[0] === pair[1]) fail(`${where}: pair ${i} is the same text in both columns`);
+      });
+    }
+  }
 }
 
 if (errors.length) {

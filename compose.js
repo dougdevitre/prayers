@@ -100,6 +100,23 @@ function composePrayer({ corpus, mode, intention, seed = 1, lang = "en", options
   };
 }
 
+/** Compose the same prayer in two languages, paired line by line.
+ * The seed picks the same blocks in every language, so this is one prayer shown
+ * twice rather than two different prayers — which is the whole point of a
+ * side-by-side view. Pairs are [primary, secondary] in `langs` order. */
+function composeBilingual({ corpus, mode, intention, seed = 1, langs, options = {} }) {
+  const [primary, secondary] = langs.map(lang => composePrayer({ corpus, mode, intention, seed, lang, options }));
+  return {
+    mode: primary.mode,
+    intention: primary.intention,
+    seed,
+    langs,
+    titles: [primary.title, secondary.title],
+    pairs: primary.lines.map((line, i) => [line, secondary.lines[i]]),
+    notes: [primary.note, secondary.note]
+  };
+}
+
 /** Distinct combinations for a mode+intention under the given options, for the
  * page's footnote. The petition is fixed text, so it does not multiply. */
 function prayerCombinations(corpus, mode, intention, options = {}) {
@@ -147,7 +164,7 @@ function narrationSegments(text, audio, lang = "en") {
 
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
-    prayerRng, composePrayer, prayerCombinations, prayerToText,
+    prayerRng, composePrayer, composeBilingual, prayerCombinations, prayerToText,
     traditionalFor, traditionsOf, narrationSegments,
     PRAYER_MODES, PRAYER_SHAPE, PRAYER_OPTIONAL, CLOSING_STYLES, PETITION_MAX
   };

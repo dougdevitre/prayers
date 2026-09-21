@@ -19,7 +19,7 @@ function tdata() {
 /* ---------- Persistent state ---------- */
 
 function loadState() {
-  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, checkins: [], sos: [], track: "core", tracks: {}, theme: null, lang: "en", welcomed: false, installHintDismissed: false };
+  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, checkins: [], sos: [], track: "core", tracks: {}, theme: null, lang: "en", bilingual: false, welcomed: false, installHintDismissed: false };
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!raw || typeof raw !== "object") return fallback;
@@ -966,6 +966,7 @@ function sanitizeBackup(raw) {
     tracks: trackData,
     theme: raw.theme === "light" || raw.theme === "dark" ? raw.theme : null,
     lang: prayerUi[raw.lang] ? raw.lang : "en",
+    bilingual: raw.bilingual === true,
     welcomed: true,
     installHintDismissed: raw.installHintDismissed === true
   };
@@ -1130,6 +1131,8 @@ function renderPrayerChrome() {
   $("prayerClosingLabel").textContent = t.closing;
   $("prayerPetitionLabel").textContent = t.petitionLabel;
   $("prayerPetition").placeholder = t.petitionPlaceholder;
+  $("prayerBothLabel").textContent = t.both;
+  $("prayerBoth").checked = state.bilingual;
   $("prayerAnother").textContent = t.another;
   $("prayerCopy").textContent = t.copy;
   updatePrayerButton($("prayerListen"), prayerAudio.playing);
@@ -1188,10 +1191,56 @@ function paintPrayerCard(card, title, lines, note) {
   }
 }
 
+/** The language shown alongside the chosen one in side-by-side mode. */
+function otherLang() {
+  const ids = prayerCorpus.meta.languages.map(l => l.id);
+  return ids.find(id => id !== state.lang) || state.lang;
+}
+
+/** Paints a card whose lines come in [primary, secondary] pairs. */
+function paintBilingualCard(card, titles, pairs, notes) {
+  card.textContent = "";
+  const heading = document.createElement("h3");
+  heading.className = "prayer-title";
+  heading.textContent = titles[0];
+  const alt = document.createElement("p");
+  alt.className = "prayer-title-alt";
+  alt.textContent = titles[1];
+  card.append(heading, alt);
+  for (const [primary, secondary] of pairs) {
+    const a = document.createElement("p");
+    a.className = "prayer-line";
+    a.textContent = primary;
+    const b = document.createElement("p");
+    b.className = "prayer-line prayer-line-alt";
+    b.lang = otherLang();
+    b.textContent = secondary;
+    card.append(a, b);
+  }
+  if (notes && notes[0]) {
+    const note = document.createElement("p");
+    note.className = "prayer-note";
+    note.textContent = notes[0];
+    card.append(note);
+  }
+}
+
 function renderPrayer() {
   stopPrayerNarration();
-  const result = currentPrayer();
-  paintPrayerCard($("prayerCard"), result.title, result.lines, result.note);
+  if (state.bilingual) {
+    const both = composeBilingual({
+      corpus: prayerCorpus,
+      mode: prayerState.mode,
+      intention: prayerState.intention,
+      seed: prayerState.seed,
+      langs: [state.lang, otherLang()],
+      options: prayerOptions()
+    });
+    paintBilingualCard($("prayerCard"), both.titles, both.pairs, both.notes);
+  } else {
+    const result = currentPrayer();
+    paintPrayerCard($("prayerCard"), result.title, result.lines, result.note);
+  }
   const combos = prayerCombinations(prayerCorpus, prayerState.mode, prayerState.intention, prayerOptions());
   $("prayerMeta").textContent =
     `${ui().combinations.replace("{n}", combos.toLocaleString(state.lang))} ${prayerCorpus.meta.reviewNote[state.lang]}`;
@@ -1232,7 +1281,12 @@ function showTraditional(item) {
   const note = item.tradition === "roman-catholic"
     ? prayerCorpus.meta.traditionNotes["roman-catholic"][state.lang]
     : undefined;
-  paintPrayerCard(card, item.name[state.lang], [item.text[state.lang]], note);
+  if (state.bilingual) {
+    paintBilingualCard(card, [item.name[state.lang], item.name[otherLang()]],
+      [[item.text[state.lang], item.text[otherLang()]]], [note]);
+  } else {
+    paintPrayerCard(card, item.name[state.lang], [item.text[state.lang]], note);
+  }
   const listen = document.createElement("button");
   listen.className = "text-button";
   listen.id = "traditionalListen";
@@ -1309,13 +1363,25 @@ $("prayerMode").onchange = () => {
 $("prayerIntention").onchange = () => { prayerState.intention = $("prayerIntention").value; renderPrayer(); };
 for (const id of ["prayerLength", "prayerClosing"]) $(id).onchange = renderPrayer;
 $("prayerPetition").oninput = renderPrayer;
+$("prayerBoth").onchange = () => {
+  state.bilingual = $("prayerBoth").checked;
+  save();
+  renderPrayerSurface();
+};
 $("prayerAnother").onclick = () => { prayerState.seed += 1; renderPrayer(); };
 $("prayerListen").onclick = () => speakPrayer(
   currentPrayer().lines.map(text => ({ text, pause: 0.6 })),
   $("prayerListen")
 );
 $("prayerCopy").onclick = async () => {
-  const text = prayerToText(currentPrayer());
+  let text = prayerToText(currentPrayer());
+  if (state.bilingual) {
+    const both = composeBilingual({
+      corpus: prayerCorpus, mode: prayerState.mode, intention: prayerState.intention,
+      seed: prayerState.seed, langs: [state.lang, otherLang()], options: prayerOptions()
+    });
+    text = [`${both.titles[0]} / ${both.titles[1]}`, "", ...both.pairs.map(pair => pair.join("\n"))].join("\n\n");
+  }
   const reset = () => setTimeout(() => { $("prayerCopy").textContent = ui().copy; }, 1500);
   try {
     await navigator.clipboard.writeText(text);

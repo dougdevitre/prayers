@@ -1,4 +1,4 @@
-const CACHE = "stand-v12";
+const CACHE = "stand-v13";
 const ASSETS = ["./", "styles.css", "app.js", "content.js", "prayers.js", "compose.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", event => {

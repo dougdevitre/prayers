@@ -1084,16 +1084,6 @@ $("reminderButton").onclick = () => {
   };
 }
 
-applyTheme();
-if (dayFromHash() === null) history.replaceState(null, "", `${location.search}#${day + 1}`);
-render();
-if (new URLSearchParams(location.search).has("sos")) {
-  state.welcomed = true;
-  save();
-  openSos();
-} else if (!state.welcomed) {
-  $("welcomeDialog").showModal();
-}
 
 /* ---------- Prayer composer ----------
    Composes from the reviewed corpus in prayers.js (see compose.js). Nothing is
@@ -1335,3 +1325,31 @@ $("prayerCopy").onclick = async () => {
   }
   reset();
 };
+
+/* ---------- Startup ----------
+   Everything above is declarations and handler wiring; this is the only code
+   that runs on load, and it runs last — after the whole file has evaluated.
+   That ordering is deliberate. This file is appended to as features land, and
+   twice a new section's `const` (prayerAudio, then ui) was reached by startup
+   through stopAudio() before its declaration was evaluated, which throws on a
+   temporal-dead-zone access and leaves a blank first paint. Deferring startup
+   makes where a section is added irrelevant. */
+
+function start() {
+  applyTheme();
+  if (dayFromHash() === null) history.replaceState(null, "", `${location.search}#${day + 1}`);
+  render();
+  if (new URLSearchParams(location.search).has("sos")) {
+    state.welcomed = true;
+    save();
+    openSos();
+  } else if (!state.welcomed) {
+    $("welcomeDialog").showModal();
+  }
+}
+
+// app.js is the last script in the body, so parsing is still in progress and
+// DOMContentLoaded has not fired; the microtask is the belt-and-braces path if
+// the script is ever moved or given defer.
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
+else queueMicrotask(start);

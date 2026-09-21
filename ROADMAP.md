@@ -192,10 +192,14 @@ Free forever: the 30-day journey, SOS mode, device narration, notes, backup. Pai
 
 ## Test plan
 
-- Keep and grow the Playwright smoke suite (38 scenarios today) — add SOS offline mode, check-in math, track switching, and sync merge cases as they land; run it in CI on every push.
+- Keep and grow the Playwright smoke suite (110 scenarios today) — add SOS offline mode, check-in math, track switching, and sync merge cases as they land; run it in CI on every push.
 - Unit tests for pure logic: streak calculation (timezone/DST cases), backup sanitizing, check-in aggregation.
 - Lighthouse budget in CI: PWA installability, a11y ≥ 95, performance ≥ 90.
 - Device matrix before each release: iOS Safari (TTS + install), Android Chrome (Media Session), desktop.
+- The suite's “welcome shows on first visit” and “no page errors” checks are the guard against a broken first paint, and they have earned it — they caught both temporal-dead-zone crashes in `app.js`. Keep them first and last in the run.
+
+### One convention in app.js
+`app.js` is a single script that grows by appending sections, so its startup lives in `start()` at the very bottom and is deferred to `DOMContentLoaded`. Nothing else runs at load. That ordering is what makes appending safe: before it, startup reached `stopAudio()`, which reached a `const` declared in a later section, which throws on a temporal-dead-zone access and leaves a blank page. New sections can be added anywhere; startup still runs after the whole file has evaluated.
 
 ## Rollout plan
 

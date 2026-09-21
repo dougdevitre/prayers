@@ -4,7 +4,20 @@ const canSpeak = "speechSynthesis" in window;
 
 /* ---------- Tracks ---------- */
 
-const activeTrack = () => tracks[state.track] || tracks.core;
+// Devotional content in the reader's language. Spanish lives in content.es.js
+// as a parallel structure with the same day indices, so switching language
+// swaps the words without touching progress, favourites or notes — those are
+// keyed by track and day number, not by text.
+function localizedTrack(id) {
+  const base = tracks[id] || tracks.core;
+  if (state.lang !== "es" || typeof esTracks === "undefined") return base;
+  const es = esTracks[id];
+  if (!es || !Array.isArray(es.days) || es.days.length !== base.days.length) return base;
+  return { ...base, name: es.name, short: es.short, weeks: es.weeks, days: es.days,
+           group: (typeof esGroups !== "undefined" && esGroups[base.group]) || base.group };
+}
+const localizedTracks = () => Object.keys(tracks).map(localizedTrack);
+const activeTrack = () => localizedTrack(state.track);
 const DAYS = () => activeTrack().days.length;
 
 // The core track keeps its data in the legacy top-level state fields so
@@ -633,7 +646,7 @@ function renderTrackPicker() {
   const el = $("trackPicker");
   el.textContent = "";
   let group = null;
-  for (const track of Object.values(tracks)) {
+  for (const track of localizedTracks()) {
     if (track.group && track.group !== group) {
       group = track.group;
       const heading = document.createElement("p");
@@ -648,7 +661,9 @@ function renderTrackPicker() {
     const name = document.createElement("strong");
     name.textContent = track.short;
     const meta = document.createElement("small");
-    meta.textContent = `${data.completed.length} of ${track.days.length} days`;
+    meta.textContent = state.lang === "es"
+      ? `${data.completed.length} de ${track.days.length} días`
+      : `${data.completed.length} of ${track.days.length} days`;
     chip.append(name, meta);
     chip.onclick = () => openTrack(track.id);
     el.append(chip);
@@ -1335,6 +1350,10 @@ $("prayerLang").onchange = () => {
   state.lang = $("prayerLang").value;
   save();
   renderPrayerSurface();
+  // The choice is app-wide: the devotional day, the week label and the
+  // library all follow it, so repaint them behind the open dialog.
+  render();
+  renderTrackPicker();
 };
 $("prayerMode").onchange = () => {
   prayerState.mode = $("prayerMode").value;

@@ -234,4 +234,4 @@ Each phase ships behind the same discipline as v1.0–v1.2: small validated comm
 
 ---
 
-**ASSUMPTIONS (labeled):** solo developer or very small team; ~zero infra budget until Phase 3; English-first with translations later; the fear/anxiety focus is the intended brand direction rather than general devotionals; scripture is now public-domain WEB throughout, verified in CI.
+**ASSUMPTIONS (labeled):** solo developer or very small team; ~zero infra budget until Phase 3; the app is now fully bilingual (English and Spanish) across prayers and all 108 devotional days; the fear/anxiety focus is the intended brand direction rather than general devotionals; scripture is now public-domain WEB throughout, verified in CI.

@@ -1,9 +1,9 @@
-const CACHE = "stand-v21";
+const CACHE = "stand-v22";
 // The app shell is /app, not "./" — the root is the landing page now, and
 // precaching it here would have served the app shell to anyone opening the
 // site. Paths are absolute so they do not depend on where sw.js is fetched.
 const APP_SHELL = "/app";
-const ASSETS = [APP_SHELL, "/styles.css", "/app.js", "/content.js", "/prayers.js", "/compose.js", "/logic.js", "/manifest.webmanifest", "/icon.svg", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"];
+const ASSETS = [APP_SHELL, "/styles.css", "/app.js", "/content.js", "/content.es.js", "/prayers.js", "/compose.js", "/logic.js", "/manifest.webmanifest", "/icon.svg", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"];
 
 self.addEventListener("install", event => {
   event.waitUntil(

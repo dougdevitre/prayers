@@ -975,27 +975,82 @@ $("welcomeDialog").addEventListener("close", () => {
 
 /* ---------- Daily reminder (.ics) ---------- */
 
+// One calendar entry, updated in place. The UID used to be regenerated on
+// every export, so tapping the button twice left two daily alarms running
+// forever with no way to tell them apart. A fixed UID plus a SEQUENCE that
+// only ever increases means a re-import updates the existing event instead.
+const REMINDER_UID = "stand-daily-reminder@prayers.dougdevitre.org";
+
+// RFC 5545 §3.3.11: TEXT values escape backslash, semicolon, comma and
+// newline. Nothing in the current strings needs it — this is here so that
+// editing the summary later cannot quietly produce an invalid file.
+const icsText = v => String(v).replace(/\\/g, "\\\\").replace(/([;,])/g, "\\$1").replace(/\r?\n/g, "\\n");
+
+// RFC 5545 §3.1: content lines are at most 75 OCTETS, continued with CRLF and
+// one leading space. Octets, not characters — the em dash in the summary is
+// three bytes — and a multi-byte character must never be split across a fold.
+function icsFold(line) {
+  const octets = ch => { const c = ch.codePointAt(0); return c < 0x80 ? 1 : c < 0x800 ? 2 : c < 0x10000 ? 3 : 4; };
+  const out = [];
+  let current = "", used = 0;
+  for (const ch of line) {            // by code point, so surrogate pairs stay whole
+    const n = octets(ch);
+    if (used + n > 75) { out.push(current); current = " "; used = 1; }
+    current += ch;
+    used += n;
+  }
+  out.push(current);
+  return out.join("\r\n");
+}
+
+function initReminder() {
+  const field = $("reminderTime");
+  if (/^\d{2}:\d{2}$/.test(state.reminderTime || "")) field.value = state.reminderTime;
+  field.onchange = () => {
+    if (/^\d{2}:\d{2}$/.test(field.value)) { state.reminderTime = field.value; save(); }
+    $("reminderStatus").textContent = "";
+  };
+}
+
 $("reminderButton").onclick = () => {
-  const [h, m] = ($("reminderTime").value || "07:00").split(":").map(Number);
+  const chosen = /^\d{2}:\d{2}$/.test($("reminderTime").value) ? $("reminderTime").value : "07:00";
+  const [h, m] = chosen.split(":").map(Number);
+  state.reminderTime = chosen;
+  // Each export must out-rank the last or calendars ignore the update.
+  state.reminderSeq = Number.isInteger(state.reminderSeq) ? state.reminderSeq + 1 : 0;
+  save();
+
   const start = new Date();
   start.setHours(h, m, 0, 0);
   if (start <= new Date()) start.setDate(start.getDate() + 1);
   const pad = n => String(n).padStart(2, "0");
+  // Deliberately a FLOATING time: no Z and no TZID, so the reminder fires at
+  // the chosen wall-clock time wherever the reader happens to be, rather than
+  // drifting when they travel. Do not "fix" this into UTC.
   const stamp = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+
   const ics = [
-    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Stand//Daily Prayer//EN",
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Stand//Daily Prayer//EN", "CALSCALE:GREGORIAN",
     "BEGIN:VEVENT",
-    `UID:stand-daily-${Date.now()}@stand.app`,
+    `UID:${REMINDER_UID}`,
+    `SEQUENCE:${state.reminderSeq}`,
     `DTSTAMP:${stamp(new Date())}`,
     `DTSTART:${stamp(start)}`,
     "DURATION:PT10M",
     "RRULE:FREQ=DAILY",
-    "SUMMARY:Stand — daily prayer",
-    `DESCRIPTION:A few minutes to stand. Open the app: ${location.origin}`,
-    "BEGIN:VALARM", "TRIGGER:PT0S", "ACTION:DISPLAY", "DESCRIPTION:Time to stand", "END:VALARM",
+    `SUMMARY:${icsText("Stand — daily prayer")}`,
+    // /app, not the origin: the origin is the landing page, and someone
+    // tapping this at 7am wants the prayer, not a page describing it.
+    `DESCRIPTION:${icsText(`A few minutes to stand. Open the app: ${location.origin}/app`)}`,
+    `URL:${location.origin}/app`,
+    "BEGIN:VALARM", "TRIGGER:PT0S", "ACTION:DISPLAY", `DESCRIPTION:${icsText("Time to stand")}`, "END:VALARM",
     "END:VEVENT", "END:VCALENDAR"
-  ].join("\r\n");
+  ].map(icsFold).join("\r\n") + "\r\n";
+
   downloadFile("stand-daily-reminder.ics", ics, "text/calendar");
+  $("reminderStatus").textContent = state.reminderSeq === 0
+    ? `Saved for ${chosen} daily — open the downloaded file to add it to your calendar.`
+    : `Updated to ${chosen} daily — open the downloaded file and your calendar will replace the old reminder.`;
 };
 
 /* ---------- iOS install hint ---------- */
@@ -1329,6 +1384,7 @@ $("prayerCopy").onclick = async () => {
 
 function start() {
   applyTheme();
+  initReminder();
   if (dayFromHash() === null) history.replaceState(null, "", `${location.search}#${day + 1}`);
   render();
   if (new URLSearchParams(location.search).has("sos")) {

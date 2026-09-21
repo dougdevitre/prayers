@@ -357,6 +357,41 @@ const server = http.createServer((req, res) => {
   }));
   const landingScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   check("landing has no horizontal scroll", !landingScroll);
+  // Screenshots of the running app. The page described the app in 650 words
+  // and showed none of it; these are captures, not mockups.
+  check("landing shows the app", (await page.$$("#see .shot img")).length === 3);
+  const shotsLoad = await page.evaluate(async () => {
+    const imgs = [...document.querySelectorAll("#see .shot img")];
+    await Promise.all(imgs.map(i => i.complete ? null : new Promise(r => { i.onload = r; i.onerror = r; })));
+    return imgs.filter(i => i.naturalWidth > 0).length;
+  });
+  check("every screenshot resolves", shotsLoad === 3);
+  check("screenshots are described", await page.evaluate(() =>
+    [...document.querySelectorAll("#see .shot img")].every(i => (i.getAttribute("alt") || "").length > 40)));
+  check("screenshots reserve their space", await page.evaluate(() =>
+    [...document.querySelectorAll("#see .shot img")].every(i => i.getAttribute("width") && i.getAttribute("height"))));
+  // A light screenshot on a dark page glares, so each has a dark counterpart.
+  check("screenshots have a dark variant", await page.evaluate(() =>
+    [...document.querySelectorAll("#see .shot picture source")]
+      .every(sourceEl => sourceEl.getAttribute("media") === "(prefers-color-scheme: dark)")
+    && document.querySelectorAll("#see .shot picture source").length === 3));
+
+  // Structured data: verified to survive script-src 'self' because ld+json is
+  // data, not executable script.
+  const ld = await page.evaluate(() => {
+    const el = document.querySelector('script[type="application/ld+json"]');
+    if (!el) return null;
+    try { return JSON.parse(el.textContent); } catch { return "unparseable"; }
+  });
+  check("landing carries structured data", ld && ld !== "unparseable");
+  check("structured data names the app", Boolean(ld) && ld !== "unparseable"
+    && ld["@graph"].some(n => n["@type"] === "SoftwareApplication" && n.name === "Stand"));
+  check("structured data says it is free", Boolean(ld) && ld !== "unparseable"
+    && ld["@graph"].some(n => n.offers && n.offers.price === "0"));
+  // Never claim ratings or reviews the app has not received.
+  check("structured data invents no reviews",
+    !/aggregateRating|"review"|ratingValue/i.test(await page.content()));
+
   // the menu is a <details> disclosure, so it works with no script at all
   check("menu starts closed", !(await page.evaluate(() => document.querySelector(".nav-menu").open)));
   await page.click(".nav-menu > summary");
@@ -440,6 +475,57 @@ const server = http.createServer((req, res) => {
   await page.click("#closeLibrary");
 
   // ---------------------------------------------------------------------
+  // Dark mode on the static pages.
+  //
+  // These pages carry no JavaScript, so the .dark class app.js toggles never
+  // reaches them; they rendered full-brightness for a reader whose device is
+  // set to dark. They now opt in via class="theme-auto" plus a
+  // prefers-color-scheme rule. The app deliberately does NOT carry that class:
+  // choosing "light" in the app is the ABSENCE of .dark, so a bare :root rule
+  // would override it, which is the regression the last check here guards.
+  const DARK_PAPER = "rgb(13, 27, 36)";
+  const LIGHT_PAPER = "rgb(247, 244, 236)";
+  const bodyBg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+
+  await page.emulateMedia({ colorScheme: "dark" });
+  for (const url of ["/about", "/fears", "/day/01-stand"]) {
+    await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
+    check(`${url} follows a dark device`, (await bodyBg()) === DARK_PAPER);
+  }
+  await page.emulateMedia({ colorScheme: "light" });
+  for (const url of ["/about", "/fears", "/day/01-stand"]) {
+    await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
+    check(`${url} follows a light device`, (await bodyBg()) === LIGHT_PAPER);
+  }
+
+  // The app must still honour an explicit choice against the device setting.
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto("http://localhost:8123/", { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => {
+    const raw = JSON.parse(localStorage.getItem("stand-state") || "{}");
+    raw.theme = "light";
+    localStorage.setItem("stand-state", JSON.stringify(raw));
+  });
+  await page.reload({ waitUntil: "networkidle" });
+  check("app keeps an explicit light choice on a dark device", (await bodyBg()) === LIGHT_PAPER);
+  await page.evaluate(() => {
+    const raw = JSON.parse(localStorage.getItem("stand-state") || "{}");
+    delete raw.theme;
+    localStorage.setItem("stand-state", JSON.stringify(raw));
+  });
+  await page.emulateMedia({ colorScheme: "light" });
+
+  // The two dark token blocks are hand-duplicated (no build step to share
+  // them), so assert they are character-for-character the same.
+  {
+    const css = await (await page.request.get("http://localhost:8123/styles.css")).text();
+    const appDark = css.match(/:root\.dark\{([^}]*)\}/);
+    const autoDark = css.match(/:root\.theme-auto\{([^}]*)\}/);
+    check("both dark token blocks exist", Boolean(appDark && autoDark));
+    check("static dark tokens match the app's", Boolean(appDark && autoDark) && appDark[1] === autoDark[1]);
+  }
+
+  // ---------------------------------------------------------------------
   // Contrast ratchet.
   //
   // Sweeps every element that renders its own text on the app shell and the
@@ -493,12 +579,55 @@ const server = http.createServer((req, res) => {
     return bad;
   }, KNOWN_CONTRAST_DEBT);
 
-  for (const url of ["/", "/about", "/fears", "/day/01-stand", "/track/furnace/01-the-decree"]) {
+  const SWEEP_PAGES = ["/", "/about", "/fears", "/day/01-stand", "/track/furnace/01-the-decree"];
+  for (const url of SWEEP_PAGES) {
     await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
     const bad = await sweepContrast();
     if (bad.length) bad.forEach(b => console.log("       " + b));
     check(`no new contrast failures on ${url}`, bad.length === 0);
   }
+
+  // Dark mode is swept with NO debt allowance: the dark --gold (#f1c879) is
+  // 9.61:1 on the dark paper, so every page already passes outright. The
+  // contrast debt above is a light-mode problem only. Now that the static
+  // pages follow a dark device, this keeps that clean sheet honest.
+  await page.emulateMedia({ colorScheme: "dark" });
+  for (const url of SWEEP_PAGES) {
+    await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
+    const bad = await page.evaluate(() => {
+      const lum = c => {
+        const m = c.match(/[\d.]+/g);
+        if (!m) return null;
+        const [r, g, b] = m.slice(0, 3)
+          .map(n => { n /= 255; return n <= 0.03928 ? n / 12.92 : Math.pow((n + 0.055) / 1.055, 2.4); });
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      };
+      const bgOf = el => {
+        for (let n = el; n; n = n.parentElement) {
+          const c = getComputedStyle(n).backgroundColor;
+          if (c && !/rgba\(0, 0, 0, 0\)|transparent/.test(c)) return c;
+        }
+        return "rgb(255, 255, 255)";
+      };
+      const out = [];
+      for (const el of document.querySelectorAll("body *")) {
+        if (el.tagName === "OPTION") continue;
+        if (![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+        const cs = getComputedStyle(el);
+        if (cs.visibility === "hidden" || cs.display === "none" || Number(cs.opacity) === 0) continue;
+        const size = parseFloat(cs.fontSize), weight = Number(cs.fontWeight) || 400;
+        const need = (size >= 24 || (size >= 18.66 && weight >= 700)) ? 3 : 4.5;
+        const a = lum(cs.color), b = lum(bgOf(el));
+        if (a === null || b === null) continue;
+        const ratio = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+        if (ratio < need) out.push(`${el.tagName.toLowerCase()}.${[...el.classList].join(".")} ${ratio.toFixed(2)}:1 (needs ${need})`);
+      }
+      return out;
+    });
+    if (bad.length) bad.forEach(b => console.log("       " + b));
+    check(`no contrast failures in dark mode on ${url}`, bad.length === 0);
+  }
+  await page.emulateMedia({ colorScheme: "light" });
 
   check("no page errors (incl. CSP violations)", errors.length === 0);
   if (errors.length) console.log(errors.join("\n"));

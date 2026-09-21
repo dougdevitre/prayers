@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="theme-auto">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,6 +16,43 @@
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/styles.css" />
   <title>Stand — a prayer companion for fear</title>
+  <script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://prayers.dougdevitre.org/#website",
+        "url": "https://prayers.dougdevitre.org/",
+        "name": "Stand",
+        "description": "A prayer companion for fear.",
+        "inLanguage": [
+          "en",
+          "es"
+        ]
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://prayers.dougdevitre.org/#app",
+        "name": "Stand",
+        "url": "https://prayers.dougdevitre.org/",
+        "applicationCategory": "LifestyleApplication",
+        "operatingSystem": "Any (progressive web app)",
+        "description": "A prayer companion for fear: a ninety-second guided rescue when fear spikes, twenty guided journeys, and a prayer composer in English and Spanish. Works offline, with no account.",
+        "inLanguage": [
+          "en",
+          "es"
+        ],
+        "isAccessibleForFree": true,
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
   <div class="app-shell">
@@ -30,6 +67,7 @@
             <li><a href="/?sos=1">Steady me now</a></li>
             <li><a href="/fears">Start from a fear</a></li>
             <li><a href="/day/01-stand">Begin at day one</a></li>
+            <li><a href="#see">What it looks like</a></li>
             <li><a href="#inside">What's inside</a></li>
             <li><a href="#privacy">How it works</a></li>
           </ul>
@@ -55,6 +93,38 @@
         <p>A breathing pacer, one anchoring verse, a short spoken prayer, a declaration. It ends by asking whether you are steadier, and chains another round if you are not.</p>
         <p>It works with no signal, no voices installed, and storage blocked — it degrades to text and a breathing animation, never to a blank screen. Crisis-support resources stay visible throughout.</p>
         <a class="complete-button" href="/?sos=1">Try it now</a>
+      </section>
+
+      <section class="landing-section" id="see">
+        <p class="section-kicker">WHAT IT LOOKS LIKE</p>
+        <h2>The actual screens</h2>
+        <p>Not mockups — these are captures of the running app, regenerated from it, so they cannot promise something it does not do.</p>
+        <div class="shot-grid">
+          <figure class="shot">
+            <picture>
+              <source srcset="/shots/sos-dark.png" media="(prefers-color-scheme: dark)" />
+              <img src="/shots/sos.png" width="549" height="687" loading="lazy" decoding="async"
+                   alt="The SOS screen: a gold breathing circle reading &quot;Breathe in...&quot;, the text &quot;3 slow breaths to go&quot;, a Continue button, and a link reading &quot;Fear feels unmanageable? Get support&quot;." />
+            </picture>
+            <figcaption>The ninety-second rescue. Crisis support stays on screen throughout.</figcaption>
+          </figure>
+          <figure class="shot">
+            <picture>
+              <source srcset="/shots/day-dark.png" media="(prefers-color-scheme: dark)" />
+              <img src="/shots/day.png" width="585" height="1266" loading="lazy" decoding="async"
+                   alt="Day 1 of the journey, titled Stand, with Ephesians 6:10-13, a guided prayer player of about three minutes with speed, repeat and sleep-timer controls, and a Steady me now button always in reach." />
+            </picture>
+            <figcaption>A day of the journey, with narration you can slow down, repeat, or sleep to.</figcaption>
+          </figure>
+          <figure class="shot">
+            <picture>
+              <source srcset="/shots/composer-dark.png" media="(prefers-color-scheme: dark)" />
+              <img src="/shots/composer.png" width="528" height="1116" loading="lazy" decoding="async"
+                   alt="The prayer composer showing a composed prayer titled &quot;Prayer — In fear&quot;, with Another prayer, Listen and Copy actions, and a note that 54 prayers can be composed from this corpus for this intention." />
+            </picture>
+            <figcaption>A prayer composed for the moment — from a written corpus, not generated as you read.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="landing-section" id="inside">

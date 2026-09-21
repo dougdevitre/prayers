@@ -103,7 +103,7 @@ for (const track of Object.values(tracks)) {
     const next = i < track.days.length - 1 ? `<a href="${urlBase}/${pageName(track, i + 1)}">Day ${i + 2} →</a>` : "<span></span>";
 
     const html = `<!doctype html>
-<html lang="en">
+<html lang="en" class="theme-auto">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -177,7 +177,7 @@ ${group.rows.map(row => `          <div class="feature-card">
   const title = "Where are you right now? — Stand";
   const description = "Say what you are afraid of \u2014 a court date, a diagnosis, a child, a bill, the dark \u2014 and start with the prayers written for it.";
   const html = `<!doctype html>
-<html lang="en">
+<html lang="en" class="theme-auto">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />

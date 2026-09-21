@@ -46,6 +46,7 @@ const weeks = [
 const tracks = {
   core: {
     id: "core",
+    group: "THE 30-DAY JOURNEY",
     name: "Stand — 30 Days of Spiritual Combat",
     short: "The 30-Day Journey",
     days: themes,
@@ -53,6 +54,7 @@ const tracks = {
   },
   unknown: {
     id: "unknown",
+    group: "FEAR TRACKS",
     name: "Fear of the Unknown",
     short: "Fear of the Unknown",
     weeks: ["FEAR OF THE UNKNOWN · FIVE DAYS"],
@@ -66,6 +68,7 @@ const tracks = {
   },
   night: {
     id: "night",
+    group: "FEAR TRACKS",
     name: "Night Fear & Sleep",
     short: "Night Fear & Sleep",
     weeks: ["NIGHT FEAR & SLEEP · FIVE DAYS"],
@@ -82,6 +85,7 @@ const tracks = {
   // Scripture here is public domain (World English Bible, lightly modernized).
   furnace: {
     id: "furnace",
+    group: "COURAGE STORIES",
     name: "The Furnace — Daniel 3",
     short: "The Furnace",
     weeks: ["COURAGE STORY · THE FURNACE · DANIEL 3"],
@@ -94,6 +98,7 @@ const tracks = {
   },
   giant: {
     id: "giant",
+    group: "COURAGE STORIES",
     name: "The Giant — 1 Samuel 17",
     short: "The Giant",
     weeks: ["COURAGE STORY · THE GIANT · 1 SAMUEL 17"],
@@ -106,6 +111,7 @@ const tracks = {
   },
   den: {
     id: "den",
+    group: "COURAGE STORIES",
     name: "The Den — Daniel 6",
     short: "The Den",
     weeks: ["COURAGE STORY · THE DEN · DANIEL 6"],
@@ -118,6 +124,7 @@ const tracks = {
   },
   storm: {
     id: "storm",
+    group: "COURAGE STORIES",
     name: "The Storm — Mark 4",
     short: "The Storm",
     weeks: ["COURAGE STORY · THE STORM · MARK 4"],
@@ -130,6 +137,7 @@ const tracks = {
   },
   unseen: {
     id: "unseen",
+    group: "COURAGE STORIES",
     name: "The Unseen Army — 2 Kings 6",
     short: "The Unseen Army",
     weeks: ["COURAGE STORY · THE UNSEEN ARMY · 2 KINGS 6"],
@@ -138,6 +146,110 @@ const tracks = {
       ["More With Us","2 Kings 6:16","Do not be afraid, for those who are with us are more than those who are with them.","Elisha did not argue that the army was small. He said the count was incomplete. Fear is often accurate about the threat and wrong about the total.","Lord, my arithmetic keeps leaving You out and leaving out the people You have already given me. Correct the math. Let me feel outnumbered in the right direction.","Fear counts the threat correctly and the help not at all.","List everyone and everything actually on your side right now — people, resources, protections, past evidence. Compare it to your fear's count."],
       ["Open His Eyes","2 Kings 6:17","Lord, please open his eyes, that he may see.","The prayer was not for reinforcements but for sight. Nothing changed outside the city; what changed was what one frightened man could see of what was already there.","Father, I am not asking You to send what You have already sent. Open my eyes. Show me the help that has been standing around me while I was busy counting chariots.","The help I need may already be here, unseen.","Ask one trusted person what they see in your situation that you may be missing — then write down their answer."],
       ["Bread for the Enemy","2 Kings 6:22","Set bread and water before them, that they may eat and drink and go to their master.","The story ends with the captured army being fed rather than destroyed. Courage that stops at survival is incomplete; the last beat of real strength is what it refuses to do to someone at its mercy.","God, when the fear finally lifts, keep me from becoming what frightened me. Give me the kind of courage that can afford mercy and still keep wise limits.","Strength is proved by what it refuses to do to someone who cannot stop it.","Choose one person you have power over in some small way, and use it today for their good rather than your advantage."]
+    ]
+  },
+  throne: {
+    id: "throne",
+    group: "COURAGE STORIES",
+    name: "The Throne Room — Esther 4–5",
+    short: "The Throne Room",
+    weeks: ["COURAGE STORY · THE THRONE ROOM · ESTHER 4–5"],
+    days: [
+      ["For Such a Time","Esther 4:14","Who knows whether you have not come to the kingdom for such a time as this?","Esther was safe, and the safety was the problem: staying quiet would have preserved her position and cost everyone else. Some fear is not fear of harm but fear of losing a comfortable place.","God, I have been telling myself that silence is prudence. Show me honestly what my quiet is protecting, and give me the courage to spend some of it on someone who cannot speak for themselves.","Staying silent is also a decision, and it also has a cost.","Name the one thing you are positioned to say that no one else in the room can — and who would benefit if you said it."],
+      ["If I Perish","Esther 4:16","I will go in to the king, which is against the law; and if I perish, I perish.","She did not go because she felt ready or because she expected to survive. The decision was made before the reception was known, which is the only place courage can be decided.","Lord, I keep waiting to feel brave enough. Let me decide this while I am still afraid, and then keep me steady long enough to actually do it.","I will decide this before I know how it will be received.","Choose the hard conversation and put a date on it today — an actual day, written down."],
+      ["The Golden Scepter","Esther 5:2","When the king saw Esther the queen standing in the court, she obtained favor in his sight, and he held out the golden scepter.","She had rehearsed a worst case that did not arrive. Fear is a confident forecaster with a poor record, and the only way to audit it is to compare its predictions to what actually happened.","Father, I have lived through the imagined version of this a hundred times. Give me the honesty to notice how often the dreaded reception never came.","Fear's forecast is not a record of outcomes.","Write what you predicted before the last hard conversation, then what actually happened. Keep both."],
+      ["The Banquet First","Esther 5:4","Let the king and Haman come today to the banquet that I have prepared.","Having reached the throne room, she did not blurt it out. She set a table and waited. Courage is not only nerve; it is also timing, preparation, and the patience to let the right moment arrive.","God, give me the kind of courage that prepares. Keep me from confusing urgency with obedience, and let me do this well rather than merely fast.","Courage that prepares is still courage.","Do one thing that makes the hard conversation land better: the facts in order, the setting chosen, the first sentence written."]
+    ]
+  },
+  wall: {
+    id: "wall",
+    group: "COURAGE STORIES",
+    name: "The Wall — Nehemiah 4, 6",
+    short: "The Wall",
+    weeks: ["COURAGE STORY · THE WALL · NEHEMIAH 4 & 6"],
+    days: [
+      ["They Laughed at the Work","Nehemiah 4:3","If a fox climbed up what they are building, he would break down their stone wall.","Before anyone attacked the wall, they mocked it. Contempt aimed at unfinished work is effective because early work always does look fragile — and the builder knows it better than the critics do.","Lord, someone is making my effort sound ridiculous, and part of me agrees with them. Keep me building through the stage where the work cannot yet defend itself.","Unfinished is not the same as worthless.","Write down the mocking sentence, then write the next brick — the single smallest piece of the work you can lay today."],
+      ["A Trowel and a Sword","Nehemiah 4:17","Everyone with one of his hands did the work, and with the other held his weapon.","They did not stop building to deal with the threat, and they did not pretend the threat was imaginary. Both hands were occupied: one with vigilance, one with the work.","God, I keep swinging between denial and total defense. Teach me to hold both — a clear-eyed watch and a steady hand still building — without letting either hand drop.","I can stay alert and keep building at the same time.","Name the one genuine precaution this situation needs. Take it — then return to the work and leave it there."],
+      ["I Cannot Come Down","Nehemiah 6:3","I am doing a great work, so that I cannot come down. Why should the work stop while I leave it and come down to you?","Four times they summoned him to a meeting, and four times he refused to descend into it. The invitation to argue is not neutral; accepting it is how the work stops without anyone deciding to stop it.","Father, give me the discipline to leave some invitations unanswered. Keep me from mistaking a long argument for progress, and from descending to a plain where nothing gets built.","Not every summons deserves my descent.","Identify one argument you keep being invited into. Decline it today — once, briefly, without a paragraph of justification."],
+      ["Fifty-Two Days","Nehemiah 6:15–16","So the wall was finished in fifty-two days. When all our enemies heard of it, they lost their confidence.","It was not finished in a burst. It was finished in fifty-two ordinary days of people carrying stones while being shouted at. Completion is usually just opposition outlasted.","Lord, let me measure this in days rather than in feelings. Give me the endurance to keep laying stone after stone until the thing is simply, quietly done.","This gets finished the way it gets built: one ordinary day at a time.","Count the days you have already worked at this. Write the number down where you will see it tomorrow."]
+    ]
+  },
+  water: {
+    id: "water",
+    group: "COURAGE STORIES",
+    name: "The Water — Matthew 14",
+    short: "The Water",
+    weeks: ["COURAGE STORY · THE WATER · MATTHEW 14"],
+    days: [
+      ["A Ghost in the Fourth Watch","Matthew 14:26","They were troubled, saying, It is a ghost! And they cried out for fear.","The help arrived and they screamed. Fear is not only afraid of bad things; when it has been afraid long enough, it misreads the rescue as one more threat.","God, I have been frightened long enough to be suspicious of good news. Steady me enough to look twice at what is approaching before I decide what it is.","Not everything that startles me is against me.","Name one thing you reacted to with dread this week, and check whether the dread was actually warranted."],
+      ["Tell Me to Come","Matthew 14:28–29","Lord, if it is you, command me to come to you on the waters. And he said, Come.","Peter asked for the harder thing. The safe option — stay in the boat with everyone else — was available the entire time and no one would have blamed him for taking it.","Lord, I have been asking You to calm things down when part of me is being invited out. If this is You, say so, and give me the nerve to put a foot over the side.","The safe option is not always the faithful one.","Name the thing you would attempt if you were sure you would be caught. Take its first small step today."],
+      ["Beginning to Sink","Matthew 14:30","When he saw that the wind was strong, he was afraid, and beginning to sink, he cried out, Lord, save me!","The fear arrived in the middle of the attempt, not before it. This is the part that shames people most — not that they never tried, but that they faltered after they did.","Father, I am afraid in the middle of something I believed You asked of me, and I am embarrassed to be here. Let me call out plainly instead of going quiet and going under.","Faltering in the middle is not proof I should never have started.","Say the three-word prayer out loud — Lord, save me — and then tell one person you are struggling."],
+      ["Immediately He Reached Out","Matthew 14:31","Immediately Jesus stretched out his hand and took hold of him.","No lecture came first. The hand came first, and the question came after, from inside the grip. Being caught is the part of the story fear never predicts.","God, thank You that the reaching did not wait for me to recover my composure. When I sink again, remind me how quickly the hand came the last time.","When I sank before, I was not left there.","Write down one time you went under and were caught — by God, by a person, by an unexpected provision. Read it the next time you start sinking."]
+    ]
+  },
+  basket: {
+    id: "basket",
+    group: "COURAGE STORIES",
+    name: "The Basket — Exodus 2",
+    short: "The Basket",
+    weeks: ["COURAGE STORY · THE BASKET · EXODUS 2"],
+    days: [
+      ["Three Months Hidden","Exodus 2:2","She hid him three months.","Her first instinct was concealment, and for three months it worked. Most parents know this stretch: the danger is real, the protection is total, and it is quietly running out.","God, I have been holding this child close and keeping the danger away by sheer effort. I am tired, and I am afraid of the day my covering is not enough. Stay with us in that.","I can protect fiercely and still not be able to protect forever.","Name honestly what you are currently protecting your child from by effort alone, and who else could share the weight of it."],
+      ["She Placed It in the Reeds","Exodus 2:3","She took a papyrus basket for him, coated it with tar and pitch, put the child in it, and laid it in the reeds by the river's bank.","She did not simply let go. She built the best basket she could, sealed it, chose the spot — and then released what she could not control. Surrender is what happens after diligence, not instead of it.","Father, let me do everything that is actually mine to do for this child, and then let me put the basket in the water. Hold what my hands cannot.","I will do all that is mine, and release what was never mine.","List what is genuinely in your power for your child this week. Do those. Then name, out loud, the part you are handing over."],
+      ["His Sister Stood at a Distance","Exodus 2:4","His sister stood far off, to see what would be done to him.","Someone stayed to watch. Not close enough to interfere, not far enough to abandon — which is the hardest posture a parent ever holds, and it is not the same as doing nothing.","Lord, teach me to stay present without taking back control. Let my watching be love rather than anxiety, and give me the steadiness to remain at the right distance.","Watching from a distance is not abandoning.","Choose one thing you have been about to intervene in. Stay present, stay available, and let it unfold a little longer."],
+      ["Nurse Him for Me","Exodus 2:9","Take this child and nurse him for me, and I will give you your wages.","What she released came back into her own arms — and she was paid to do openly what she had been risking her life to do in secret. Not every story ends this way, but this one names the possibility fear refuses to consider.","God, my fear has only ever rehearsed the losing version. Let me hold the possibility that what I release could be returned to me changed, and let me live today without deciding the ending.","What I release is not automatically lost.","Write the outcome your fear insists on. Beside it, write one other outcome that is equally possible."]
+    ]
+  },
+  shiloh: {
+    id: "shiloh",
+    group: "COURAGE STORIES",
+    name: "Shiloh — 1 Samuel 1",
+    short: "Shiloh",
+    weeks: ["COURAGE STORY · SHILOH · 1 SAMUEL 1"],
+    days: [
+      ["Year After Year","1 Samuel 1:7","So it was, year by year; she wept, and did not eat.","This is the fear that has a calendar: the same unanswered longing, arriving on schedule, worn deeper each time it comes around. Repetition makes an ache feel like a verdict.","God, I have brought this same request back to You for years and it has started to feel like a closed door. Keep me from turning Your silence into a sentence.","A long wait is not a final answer.","Name what you have been asking for the longest. Say it once today without adding an argument for why it should have happened by now."],
+      ["She Spoke in Her Heart","1 Samuel 1:13","Hannah spoke in her heart. Only her lips moved, but her voice was not heard.","She prayed so honestly that the priest assumed she was drunk. Real prayer is often unpresentable — and being misjudged while doing the most sincere thing you have done in years is its own wound.","Lord, I would rather be misread by people while being honest with You than composed in front of both. Take this prayer in whatever shape it comes out.","My prayer does not have to be presentable to be heard.","Pray once today with no editing — out loud, unpolished, including the part you would not say in front of anyone."],
+      ["Her Face Was No Longer Sad","1 Samuel 1:18","So the woman went her way and ate, and her face was no longer sad.","Nothing had changed yet. The request was still outstanding, and she ate a meal and her expression lifted anyway. Peace arrived ahead of the answer, which is the only kind that can arrive during a long wait.","Father, I have been postponing peace until the news is good. Give me some of it now, in the waiting, before anything is settled.","Peace can arrive before the answer does.","Do one ordinary good thing you have been deferring until this resolves — a meal, a walk, a plan with a friend."],
+      ["Lent to the Lord","1 Samuel 1:28","Therefore I have lent him to the Lord. As long as he lives he is lent to the Lord.","What she had begged for, she then held with open hands. The prayer was answered and the grip stayed loose, which is harder than asking and is the whole of what parents are asked to learn.","God, when I finally receive what I have longed for, keep me from clutching it. Teach me to hold what is most precious to me the way I said I would when I did not have it yet.","What I love most, I hold with open hands.","Name one way you are gripping a person's future. Loosen one finger today: a decision returned to them, a silence kept, a choice allowed."]
+    ]
+  },
+  turning: {
+    id: "turning",
+    group: "COURAGE STORIES",
+    name: "Turned to the Wall — Isaiah 38",
+    short: "Turned to the Wall",
+    weeks: ["COURAGE STORY · TURNED TO THE WALL · ISAIAH 38"],
+    days: [
+      ["Set Your House in Order","Isaiah 38:1","Set your house in order, for you will die and not live.","A sentence from a doctor can reorganize a life in an afternoon. Hezekiah was told plainly, and the telling did not wait for him to be ready to hear it.","God, I have been handed news I cannot unhear, and my mind will not stop running. Slow me down enough to face this hour rather than every hour after it.","I only have to face today's part of this.","Write down what is actually being asked of you in the next seven days — appointments, questions, one call. Nothing beyond that."],
+      ["He Turned His Face to the Wall","Isaiah 38:2–3","Then Hezekiah turned his face to the wall and prayed, and wept bitterly.","He turned away from the room to pray, and he wept while doing it. There was no composure in it and no performance — which is what makes it a model rather than an embarrassment.","Lord, I have been managing my face for everyone around me. Here, with You, let me stop. Take the fear and the tears without requiring me to arrange them first.","I do not have to be composed in front of God.","Take ten minutes alone and pray without managing how it sounds. Tears are part of the prayer, not an interruption of it."],
+      ["I Have Seen Your Tears","Isaiah 38:5","I have heard your prayer. I have seen your tears. Behold, I will add fifteen years to your life.","Hezekiah was given more time. Many faithful people are not, and this story is not a formula that produces years — prayer is not an alternative to care, and an outcome is not a grade on anyone's faith. What the verse insists on first is the hearing and the seeing, and that part is promised to everyone.","Father, I will not pretend to know what You will do with this. I am asking plainly for healing and for time. Whatever comes, let me be sure I was heard and my tears were seen.","However this goes, my prayer was heard and my tears were seen.","Ask plainly for what you want. Then follow through on one piece of practical care — the appointment, the medication, the question you have been avoiding asking your doctor."],
+      ["The Living Shall Praise You","Isaiah 38:19","The living, the living, he shall praise you, as I do this day.","Afterward, he wrote it down. What he had learned in the worst week of his life became a text other frightened people could read, which is what suffering can become when it is not wasted.","God, do not let this season pass through me without leaving something usable behind. Make what I am learning here into something that steadies someone after me.","What I am learning here does not have to be wasted.","Write one page about this season for whoever comes next — what helped, what did not, what you wish someone had told you."]
+    ]
+  },
+  hem: {
+    id: "hem",
+    group: "COURAGE STORIES",
+    name: "The Hem — Mark 5",
+    short: "The Hem",
+    weeks: ["COURAGE STORY · THE HEM · MARK 5"],
+    days: [
+      ["Twelve Years, and Worse","Mark 5:26","She had suffered many things from many physicians, had spent all that she had, and was no better, but rather grew worse.","Twelve years, every specialist, all the money, and the condition still advancing. Chronic illness carries a second weight on top of the first: the exhaustion of having tried everything already.","God, I am tired of explaining this, tired of trying again, and tired of hoping carefully. Meet me in the twelfth year, not just at the beginning when I still had energy for it.","Being tired of hoping does not mean I have failed at faith.","Name the part of this that is exhaustion rather than illness. Tell one person that specific thing today."],
+      ["If I Just Touch His Clothes","Mark 5:28","If I just touch his clothes, I will be made well.","She did not ask to be introduced. She came from behind, through a crowd, aiming for the edge of a garment — because when you have been dismissed enough times, you learn to reach in ways that will not be refused.","Lord, I have stopped asking directly because of how often the asking has gone. Give me the nerve to reach once more, however small and sideways the reaching has to be.","A small reach still counts as reaching.","Make one request today that you have been talking yourself out of — for help, for a referral, for someone's time."],
+      ["Who Touched My Clothes?","Mark 5:30–33","She came and fell down before him, and told him the whole truth.","She had wanted to take the healing and disappear. Instead she was asked to stand up in front of everyone and say the whole thing out loud — and that exposure, which she had dreaded for twelve years, is where the shame actually ended.","Father, I have been hiding the part I am most ashamed of. Give me one safe place to tell the whole truth, and take the weight of the hiding off me.","The part I am hiding is the part that most needs light.","Tell one trustworthy person the whole truth about what you are carrying — not the summary you usually give."],
+      ["Daughter, Go in Peace","Mark 5:34","Daughter, your faith has made you well. Go in peace, and be free from your suffering.","He called her daughter. After twelve years of being a case, a cost, and a condition, the first word she is given is a family word — and that naming is the part of the healing nobody could have handed her.","God, this illness has taken my time and my money and it has started taking my sense of who I am. Whatever happens to my body, give me back my name.","I am a person before I am a diagnosis.","Write down three true things about who you are that have nothing to do with your health. Keep them where you will read them on a bad day."]
+    ]
+  },
+  zarephath: {
+    id: "zarephath",
+    group: "COURAGE STORIES",
+    name: "The Last Meal — 1 Kings 17",
+    short: "The Last Meal",
+    weeks: ["COURAGE STORY · THE LAST MEAL · 1 KINGS 17"],
+    days: [
+      ["A Handful of Meal","1 Kings 17:12","I have only a handful of meal in a jar and a little oil in a jar. I am gathering two sticks, to go in and cook it for me and my son, that we may eat it and die.","She could see the bottom of the jar and she had done the arithmetic. Financial fear is rarely irrational — it is usually a correct calculation carried all the way to a conclusion no one has actually reached yet.","God, I have counted what is left and I do not like the number. Keep me from living the ending before it arrives, and give me enough steadiness to get through today's part.","I have counted correctly and still do not know the ending.","Write the actual numbers down — what is there, what is owed, what is due when. Fear does worse math in the dark."],
+      ["Make Me a Little Cake First","1 Kings 17:13","Do not be afraid. Go and do as you have said, but first make me a little cake from it and bring it to me, and afterward make some for you and your son.","The ask sounds outrageous, and it is worth being plain about what it is not: not a transaction, not a technique for producing money, and not a reason to give away what your family needs. It is one small act of trust at the exact point where fear says to close the hand.","Lord, scarcity has made me grip everything. Show me one honest, proportionate way to open my hand today — not recklessly, but really.","Fear says close the hand; I can open it a little.","Do one small generous thing that is genuinely within your means — a meal, an hour, a skill someone needs. Small and real, not large and reckless."],
+      ["The Jar Did Not Empty","1 Kings 17:16","The jar of meal was not emptied, and the jar of oil did not fail.","What she got was never a stockpile. It was a jar that kept not being empty — enough each time she went to it, and never more than that, which is a harder gift to trust than a lump sum.","Father, I keep asking for a surplus so I can stop depending on You daily. Teach me to trust a jar that refills instead of a pile that reassures.","Enough, repeatedly, is a real kind of provision.","Look back over the last twelve months and write down three times the jar did not empty — the unexpected work, the bill that shrank, the help that arrived."],
+      ["Many Days","1 Kings 17:15","She went and did according to the word of Elijah; and she, he, and her household ate for many days.","There is no dramatic scene at the end of this story — just many ordinary days of a household eating. Provision that keeps arriving quietly is easy to stop noticing, and noticing it is most of what steadies a frightened mind.","God, let me notice what keeps arriving. Before I count what is missing tomorrow, let me count what was actually on the table today.","Today's table was not empty.","Tonight, name out loud three things that were provided today. Do this again tomorrow — the practice is the repetition."]
     ]
   }
 };

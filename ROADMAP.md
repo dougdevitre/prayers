@@ -51,10 +51,18 @@ Optional 1-tap check-in before and after each day and each SOS: "Where is your f
 ### Fear-specific tracks
 Beyond the core 30 days: short 5–7 day tracks — Fear of the Unknown, Night Fear & Sleep, Health Fears, Financial Fear, Conflict & Court, Fear for Your Children. Requires refactoring content from `app.js` into JSON track files (also the prerequisite for translations and SEO pages).
 
-### Courage stories (shipped: five modules)
-Narrative tracks that teach courage through one heroic account rather than one topic. Each is four days following the same beats — the fear, the choice, the outcome, the carry-forward — with a concrete exercise per day: The Furnace (Daniel 3, outcome anxiety), The Giant (1 Samuel 17, an overwhelming problem), The Den (Daniel 6, accusation and unjust process), The Storm (Mark 4, panic — pairs with SOS), The Unseen Army (2 Kings 6, feeling outnumbered, night fear).
+### Courage stories (shipped: thirteen modules)
+Narrative tracks that teach courage through one heroic account rather than one topic. Each is four days following the same beats — the fear, the choice, the outcome, the carry-forward — with a concrete exercise per day.
 
-Next candidates, one story per remaining fear type: Esther before the king (speaking up at cost), Nehemiah rebuilding under threat (working through opposition), Peter on the water (fear mid-attempt), Jochebed's basket and Hannah at Shiloh (fear for your children), Hezekiah's illness and the woman in the crowd (health fears), Elijah and the widow of Zarephath (financial fear). All are pure `content.js` additions — no code changes.
+First batch: The Furnace (Daniel 3, outcome anxiety), The Giant (1 Samuel 17, an overwhelming problem), The Den (Daniel 6, accusation and unjust process), The Storm (Mark 4, panic — pairs with SOS), The Unseen Army (2 Kings 6, feeling outnumbered, night fear).
+
+Second batch: The Throne Room (Esther 4–5, speaking up at cost), The Wall (Nehemiah 4 & 6, working through opposition), The Water (Matthew 14, fear mid-attempt), The Basket (Exodus 2) and Shiloh (1 Samuel 1) for fear for your children, Turned to the Wall (Isaiah 38) and The Hem (Mark 5) for health fears, The Last Meal (1 Kings 17, financial fear).
+
+The two health tracks and the financial track carry explicit guardrails in the content itself: prayer is never framed as an alternative to medical care, an outcome is never framed as a grade on anyone's faith, and the Zarephath track states plainly that it is not a transaction or a technique for producing money.
+
+Remaining candidates: Joshua at the Jordan (the river parts only after the priests' feet are already in it), Gideon's three hundred (fear of inadequacy), Paul in the shipwreck (calm leadership in a crisis you did not choose), Ruth in the barley field (starting over with nothing). All are `content.js` additions.
+
+With sixteen journeys, the library picker now groups tracks by each track's `group` field. The next scale problem is the reverse lookup — a user arriving with one fear ("my court date is Thursday") has to recognize which story fits. A fear-to-track index, or a short intake on the welcome screen, is the natural follow-on.
 
 ### Verse cards
 Share a day as a beautiful generated image (Canvas API) — the app's typography and palette, verse + reference. Images travel where links don't; this is the organic growth loop.

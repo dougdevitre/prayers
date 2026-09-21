@@ -617,10 +617,19 @@ function renderGrid() {
 function renderTrackPicker() {
   const el = $("trackPicker");
   el.textContent = "";
+  let group = null;
   for (const track of Object.values(tracks)) {
+    if (track.group && track.group !== group) {
+      group = track.group;
+      const heading = document.createElement("p");
+      heading.className = "track-group-label";
+      heading.textContent = group;
+      el.append(heading);
+    }
     const data = track.id === "core" ? state : (state.tracks[track.id] || { completed: [] });
     const chip = document.createElement("button");
     chip.className = "track-chip" + (track.id === (state.track || "core") ? " active" : "");
+    chip.dataset.track = track.id;
     const name = document.createElement("strong");
     name.textContent = track.short;
     const meta = document.createElement("small");

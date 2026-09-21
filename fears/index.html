@@ -15,8 +15,20 @@
 <body>
   <div class="app-shell">
     <header class="topbar">
-      <a class="brand" href="/" aria-label="Stand home"><span class="brand-mark">✦</span><span>STAND</span></a>
-      <div class="top-actions"><a class="text-button" href="/about">Features and plans</a></div>
+      <a class="brand" href="/about" aria-label="Stand home"><span class="brand-mark">✦</span><span>STAND</span></a>
+      <nav class="site-nav" aria-label="Main">
+        <a class="nav-cta" href="/">Open the app</a>
+        <details class="nav-menu">
+          <summary>Menu</summary>
+          <ul>
+            <li><a href="/">Open the app</a></li>
+            <li><a href="/?sos=1">Steady me now</a></li>
+            <li><a href="/fears">Start from a fear</a></li>
+            <li><a href="/day/01-stand">Begin at day one</a></li>
+            <li><a href="/about">What Stand does</a></li>
+          </ul>
+        </details>
+      </nav>
     </header>
     <main>
       <section class="landing-hero">
@@ -130,7 +142,13 @@
       </section>
     </main>
     <footer class="landing-footer">
-      <p><a href="/">The app</a> · <a href="/about">Features and plans</a></p>
+      <a class="complete-button" href="/">Open the app</a>
+      <p class="footer-links">
+        <a href="/?sos=1">Steady me now</a> ·
+        <a href="/about">What Stand does</a> ·
+        <a href="/day/01-stand">Begin at day one</a>
+      </p>
+      <p>Free, and private by default.</p>
     </footer>
   </div>
 </body>

@@ -317,30 +317,42 @@ const server = http.createServer((req, res) => {
   await page.click("#closePrayer");
   check("prayer dialog closes", !(await page.evaluate(() => document.getElementById("prayerDialog").open)));
 
-  // landing page: features and plans, in the same brand
+  // landing page: what the app does, with a call to action in three places
   await page.goto("http://localhost:8123/about", { waitUntil: "networkidle" });
-  check("landing page loads", (await page.title()).includes("features and plans"));
+  check("landing page loads", (await page.title()).includes("prayer companion for fear"));
   check("landing uses the app shell", await page.isVisible(".app-shell .topbar .brand"));
-  check("landing lists features", (await page.$$(".feature-card")).length >= 8);
-  check("landing lists three plans", (await page.$$(".plan-card")).length === 3);
-  check("one plan is available now", (await page.$$(".plan-card.plan-current")).length === 1);
-  check("planned plans quote no price", (await page.textContent(".plan-grid")).includes("no price set"));
-  check("free plan keeps SOS", (await page.textContent(".plan-current")).includes("SOS"));
-  check("landing states the never-paywall commitment", (await page.textContent(".landing-section .declaration-panel")).includes("free in every tier"));
+  check("landing describes what the app does", (await page.$$(".feature-card")).length >= 8);
   check("landing names the Roman Catholic prayers", (await page.textContent(".feature-grid")).includes("Roman Catholic"));
-  check("landing links into the app", await page.isVisible('a.complete-button[href="/"]'));
+  check("landing quotes no prices", !/\$|price|pricing|per month|subscription/i.test(await page.textContent("main")));
+  check("no plan cards remain", (await page.$$(".plan-card")).length === 0);
+  // a call to action in the hero, the nav, and the footer
+  check("hero has a call to action", await page.isVisible('.landing-hero a.complete-button[href="/"]'));
+  check("hero also offers SOS", await page.isVisible('.landing-hero a[href="/?sos=1"]'));
+  check("nav has a call to action", await page.isVisible('.site-nav a.nav-cta[href="/"]'));
+  check("footer has a call to action", await page.isVisible('.landing-footer a.complete-button[href="/"]'));
+  check("footer links onward", (await page.$$(".footer-links a")).length >= 3);
   check("landing heading levels do not skip", await page.evaluate(() => {
     const levels = [...document.querySelectorAll("h1,h2,h3,h4,h5,h6")].map(h => Number(h.tagName[1]));
     return !levels.some((l, i) => i > 0 && l - levels[i - 1] > 1);
   }));
   const landingScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   check("landing has no horizontal scroll", !landingScroll);
+  // the menu is a <details> disclosure, so it works with no script at all
+  check("menu starts closed", !(await page.evaluate(() => document.querySelector(".nav-menu").open)));
+  await page.click(".nav-menu > summary");
+  check("menu opens", await page.evaluate(() => document.querySelector(".nav-menu").open));
+  check("menu holds the call to action", await page.isVisible('.nav-menu a[href="/"]'));
+  check("menu links to the fear index", await page.isVisible('.nav-menu a[href="/fears"]'));
+  await page.click(".nav-menu > summary");
+  check("menu closes again", !(await page.evaluate(() => document.querySelector(".nav-menu").open)));
   // fear index: the finder's phrases as a crawlable page
   await page.goto("http://localhost:8123/fears", { waitUntil: "networkidle" });
   check("fear index loads", (await page.title()).includes("Where are you right now?"));
   check("fear index lists every situation", (await page.$$(".feature-card")).length === fearIndex.length);
   check("fear index groups by journey kind", (await page.$$(".landing-section .section-kicker")).length >= 3);
-  check("fear index offers SOS for the rest", await page.isVisible('a[href="/?sos=1"]'));
+  // Scoped to the closing section: the nav menu also links to SOS, and its copy
+  // sits inside a closed <details>, so a bare selector matches a hidden node.
+  check("fear index offers SOS for the rest", await page.isVisible('.landing-close a[href="/?sos=1"]'));
   const fearNoScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   check("fear index has no horizontal scroll", !fearNoScroll);
   // Heading levels must not skip: an h1 followed by card h3s reads as a broken

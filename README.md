@@ -22,6 +22,7 @@ A mobile-first, audio-ready devotional app built with plain HTML, CSS, and JavaS
 - **Daily streak** — completing days on consecutive calendar days builds a streak shown in the progress bar.
 - **Verse cards** — the ↗ button shares the day's verse as a designed image via the device share sheet (desktop saves the card and copies the text).
 - **Repeat & sleep timer** — loop the guided prayer and let a 5–30 minute timer stop it, for night-time listening.
+- **Landing page** — `/about` outlines the features and the plans in the app's own type, palette, and components (it links `styles.css` and reuses `.app-shell`, `.topbar`, `.eyebrow`, and the rest, exactly as the generated day pages do). Plans describe what is free now and what is planned; no price is quoted for anything that does not exist yet, and there is no purchase flow.
 - **SEO day pages** — `npm run build:seo` regenerates the static, crawlable pages under `day/` (core) and `track/<id>/` (tracks) from `content.js` (set `SITE_URL=https://yourdomain` to also emit `sitemap.xml` and canonical links). `?track=<id>` links deep-link into a journey.
 - **Personalized start** — first-time visitors choose where to begin: the 30-day journey or a focused fear track.
 - **Daily calendar reminder** — the library can generate a recurring calendar event (.ics) at your chosen time, with no notifications permission or server needed.
@@ -40,7 +41,7 @@ npm run dev
 
 ## Tests
 
-A 98-scenario end-to-end smoke suite drives the app in headless Chromium against a server that enforces the production Content Security Policy. It runs in CI (GitHub Actions) on every push and pull request, alongside syntax checks and a guard that the generated SEO pages match `content.js`.
+A 110-scenario end-to-end smoke suite drives the app in headless Chromium against a server that enforces the production Content Security Policy. It runs in CI (GitHub Actions) on every push and pull request, alongside syntax checks and a guard that the generated SEO pages match `content.js`.
 
 ```bash
 npm install

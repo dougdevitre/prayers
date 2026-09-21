@@ -20,7 +20,13 @@ const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css
 const server = http.createServer((req, res) => {
   let file = req.url.split("#")[0].split("?")[0];
   if (file === "/") file = "/index.html";
-  const full = path.join(ROOT, file);
+  // Mirror Vercel's cleanUrls: /about -> about/index.html, /day/x -> day/x.html
+  let full = path.join(ROOT, file);
+  if (!fs.existsSync(full) || fs.statSync(full).isDirectory()) {
+    for (const candidate of [full + ".html", path.join(full, "index.html")]) {
+      if (fs.existsSync(candidate)) { full = candidate; break; }
+    }
+  }
   try {
     const data = fs.readFileSync(full);
     res.writeHead(200, {
@@ -295,6 +301,25 @@ const server = http.createServer((req, res) => {
   check("switching language keeps the same prayer", (await page.textContent("#prayerCard")) !== esSeed);
   await page.click("#closePrayer");
   check("prayer dialog closes", !(await page.evaluate(() => document.getElementById("prayerDialog").open)));
+
+  // landing page: features and plans, in the same brand
+  await page.goto("http://localhost:8123/about", { waitUntil: "networkidle" });
+  check("landing page loads", (await page.title()).includes("features and plans"));
+  check("landing uses the app shell", await page.isVisible(".app-shell .topbar .brand"));
+  check("landing lists features", (await page.$$(".feature-card")).length >= 8);
+  check("landing lists three plans", (await page.$$(".plan-card")).length === 3);
+  check("one plan is available now", (await page.$$(".plan-card.plan-current")).length === 1);
+  check("planned plans quote no price", (await page.textContent(".plan-grid")).includes("no price set"));
+  check("free plan keeps SOS", (await page.textContent(".plan-current")).includes("SOS"));
+  check("landing states the never-paywall commitment", (await page.textContent(".landing-section .declaration-panel")).includes("free in every tier"));
+  check("landing names the Roman Catholic prayers", (await page.textContent(".feature-grid")).includes("Roman Catholic"));
+  check("landing links into the app", await page.isVisible('a.complete-button[href="/"]'));
+  const landingScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  check("landing has no horizontal scroll", !landingScroll);
+  await page.goto("http://localhost:8123/", { waitUntil: "networkidle" });
+  await page.click("#libraryButton");
+  check("app links to the landing page", await page.isVisible('.library-about a[href="/about"]'));
+  await page.click("#closeLibrary");
 
   check("no page errors (incl. CSP violations)", errors.length === 0);
   if (errors.length) console.log(errors.join("\n"));

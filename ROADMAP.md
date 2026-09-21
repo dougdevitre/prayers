@@ -79,6 +79,11 @@ Both languages ship. Every corpus block carries `{ en, es }`, the chosen languag
 Roman Catholic material is present and named. Six of the traditional prayers, and the Marian and Franciscan closings, are tagged `roman-catholic` and shown under their own labelled heading with a one-line note, rather than folded in with the prayers shared across the wider Christian tradition. `meta.defaultClosingTraditions` (shipping as `["universal"]`) governs only what "As composed" draws on, so a Roman Catholic closing is a deliberate pick.
 Next on this thread: recorded narration for the traditional prayers in both languages via the same generator REMAM uses (the pacing metadata is already generator-ready); a bilingual option to show both languages side by side, which is how printed prayer books usually handle it; and, if the composer proves useful, an SOS variant that composes rather than reads a fixed script.
 
+### Landing page (shipped)
+`/about` — a hand-written static page (not generated) covering what Stand does and what it costs, built from the same stylesheet and the same components as the app and the day pages, so the marketing surface and the product read as one thing. It is in the sitemap and linked from the library.
+
+Plans are presented honestly rather than aspirationally: Free is marked available and lists what ships today; Supporter and Churches & groups are marked planned, quote no price, and carry no purchase flow, because neither exists yet. The page states the commitment from this roadmap — SOS is free in every tier, permanently. When pricing is decided, the page is where it lands.
+
 ### Verse cards
 Share a day as a beautiful generated image (Canvas API) — the app's typography and palette, verse + reference. Images travel where links don't; this is the organic growth loop.
 

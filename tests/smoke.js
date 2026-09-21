@@ -13,6 +13,7 @@ const launchOptions = process.env.CHROMIUM_PATH ? { executablePath: process.env.
 const ROOT = path.join(__dirname, "..");
 const { tracks } = require("../content.js");
 const TRACK_COUNT = Object.keys(tracks).length;
+const GROUP_COUNT = new Set(Object.values(tracks).map(t => t.group)).size;
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".webmanifest": "application/manifest+json" };
 
 const server = http.createServer((req, res) => {
@@ -119,7 +120,8 @@ const server = http.createServer((req, res) => {
   // tracks: switch to Fear of the Unknown, verify isolation, switch back
   await page.click("#libraryButton");
   check("track picker lists every journey", (await page.$$(".track-chip")).length === TRACK_COUNT);
-  await page.click(".track-chip:nth-child(2)");
+  check("track picker groups journeys", (await page.$$(".track-group-label")).length === GROUP_COUNT);
+  await page.click('.track-chip[data-track="unknown"]');
   check("track day 1 title", (await page.textContent("#dayTitle")) === "The Unwritten Page");
   check("track length is 5", (await page.textContent("#progressLabel")) === "Day 1 of 5");
   check("track week label", (await page.textContent("#weekLabel")).includes("FEAR OF THE UNKNOWN"));
@@ -128,7 +130,7 @@ const server = http.createServer((req, res) => {
   await page.fill("#notes", "track note");
   await page.waitForTimeout(600);
   await page.click("#libraryButton");
-  await page.click(".track-chip:nth-child(1)");
+  await page.click('.track-chip[data-track="core"]');
   check("core day content restored", (await page.textContent("#dayNumber")) === "DAY 02");
   check("core progress unaffected by track", (await page.textContent("#progressPercent")).startsWith("1 of 30"));
   await page.click("#journalButton");

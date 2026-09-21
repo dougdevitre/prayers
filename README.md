@@ -9,6 +9,7 @@ A mobile-first, audio-ready devotional app built with plain HTML, CSS, and JavaS
 - **Courage stories** — seventeen four-day modules, each built on a single heroic account, covering overwhelming problems, accusation, panic, speaking up, opposition, fear for your children, health fears, financial fear, stepping into the unknown, inadequacy, an unchosen crisis, and starting over. Each walks the same four beats — the fear, the choice, the outcome, what you carry forward — and ends every day with one concrete exercise. Scripture in these tracks is public domain (World English Bible, lightly modernized).
 - **"Where are you right now?"** — the ☰ library opens with a plain-language list of situations ("I have a court date", "I'm afraid for my child", "I don't know how I'm going to pay for it") that jumps straight into the journey that meets it, so nobody has to browse twenty titles while afraid. The mapping lives in `fearIndex` in `content.js`.
 - **Grouped journey picker** — the ☰ library groups journeys under the heading in each track's `group` field (the 30-day journey, fear tracks, courage stories), so the list stays scannable as tracks are added.
+- **Prayer composer** (✛) — composes a whole prayer from a reviewed corpus: pick a kind (prayer, forgiveness, grace) and an intention, add an optional personal intention, and reseed for another. Composition is deterministic and offline — nothing is generated at runtime, so every line a user can see is reviewable in `prayers.js`. Includes the traditional public-domain prayers, with device narration that pauses where each prayer's pacing metadata says to.
 - **Fear check-ins and a calm ledger** — optional 1–5 check-ins before and after SOS and on any day; the journal shows your own evidence, like the average fear drop after prayer.
 - **Guided narration** with play/pause, adjustable speed, and an automatically selected English voice.
 - **Picks up where you left off** — opening the app jumps to your first incomplete day.
@@ -37,7 +38,7 @@ npm run dev
 
 ## Tests
 
-An 80-scenario end-to-end smoke suite drives the app in headless Chromium against a server that enforces the production Content Security Policy. It runs in CI (GitHub Actions) on every push and pull request, alongside syntax checks and a guard that the generated SEO pages match `content.js`.
+An 89-scenario end-to-end smoke suite drives the app in headless Chromium against a server that enforces the production Content Security Policy. It runs in CI (GitHub Actions) on every push and pull request, alongside syntax checks and a guard that the generated SEO pages match `content.js`.
 
 ```bash
 npm install
@@ -55,6 +56,14 @@ npm test
 ## Audio
 
 The player prefers recorded narration and falls back to the browser's built-in Speech Synthesis API (so the fallback voice depends on the listener's device). To add recordings: drop MP3s under `audio/` (e.g. `audio/day-01.mp3`, `audio/sos-01.mp3`) and register them in the `recordedAudio` manifest at the bottom of `content.js` — day keys are `"<trackId>-<dayIndex>"` (e.g. `"core-0"`), SOS entries follow the order of the SOS sets. Days without an entry keep using device narration. Recorded playback supports pause/resume, speed, repeat, the sleep timer, and lock-screen controls (Media Session).
+
+## Prayer corpus
+
+`prayers.js` holds the prayer corpus and `compose.js` the composition engine, both ported from the REMAM project (`dougdevitre/remam`) and reduced to English. The corpus keeps REMAM's shape: modes, each with intentions and ordered slots, where every block is a complete sentence or two so any one block per slot reads as a whole prayer.
+
+`npm run validate` checks the corpus the way REMAM validates its own — every mode composes at both lengths, closings carry a style, and the audio pacing stays inside the generator's limits (speed 0.7–1.2, stability and style 0–1, at most 6 breaks, each 0–3 seconds, every break anchor an exact substring appearing exactly once). It runs in CI.
+
+Two settings in `prayers.js` control voice rather than code: `meta.defaultClosingStyles` (which closing styles "As composed" draws from) and `meta.defaultTraditions` (which traditional prayers are listed). Stand ships with the universal set; widening either is a one-line edit.
 
 ## Content note
 

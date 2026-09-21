@@ -12,6 +12,7 @@ catch { ({ chromium } = require("playwright-core")); }
 const launchOptions = process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {};
 const ROOT = path.join(__dirname, "..");
 const { tracks, fearIndex } = require("../content.js");
+const { prayerCorpus } = require("../prayers.js");
 const TRACK_COUNT = Object.keys(tracks).length;
 const GROUP_COUNT = new Set(Object.values(tracks).map(t => t.group)).size;
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".webmanifest": "application/manifest+json" };
@@ -260,6 +261,27 @@ const server = http.createServer((req, res) => {
   await page.click("#libraryButton");
   check("fear finder resets after use", (await page.inputValue("#fearFinder")) === "");
   await page.click("#closeLibrary");
+
+  // prayer composer: composes from the corpus, reseeds, and narrates
+  await page.click("#prayerButton");
+  check("prayer dialog opens", await page.isVisible("#prayerCard"));
+  const firstPrayer = await page.textContent("#prayerCard");
+  check("prayer has a title and lines", (await page.$$(".prayer-line")).length >= 3);
+  check("prayer footnote shows combinations", (await page.textContent("#prayerMeta")).includes("can be composed"));
+  await page.click("#prayerAnother");
+  check("another prayer composes a different one", (await page.textContent("#prayerCard")) !== firstPrayer);
+  await page.selectOption("#prayerMode", "grace");
+  check("switching mode repopulates intentions", (await page.$$("#prayerIntention option")).length === prayerCorpus.modes.grace.intentions.length);
+  await page.selectOption("#prayerMode", "prayer");
+  await page.selectOption("#prayerIntention", "fear");
+  await page.fill("#prayerPetition", "my hearing on Thursday");
+  check("petition is woven into the prayer", (await page.textContent("#prayerCard")).includes("my hearing on Thursday"));
+  const traditionalCount = prayerCorpus.traditional.filter(t => prayerCorpus.meta.defaultTraditions.includes(t.tradition)).length;
+  check("traditional prayers listed by default tradition", (await page.$$(".traditional-chip")).length === traditionalCount);
+  await page.click(".traditional-chip");
+  check("traditional prayer opens", await page.isVisible("#traditionalCard"));
+  await page.click("#closePrayer");
+  check("prayer dialog closes", !(await page.evaluate(() => document.getElementById("prayerDialog").open)));
 
   check("no page errors (incl. CSP violations)", errors.length === 0);
   if (errors.length) console.log(errors.join("\n"));

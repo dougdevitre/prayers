@@ -15,6 +15,7 @@ jobs:
           node-version: 20
       - run: npm install
       - run: npm run check
+      - run: npm run validate
       # Generated pages must stay in sync with content.js
       - run: npm run build:seo
       - run: git diff --exit-code -- day track robots.txt

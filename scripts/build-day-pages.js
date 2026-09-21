@@ -104,7 +104,7 @@ for (const track of Object.values(tracks)) {
 
   const sections = groups.map(group => `
       <section class="landing-section">
-        <p class="section-kicker">${esc(group.name)}</p>
+        <h2 class="section-kicker">${esc(group.name)}</h2>
         <div class="feature-grid">
 ${group.rows.map(row => `          <div class="feature-card">
             <h3><a href="${row.href}">${esc(row.label)}</a></h3>

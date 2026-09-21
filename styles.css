@@ -128,6 +128,10 @@ main{padding-bottom:78px}
 .landing-close .complete-button{max-width:420px;margin:22px auto 0}
 .landing-footer{margin:0 28px 48px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.85rem;text-align:center}
 .landing-footer a{color:var(--muted)}
+/* A group label that is also a real heading, so the page does not jump h1 -> h3.
+   Needs to out-specify `.landing-section h2`, which would otherwise size it as
+   a section title, and to opt out of the serif h2 face. */
+h2.section-kicker,.landing-section h2.section-kicker{margin:0;font-family:inherit;font-size:.75rem;font-weight:800;letter-spacing:.16em}
 /* Links in static page content: the stylesheet had no rule for them, so they
    fell back to browser blue against a gold-and-ink palette. Excludes
    .complete-button, which carries its own colours. */

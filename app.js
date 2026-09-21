@@ -614,6 +614,38 @@ function renderGrid() {
   });
 }
 
+// Switch to a journey and open it at the first day the user has not finished.
+// Selecting the journey already open just closes the library.
+function openTrack(id) {
+  if ((state.track || "core") !== id) {
+    state.track = id;
+    save();
+    libraryFilter = "all";
+    document.querySelectorAll(".filter-tab").forEach(t => t.classList.toggle("active", t.dataset.filter === "all"));
+    $("libraryDialog").close();
+    go(firstIncompleteDay());
+  } else {
+    $("libraryDialog").close();
+  }
+}
+
+function renderFearFinder() {
+  const el = $("fearFinder");
+  if (el.options.length > 1) return;
+  for (const [label, id] of fearIndex) {
+    if (!tracks[id]) continue;
+    const option = document.createElement("option");
+    option.value = id;
+    option.textContent = label;
+    el.append(option);
+  }
+  el.onchange = () => {
+    const id = el.value;
+    el.value = "";
+    if (tracks[id]) openTrack(id);
+  };
+}
+
 function renderTrackPicker() {
   const el = $("trackPicker");
   el.textContent = "";
@@ -635,18 +667,7 @@ function renderTrackPicker() {
     const meta = document.createElement("small");
     meta.textContent = `${data.completed.length} of ${track.days.length} days`;
     chip.append(name, meta);
-    chip.onclick = () => {
-      if ((state.track || "core") !== track.id) {
-        state.track = track.id;
-        save();
-        libraryFilter = "all";
-        document.querySelectorAll(".filter-tab").forEach(t => t.classList.toggle("active", t.dataset.filter === "all"));
-        $("libraryDialog").close();
-        go(firstIncompleteDay());
-      } else {
-        $("libraryDialog").close();
-      }
-    };
+    chip.onclick = () => openTrack(track.id);
     el.append(chip);
   }
 }
@@ -829,7 +850,7 @@ $("notes").oninput = event => {
 
 $("prevButton").onclick = () => go(day - 1);
 $("nextButton").onclick = () => go(day + 1);
-$("libraryButton").onclick = () => { renderTrackPicker(); $("libraryDialog").showModal(); };
+$("libraryButton").onclick = () => { renderFearFinder(); renderTrackPicker(); $("libraryDialog").showModal(); };
 $("closeLibrary").onclick = () => $("libraryDialog").close();
 
 /* ---------- Journal ---------- */

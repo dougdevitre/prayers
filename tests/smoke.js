@@ -11,7 +11,7 @@ catch { ({ chromium } = require("playwright-core")); }
 
 const launchOptions = process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {};
 const ROOT = path.join(__dirname, "..");
-const { tracks } = require("../content.js");
+const { tracks, fearIndex } = require("../content.js");
 const TRACK_COUNT = Object.keys(tracks).length;
 const GROUP_COUNT = new Set(Object.values(tracks).map(t => t.group)).size;
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".webmanifest": "application/manifest+json" };
@@ -250,6 +250,16 @@ const server = http.createServer((req, res) => {
   await page.click('.path-button[data-track="night"]');
   check("welcome path starts night track", (await page.textContent("#dayTitle")) === "Lying Down");
   check("welcome path shows 5-day progress", (await page.textContent("#progressLabel")) === "Day 1 of 5");
+
+  // fear finder: a plain-language situation jumps straight into its track
+  await page.click("#libraryButton");
+  check("fear finder lists every situation", (await page.$$("#fearFinder option")).length === fearIndex.length + 1);
+  await page.selectOption("#fearFinder", "den");
+  check("fear finder opens the mapped track", (await page.textContent("#dayTitle")) === "The Trap");
+  check("fear finder closed the library", !(await page.evaluate(() => document.getElementById("libraryDialog").open)));
+  await page.click("#libraryButton");
+  check("fear finder resets after use", (await page.inputValue("#fearFinder")) === "");
+  await page.click("#closeLibrary");
 
   check("no page errors (incl. CSP violations)", errors.length === 0);
   if (errors.length) console.log(errors.join("\n"));

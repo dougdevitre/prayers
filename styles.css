@@ -7,6 +7,9 @@
 .track-chip:hover{border-color:var(--gold)}
 .track-chip.active{border-color:var(--gold);background:var(--gold-soft)}
 .track-chip small{color:var(--muted)}
+.fear-finder{margin:0 0 20px;padding:16px;border:1px solid var(--gold);background:var(--gold-soft)}
+.fear-finder label{display:block;margin-bottom:8px;font-weight:800}
+.fear-finder select{width:100%;padding:12px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:inherit}
 .track-group-label{grid-column:1/-1;margin:6px 0 0;color:var(--gold);font-size:.75rem;font-weight:800;letter-spacing:.16em}
 .track-group-label:first-child{margin-top:0}
 .filter-tabs{display:flex;gap:8px;margin:0 0 18px;flex-wrap:wrap}

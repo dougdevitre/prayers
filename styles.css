@@ -128,4 +128,11 @@ main{padding-bottom:78px}
 .landing-close .complete-button{max-width:420px;margin:22px auto 0}
 .landing-footer{margin:0 28px 48px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.85rem;text-align:center}
 .landing-footer a{color:var(--muted)}
+/* Links in static page content: the stylesheet had no rule for them, so they
+   fell back to browser blue against a gold-and-ink palette. Excludes
+   .complete-button, which carries its own colours. */
+.landing-section a:not(.complete-button),.landing-hero a:not(.complete-button),.day-nav a{color:var(--ink);text-decoration-color:var(--gold);text-decoration-thickness:1px;text-underline-offset:3px}
+.landing-section a:not(.complete-button):hover,.landing-hero a:not(.complete-button):hover,.day-nav a:hover{color:var(--gold)}
+.feature-card h3 a{text-decoration:none;border-bottom:1px solid var(--gold)}
+.day-nav a{font-weight:700}
 @media(max-width:600px){.landing-hero{margin:6px 10px 0;padding:30px 20px}.landing-section{margin:26px 10px;padding:24px 20px}.landing-footer{margin:0 18px 36px}}

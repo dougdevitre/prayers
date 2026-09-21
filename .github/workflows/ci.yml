@@ -18,6 +18,6 @@ jobs:
       - run: npm run validate
       # Generated pages must stay in sync with content.js
       - run: npm run build:seo
-      - run: git diff --exit-code -- day track robots.txt
+      - run: git diff --exit-code -- day track fears robots.txt
       - run: npx playwright install --with-deps chromium
       - run: npm test

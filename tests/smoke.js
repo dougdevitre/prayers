@@ -331,9 +331,29 @@ const server = http.createServer((req, res) => {
   check("landing links into the app", await page.isVisible('a.complete-button[href="/"]'));
   const landingScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   check("landing has no horizontal scroll", !landingScroll);
+  // fear index: the finder's phrases as a crawlable page
+  await page.goto("http://localhost:8123/fears", { waitUntil: "networkidle" });
+  check("fear index loads", (await page.title()).includes("Where are you right now?"));
+  check("fear index lists every situation", (await page.$$(".feature-card")).length === fearIndex.length);
+  check("fear index groups by journey kind", (await page.$$(".landing-section .section-kicker")).length >= 3);
+  check("fear index offers SOS for the rest", await page.isVisible('a[href="/?sos=1"]'));
+  const fearNoScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  check("fear index has no horizontal scroll", !fearNoScroll);
+  // every generated link must resolve, or the page quietly sends people to 404s
+  const hrefs = await page.$$eval(".feature-card h3 a", els => els.map(e => e.getAttribute("href")));
+  let broken = 0;
+  for (const href of hrefs) {
+    const res = await page.request.get("http://localhost:8123" + href);
+    if (!res.ok()) broken++;
+  }
+  check("every fear links to a page that exists", broken === 0 && hrefs.length === fearIndex.length);
+  await page.click(".feature-card h3 a");
+  check("following a fear opens a day page", (await page.$$("article.devotional")).length === 1);
+
   await page.goto("http://localhost:8123/", { waitUntil: "networkidle" });
   await page.click("#libraryButton");
   check("app links to the landing page", await page.isVisible('.library-about a[href="/about"]'));
+  check("app links to the fear index", await page.isVisible('.library-about a[href="/fears"]'));
   await page.click("#closeLibrary");
 
   check("no page errors (incl. CSP violations)", errors.length === 0);

@@ -265,4 +265,30 @@ const esTracks = {
   },
 };
 
-if (typeof module !== "undefined" && module.exports) module.exports = { esGroups, esTracks };
+// "Where are you right now?" in Spanish, in the same order as fearIndex in
+// content.js. Each entry maps to the same track, so the two lists cannot
+// drift apart in meaning — scripts/verify-es.js checks the pairing.
+const esFearIndex = [
+  ["Estoy en pánico ahora mismo", "storm"],
+  ["No puedo dormir: el miedo llega de noche", "night"],
+  ["No sé lo que viene y no dejo de imaginarlo", "unknown"],
+  ["Enfrento algo mucho más grande que yo", "giant"],
+  ["El resultado no está en mis manos", "furnace"],
+  ["Tengo una cita en el tribunal, o me han acusado", "den"],
+  ["Me siento completamente superado en número", "unseen"],
+  ["Tengo que decir algo difícil y podría costarme", "throne"],
+  ["Se burlan de lo que estoy construyendo, o se oponen", "wall"],
+  ["Empecé algo y temo no poder terminarlo", "water"],
+  ["Tengo miedo por mi hijo", "basket"],
+  ["Llevo años orando por lo mismo", "shiloh"],
+  ["He recibido noticias preocupantes sobre mi salud", "turning"],
+  ["Llevo mucho tiempo enfermo y estoy agotado", "hem"],
+  ["No sé cómo voy a pagarlo", "zarephath"],
+  ["Estoy a punto de empezar algo nuevo", "jordan"],
+  ["No me siento la persona indicada para esto", "torches"],
+  ["Estoy en medio de una crisis que no elegí", "shipwreck"],
+  ["Estoy empezando de nuevo sin nada", "barley"],
+  ["Quiero el camino completo de treinta días", "core"]
+];
+
+if (typeof module !== "undefined" && module.exports) module.exports = { esGroups, esTracks, esFearIndex };

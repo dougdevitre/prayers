@@ -22,6 +22,6 @@ jobs:
       # the guard because the generator now always writes it — previously it
       # only appeared when SITE_URL was set, which it never was in CI.
       - run: npm run build:seo
-      - run: git diff --exit-code -- day track fears robots.txt sitemap.xml
+      - run: git diff --exit-code -- day track fears es robots.txt sitemap.xml
       - run: npx playwright install --with-deps chromium
       - run: npm test

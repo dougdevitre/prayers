@@ -55,13 +55,20 @@ const url = p => `http://localhost:${PORT}${p}`;
   // captures: navigating from "/" to "/#1" only changes the hash, so the
   // document never reloads and the dialog opened for the previous shot was
   // still covering the screen.
-  const freshPage = async scheme => {
+  const freshPage = async (scheme, lang) => {
     const p = await browser.newPage({ viewport: VIEWPORT, deviceScaleFactor: 1.5, colorScheme: scheme });
     await p.goto(url("/app"), { waitUntil: "networkidle" });
     // Dismiss the first-run welcome so captures show the app in use.
     if (await p.evaluate(() => Boolean(document.getElementById("welcomeDialog")?.open))) {
       await p.click("#beginButton");
       await p.waitForTimeout(400);
+    }
+    // The Spanish landing page should show the Spanish app, not the English
+    // one with Spanish copy around it.
+    if (lang === "es") {
+      await p.evaluate(() => { state.lang = "es"; save(); });
+      await p.reload({ waitUntil: "networkidle" });
+      await p.waitForTimeout(300);
     }
     return p;
   };
@@ -81,11 +88,11 @@ const url = p => `http://localhost:${PORT}${p}`;
   // scheme, so a light-only screenshot would glare out of a dark page. The
   // <picture> element fetches only the matching source, so a visitor still
   // downloads one set.
-  for (const scheme of ["light", "dark"]) {
-    const sfx = scheme === "dark" ? "-dark" : "";
+  for (const lang of ["en", "es"]) for (const scheme of ["light", "dark"]) {
+    const sfx = `${lang === "es" ? "-es" : ""}${scheme === "dark" ? "-dark" : ""}`;
 
     // 1. SOS mid-breath — the rescue the whole page is built around.
-    let page = await freshPage(scheme);
+    let page = await freshPage(scheme, lang);
     await page.click("#sosButton");
     await page.waitForTimeout(400);
     await page.click("#sosStage .checkin-scale button:nth-child(4)");
@@ -93,12 +100,12 @@ const url = p => `http://localhost:${PORT}${p}`;
     await capture(page, `sos${sfx}.png`, "#sosDialog");
 
     // 2. A devotional day, showing the narration card.
-    page = await freshPage(scheme);
+    page = await freshPage(scheme, lang);
     await page.waitForTimeout(400);
     await capture(page, `day${sfx}.png`);
 
     // 3. The prayer composer with a composed prayer on screen.
-    page = await freshPage(scheme);
+    page = await freshPage(scheme, lang);
     await page.click("#prayerButton");
     await page.waitForTimeout(600);
     // #prayerCard, not .prayer-card: the hidden #traditionalCard shares the class.

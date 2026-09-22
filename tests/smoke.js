@@ -470,11 +470,12 @@ const server = http.createServer((req, res) => {
   const sitemapRes = await page.request.get("http://localhost:8123/sitemap.xml");
   const sitemap = await sitemapRes.text();
   const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
-  check("sitemap lists every generated page", locs.length === DAY_PAGE_COUNT + 2);
+  check("sitemap lists every generated page", locs.length === DAY_PAGE_COUNT * 2 + 4);
   check("sitemap is absolute", locs.every(u => u.startsWith(SITE + "/")));
   check("sitemap covers the landing page", locs.includes(`${SITE}/`));
   check("sitemap omits the redirected /about", !locs.includes(`${SITE}/about`));
   check("sitemap omits the app shell", !locs.includes(`${SITE}/app`));
+  check("sitemap still omits /about", !locs.includes(`${SITE}/about`));
   const robots = await (await page.request.get("http://localhost:8123/robots.txt")).text();
   check("robots points at the sitemap", robots.includes(`Sitemap: ${SITE}/sitemap.xml`));
 
@@ -617,6 +618,66 @@ const server = http.createServer((req, res) => {
   await page.click("#closeLibrary");
 
   // ---------------------------------------------------------------------
+  // Spanish static pages. The content was translated in the previous
+  // release; these are the crawlable pages that carry it.
+  const meta2 = name => page.getAttribute(`meta[property="${name}"], meta[name="${name}"]`, "content");
+  const hreflang = code => page.getAttribute(`link[rel="alternate"][hreflang="${code}"]`, "href");
+
+  await page.goto("http://localhost:8123/es", { waitUntil: "networkidle" });
+  check("/es is the Spanish landing page", (await page.title()).includes("compañero de oración"));
+  check("/es declares its language", await page.getAttribute("html", "lang") === "es");
+  check("/es ships no script", (await page.$$("script:not([type='application/ld+json'])")).length === 0);
+  check("/es is honest about the interface", (await page.textContent("#see")).includes("parcialmente en inglés"));
+
+  await page.goto("http://localhost:8123/es/day/01-firmeza", { waitUntil: "networkidle" });
+  check("Spanish day page loads", (await page.textContent("h1")) === "Firmeza");
+  check("Spanish day quotes the RV1909", (await page.textContent(".scripture")).includes("Confortaos en el Señor"));
+  check("Spanish day localizes the reference", (await page.textContent(".scripture cite")) === "Efesios 6:10–13");
+  check("Spanish day localizes its headings", (await page.textContent("article")).includes("Reflexión")
+    && (await page.textContent("article")).includes("PRÁCTICA DE HOY"));
+  check("Spanish day is canonical to itself", await page.getAttribute('link[rel="canonical"]', "href") === `${SITE}/es/day/01-firmeza`);
+  check("Spanish day declares its locale", await meta2("og:locale") === "es_ES");
+
+  // hreflang must be reciprocal or search engines treat the pair as
+  // duplicates rather than translations.
+  check("Spanish day points at its English twin", (await hreflang("en")) === `${SITE}/day/01-stand`);
+  check("Spanish day points at itself for es", (await hreflang("es")) === `${SITE}/es/day/01-firmeza`);
+  check("x-default is the English page", (await hreflang("x-default")) === `${SITE}/day/01-stand`);
+  await page.goto("http://localhost:8123/day/01-stand", { waitUntil: "networkidle" });
+  check("English day points back at the Spanish one", (await hreflang("es")) === `${SITE}/es/day/01-firmeza`);
+  check("the pairing is reciprocal", (await hreflang("en")) === `${SITE}/day/01-stand`);
+
+  // Slugs fold accents rather than percent-encoding them.
+  check("Spanish slugs are ASCII", await page.evaluate(async site => {
+    const res = await fetch("/sitemap.xml");
+    const xml = await res.text();
+    return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1])
+      .filter(u => u.includes("/es/")).every(u => /^[\x20-\x7e]+$/.test(u));
+  }, SITE));
+
+  await page.goto("http://localhost:8123/es/fears", { waitUntil: "networkidle" });
+  check("Spanish fear index loads", (await page.textContent("h1")).includes("¿Dónde estás"));
+  check("Spanish fear index lists every situation", (await page.$$(".feature-card")).length === fearIndex.length);
+  check("Spanish fear index groups in Spanish", (await page.textContent("main")).includes("HISTORIAS DE VALOR"));
+  const esFearHrefs = await page.$$eval(".feature-card h3 a", els => els.map(e => e.getAttribute("href")));
+  check("every Spanish fear links under /es", esFearHrefs.every(h => h.startsWith("/es/")));
+  let esBroken = 0;
+  for (const href of esFearHrefs) if (!(await page.request.get("http://localhost:8123" + href)).ok()) esBroken++;
+  check("every Spanish fear link resolves", esBroken === 0);
+
+  // A reader who lands on the wrong language must be able to cross over.
+  check("Spanish pages offer English", await page.evaluate(() =>
+    Boolean(document.querySelector('.nav-menu a[hreflang="en"]'))));
+
+  {
+    const sitemapRes = await page.request.get("http://localhost:8123/sitemap.xml");
+    const locs = [...(await sitemapRes.text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
+    check("sitemap carries both languages", locs.length === DAY_PAGE_COUNT * 2 + 4);
+    check("sitemap covers the Spanish landing page", locs.includes(`${SITE}/es`));
+    check("sitemap covers the Spanish fear index", locs.includes(`${SITE}/es/fears`));
+  }
+
+  // ---------------------------------------------------------------------
   // Routing. The root used to be the app, which meant the domain opened a
   // hash-routed SPA rather than the page that explains it.
   await page.goto("http://localhost:8123/", { waitUntil: "networkidle" });
@@ -752,7 +813,7 @@ const server = http.createServer((req, res) => {
     return bad;
   }, KNOWN_CONTRAST_DEBT);
 
-  const SWEEP_PAGES = ["/", "/app", "/fears", "/day/01-stand", "/track/furnace/01-the-decree"];
+  const SWEEP_PAGES = ["/", "/app", "/fears", "/day/01-stand", "/track/furnace/01-the-decree", "/es", "/es/fears", "/es/day/01-firmeza"];
   for (const url of SWEEP_PAGES) {
     await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
     const bad = await sweepContrast();

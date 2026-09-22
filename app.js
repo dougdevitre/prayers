@@ -2,6 +2,40 @@ const STORAGE_KEY = "stand-state";
 const $ = id => document.getElementById(id);
 const canSpeak = "speechSynthesis" in window;
 
+/* ---------- Interface language ---------- */
+
+// One lookup for every string in the shell. English is also written into the
+// markup so the page reads before any script runs; applyUi() replaces it when
+// the reader has chosen Spanish. Missing keys fall back to English rather than
+// rendering blank, and scripts/verify-ui.js fails the build if a key is
+// missing from either table.
+function t(key, vars) {
+  const table = appUi[state.lang] || appUi.en;
+  // The key itself is the last resort: a missing string should read oddly, not
+  // blank out a button. verify-ui.js makes it unreachable in a shipped build.
+  let out = table[key] !== undefined ? table[key] : (appUi.en[key] !== undefined ? appUi.en[key] : key);
+  if (vars) for (const [name, value] of Object.entries(vars)) out = out.split(`{${name}}`).join(value);
+  return out;
+}
+
+// Walks the annotated markup. Attributes rather than a list of ids: there are
+// eighty-odd strings in the shell and hand-wiring each one is how half of them
+// end up forgotten.
+function applyUi() {
+  document.documentElement.lang = state.lang === "es" ? "es" : "en";
+  // data-i18n-n carries the one substitution the static shell needs (the sleep
+  // timer's "{n} min"); everything else in the markup is a fixed string.
+  for (const el of document.querySelectorAll("[data-i18n]")) {
+    el.textContent = t(el.dataset.i18n, el.dataset.i18nN ? { n: el.dataset.i18nN } : null);
+  }
+  for (const el of document.querySelectorAll("[data-i18n-aria]")) {
+    el.setAttribute("aria-label", t(el.dataset.i18nAria));
+  }
+  for (const el of document.querySelectorAll("[data-i18n-placeholder]")) {
+    el.setAttribute("placeholder", t(el.dataset.i18nPlaceholder));
+  }
+}
+
 /* ---------- Tracks ---------- */
 
 // Devotional content in the reader's language. Spanish lives in content.es.js
@@ -190,9 +224,7 @@ function setPlayerStatus(status) {
   player.status = status;
   $("playIcon").textContent = status === "playing" ? "❚❚" : "▶";
   $("playButton").setAttribute("aria-label",
-    status === "playing" ? "Pause daily prayer"
-    : status === "paused" ? "Resume daily prayer"
-    : "Play daily prayer");
+    t(status === "playing" ? "audio.pause" : status === "paused" ? "audio.resume" : "audio.play"));
   if (status === "idle") $("audioProgress").style.width = "0";
 }
 
@@ -255,7 +287,7 @@ function startAudio() {
 
 $("playButton").onclick = () => {
   if (!canSpeak && !recordedFor(day)) {
-    $("audioTime").textContent = "Audio is not supported on this device";
+    $("audioTime").textContent = t("audio.unsupported");
     return;
   }
   if (player.status === "playing") {
@@ -289,8 +321,11 @@ $("sleepTimer").onchange = () => {
 
 /* ---------- SOS mode ---------- */
 
-// Verses reuse the day excerpts already in `themes`, keeping one translation surface.
-const sosSets = [
+// English SOS sets. Their verses reuse day excerpts already in `themes`, so
+// the WEB gate covers them without a second source of scripture. The Spanish
+// sets are `esSos` in content.es.js and quote the Reina-Valera 1909 directly
+// rather than translating these — see sosSets() below.
+const sosSetsEn = [
   { ref: "Psalm 27:1", verse: "The LORD is my light and my salvation. Whom shall I fear?",
     prayer: "Lord, bring me back to this moment. Slow my heart, steady my breath, and stand with me here. I hand You what I cannot control.",
     declaration: "Fear may speak, but it does not get the final word." },
@@ -305,7 +340,12 @@ const sosSets = [
     declaration: "I do not need all the hope—only enough for the next step." }
 ];
 
-const sos = { set: sosSets[0], before: null, recorded: false, timers: [] };
+// The active set is held as an index, not a reference: switching language swaps
+// the whole array, and an index survives that where an object reference would not.
+const sosSets = () => (state.lang === "es" && typeof esSos !== "undefined" ? esSos : sosSetsEn);
+const sosSet = () => sosSets()[sos.i] || sosSets()[0];
+
+const sos = { i: 0, before: null, recorded: false, timers: [] };
 
 function sosClearTimers() {
   sos.timers.forEach(clearTimeout);
@@ -348,7 +388,7 @@ function sosStageEl(kicker, heading) {
 }
 
 function sosCheckin(kind) {
-  const stage = sosStageEl("STEADY ME", kind === "before" ? "Where is your fear right now?" : "And now — where is it?");
+  const stage = sosStageEl(t("sos.kicker"), t(kind === "before" ? "sos.before" : "sos.after"));
   stage.append(scaleButtons(v => {
     if (kind === "before") {
       sos.before = v;
@@ -360,16 +400,18 @@ function sosCheckin(kind) {
   }));
   const note = document.createElement("p");
   note.className = "checkin-note";
-  note.textContent = "1 = calm · 5 = overwhelming";
+  note.textContent = t("checkin.scale");
   const skip = document.createElement("button");
   skip.className = "text-button";
-  skip.textContent = "Skip";
+  skip.textContent = t("sos.skip");
   skip.onclick = () => { if (kind === "before") sosBreathing(); else { sosRecord(null); sosDone(null); } };
   stage.append(note, skip);
 }
 
+const breathsLeft = n => t(n === 1 ? "sos.breathsLeft" : "sos.breathsLeftPlural", { n });
+
 function sosBreathing() {
-  const stage = sosStageEl("BREATHE");
+  const stage = sosStageEl(t("sos.breathe"));
   const circle = document.createElement("div");
   circle.className = "breath-circle";
   const word = document.createElement("span");
@@ -379,51 +421,51 @@ function sosBreathing() {
   note.className = "checkin-note";
   const next = document.createElement("button");
   next.className = "complete-button";
-  next.textContent = "Continue";
+  next.textContent = t("sos.continue");
   next.onclick = sosAnchor;
   stage.append(circle, note, next);
 
-  const phases = [["Breathe in…", 4000], ["Hold…", 4000], ["Breathe out…", 6000]];
+  const phases = [["sos.in", 4000], ["sos.hold", 4000], ["sos.out", 6000]];
   const cycles = 3;
   let elapsed = 0;
   for (let c = 0; c < cycles; c++) {
-    for (const [label, ms] of phases) {
+    for (const [key, ms] of phases) {
       const cycle = c;
       sos.timers.push(setTimeout(() => {
-        word.textContent = label;
-        note.textContent = `${cycles - cycle} slow breath${cycles - cycle > 1 ? "s" : ""} to go`;
+        word.textContent = t(key);
+        note.textContent = breathsLeft(cycles - cycle);
       }, elapsed));
       elapsed += ms;
     }
   }
   sos.timers.push(setTimeout(sosAnchor, elapsed + 400));
-  word.textContent = "Breathe in…";
-  note.textContent = "3 slow breaths to go";
+  word.textContent = t("sos.in");
+  note.textContent = breathsLeft(cycles);
 }
 
 function sosAnchor() {
-  const stage = sosStageEl("ANCHOR");
+  const stage = sosStageEl(t("sos.anchor"));
   const quote = document.createElement("blockquote");
   quote.className = "scripture";
   const verse = document.createElement("p");
-  verse.textContent = `“${sos.set.verse}”`;
+  verse.textContent = `“${sosSet().verse}”`;
   const cite = document.createElement("cite");
-  cite.textContent = sos.set.ref;
+  cite.textContent = sosSet().ref;
   quote.append(verse, cite);
 
   const prayer = document.createElement("p");
   prayer.className = "sos-prayer";
-  prayer.textContent = sos.set.prayer + " Amen.";
+  prayer.textContent = `${sosSet().prayer} ${t("section.amen")}`;
   const decl = document.createElement("p");
   decl.className = "sos-decl";
-  decl.textContent = sos.set.declaration;
+  decl.textContent = sosSet().declaration;
 
   const listen = document.createElement("button");
   listen.className = "text-button";
-  listen.textContent = "▶ Hear this prayed";
+  listen.textContent = t("sos.listen");
   listen.onclick = () => {
     stopAudio();
-    const src = recordedAudio.sos[sosSets.indexOf(sos.set)];
+    const src = recordedAudio.sos[sos.i];
     if (src) {
       player.mode = "rec";
       audioEl.src = src;
@@ -438,10 +480,13 @@ function sosAnchor() {
   function sosSpeak() {
     if (!canSpeak) return;
     const utterance = new SpeechSynthesisUtterance(
-      `${sos.set.verse} ${sos.set.ref}. ${sos.set.prayer} Amen. ${sos.set.declaration}`);
+      `${sosSet().verse} ${sosSet().ref}. ${sosSet().prayer} ${t("section.amen")} ${sosSet().declaration}`);
     utterance.rate = 0.95;
     utterance.pitch = 0.96;
-    if (narrationVoice) utterance.voice = narrationVoice;
+    utterance.lang = state.lang === "es" ? "es-ES" : "en-US";
+    // The recorded narration voice is English; Spanish falls back to the device's
+    // own voice for the language rather than reading Spanish with an English one.
+    if (narrationVoice && state.lang === "en") utterance.voice = narrationVoice;
     speechSynthesis.speak(utterance);
   }
 
@@ -449,13 +494,13 @@ function sosAnchor() {
   actions.className = "sos-actions";
   const steadier = document.createElement("button");
   steadier.className = "complete-button";
-  steadier.textContent = "I'm steadier";
+  steadier.textContent = t("sos.steadier");
   steadier.onclick = () => sosCheckin("after");
   const more = document.createElement("button");
   more.className = "text-button";
-  more.textContent = "I need another round";
+  more.textContent = t("sos.another");
   more.onclick = () => {
-    sos.set = sosSets[(sosSets.indexOf(sos.set) + 1) % sosSets.length];
+    sos.i = (sos.i + 1) % sosSets().length;
     sosBreathing();
   };
   actions.append(steadier, more);
@@ -463,21 +508,21 @@ function sosAnchor() {
 }
 
 function sosDone(after) {
-  const stage = sosStageEl("WELL STOOD",
+  const stage = sosStageEl(t("sos.wellStood"),
     sos.before != null && after != null && after < sos.before
-      ? `Fear ${sos.before} → ${after}. You stood.`
-      : "You stood through it.");
+      ? t("sos.drop", { before: sos.before, after })
+      : t("sos.stood"));
   const line = document.createElement("p");
-  line.textContent = "Whatever the next hour holds, this moment was faithfulness. Go gently.";
+  line.textContent = t("sos.closing");
   const close = document.createElement("button");
   close.className = "complete-button";
-  close.textContent = "Close";
+  close.textContent = t("sos.close");
   close.onclick = closeSos;
   const again = document.createElement("button");
   again.className = "text-button";
-  again.textContent = "One more round";
+  again.textContent = t("sos.oneMore");
   again.onclick = () => {
-    sos.set = sosSets[(sosSets.indexOf(sos.set) + 1) % sosSets.length];
+    sos.i = (sos.i + 1) % sosSets().length;
     sos.before = after;
     sos.recorded = false;
     sosBreathing();
@@ -487,7 +532,7 @@ function sosDone(after) {
 
 function openSos() {
   if (canSpeak) speechSynthesis.cancel();
-  sos.set = sosSets[state.sos.length % sosSets.length];
+  sos.i = state.sos.length % sosSets().length;
   sos.before = null;
   sos.recorded = false;
   $("sosResources").hidden = true;
@@ -527,7 +572,7 @@ function renderDayCheckin() {
     button.classList.toggle("selected", active);
     button.setAttribute("aria-pressed", String(active));
   });
-  $("checkinNote").textContent = latest ? `Noted — ${latest.v} of 5 today` : "1 = calm · 5 = overwhelming";
+  $("checkinNote").textContent = latest ? t("checkin.noted", { n: latest.v }) : t("checkin.scale");
 }
 
 $("dayCheckin").addEventListener("click", event => {
@@ -547,28 +592,31 @@ function renderLedger() {
 
   const kicker = document.createElement("p");
   kicker.className = "section-kicker";
-  kicker.textContent = "CALM LEDGER";
+  kicker.textContent = t("ledger.kicker");
   el.append(kicker);
 
   if (avgDrop === null && avgWeek === null) {
     const empty = document.createElement("p");
     empty.className = "empty-note";
-    empty.textContent = "Your calm ledger appears here after your first fear check-in.";
+    empty.textContent = t("ledger.empty");
     el.append(empty);
     return;
   }
   if (avgDrop !== null) {
     const p = document.createElement("p");
     p.className = "ledger-line";
-    p.textContent = avgDrop > 0
-      ? `After prayer, your fear drops an average of ${avgDrop.toFixed(1)} points (${sessions.length} SOS ${sessions.length === 1 ? "session" : "sessions"}).`
-      : `${sessions.length} SOS ${sessions.length === 1 ? "session" : "sessions"} recorded — keep standing; the trend takes a few sessions to show.`;
+    const label = t(sessions.length === 1 ? "ledger.session" : "ledger.sessions");
+    p.textContent = t(avgDrop > 0 ? "ledger.drop" : "ledger.early",
+      { avg: avgDrop.toFixed(1), n: sessions.length, sessions: label });
     el.append(p);
   }
   if (avgWeek !== null) {
     const p = document.createElement("p");
     p.className = "ledger-line";
-    p.textContent = `Average check-in this week: ${avgWeek.toFixed(1)} of 5 (${week.length} ${week.length === 1 ? "check-in" : "check-ins"}).`;
+    p.textContent = t("ledger.week", {
+      avg: avgWeek.toFixed(1), n: week.length,
+      checkins: t(week.length === 1 ? "ledger.checkin" : "ledger.checkins")
+    });
     el.append(p);
   }
 }
@@ -576,6 +624,13 @@ function renderLedger() {
 /* ---------- Library ---------- */
 
 let libraryFilter = "all";
+
+// The grid is built as one innerHTML string for speed; day titles and the
+// interface strings around them go through here so a stray & or < in either
+// cannot break the markup.
+const escapeHtml = v => String(v)
+  .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;");
 
 function renderGrid() {
   const data = tdata();
@@ -588,9 +643,7 @@ function renderGrid() {
 
   if (!visible.length) {
     $("dayGrid").innerHTML = `<p class="empty-note">${
-      libraryFilter === "favorites"
-        ? "Tap the heart on any day to save it here."
-        : "No days completed yet — your journey starts today."
+      escapeHtml(t(libraryFilter === "favorites" ? "library.emptyFavorites" : "library.emptyCompleted"))
     }</p>`;
     return;
   }
@@ -598,8 +651,8 @@ function renderGrid() {
   $("dayGrid").innerHTML = visible.map(({ title, i }) => `
     <button class="day-card ${data.completed.includes(i) ? "done" : ""}" data-day="${i}">
       ${data.favorites.includes(i) ? '<span class="fav-mark" aria-hidden="true">♥</span>' : ""}
-      <small>DAY ${String(i + 1).padStart(2, "0")}${data.completed.includes(i) ? " · COMPLETE" : ""}</small>
-      <strong>${title}</strong>
+      <small>${escapeHtml(t("day.number", { n: String(i + 1).padStart(2, "0") }))}${data.completed.includes(i) ? escapeHtml(t("library.cardComplete")) : ""}</small>
+      <strong>${escapeHtml(title)}</strong>
     </button>`).join("");
 
   document.querySelectorAll(".day-card").forEach(button => {
@@ -661,9 +714,7 @@ function renderTrackPicker() {
     const name = document.createElement("strong");
     name.textContent = track.short;
     const meta = document.createElement("small");
-    meta.textContent = state.lang === "es"
-      ? `${data.completed.length} de ${track.days.length} días`
-      : `${data.completed.length} of ${track.days.length} days`;
+    meta.textContent = t("library.dayCount", { done: data.completed.length, total: track.days.length });
     chip.append(name, meta);
     chip.onclick = () => openTrack(track.id);
     el.append(chip);
@@ -697,7 +748,7 @@ function render() {
   const fav = tdata().favorites.includes(day);
 
   $("weekLabel").textContent = weekLabelFor(day);
-  $("dayNumber").textContent = `DAY ${String(day + 1).padStart(2, "0")}`;
+  $("dayNumber").textContent = t("day.number", { n: String(day + 1).padStart(2, "0") });
   $("dayTitle").textContent = title;
   $("scriptureRef").textContent = ref;
   $("scriptureText").textContent = `“${verse}”`;
@@ -706,24 +757,25 @@ function render() {
   $("declaration").textContent = declaration;
   $("action").textContent = action;
   $("notes").value = tdata().notes[day] || "";
-  $("audioTime").textContent = recordedFor(day) ? "Recorded narration · about 3 minutes" : "About 3 minutes";
+  $("audioTime").textContent = t(recordedFor(day) ? "audio.recorded" : "audio.length");
 
   const streak = currentStreak();
-  $("progressLabel").textContent = `Day ${day + 1} of ${DAYS()}`;
+  $("progressLabel").textContent = t("progress.day", { n: day + 1, total: DAYS() });
   $("progressPercent").textContent =
-    `${tdata().completed.length} of ${DAYS()} complete${streak > 1 ? ` · ${streak}-day streak` : ""}`;
+    t("progress.completeCount", { done: tdata().completed.length, total: DAYS() })
+    + (streak > 1 ? t("progress.streak", { n: streak }) : "");
   $("progressBar").style.width = `${Math.round((tdata().completed.length / DAYS()) * 100)}%`;
 
   $("favoriteButton").textContent = fav ? "♥" : "♡";
   $("favoriteButton").classList.toggle("active", fav);
   $("favoriteButton").setAttribute("aria-pressed", String(fav));
-  $("favoriteButton").setAttribute("aria-label", fav ? "Remove this day from favorites" : "Save this day to favorites");
-  $("completeButton").textContent = done ? "✓ Day complete" : "Mark day complete";
+  $("favoriteButton").setAttribute("aria-label", t(fav ? "day.unfavorite" : "day.favorite"));
+  $("completeButton").textContent = t(done ? "day.completed" : "day.complete");
   $("completeButton").classList.toggle("completed", done);
   $("completeButton").setAttribute("aria-pressed", String(done));
   $("prevButton").disabled = day === 0;
   $("nextButton").disabled = day === DAYS() - 1;
-  document.title = `Day ${day + 1}: ${title} — Stand`;
+  document.title = t("share.title", { n: day + 1, title });
   renderDayCheckin();
   renderGrid();
 }
@@ -783,7 +835,7 @@ function buildVerseCard() {
   ctx.font = "700 44px Georgia, serif";
   ctx.fillText("✦", 540, 175);
   ctx.font = "800 30px system-ui, sans-serif";
-  ctx.fillText(`D A Y   ${day + 1}   ·   ${title.toUpperCase().split("").join(" ")}`, 540, 265);
+  ctx.fillText(`${t("share.cardDay")}   ${day + 1}   ·   ${title.toUpperCase().split("").join(" ")}`, 540, 265);
 
   ctx.fillStyle = ink;
   ctx.font = "italic 58px Georgia, serif";
@@ -804,16 +856,16 @@ function buildVerseCard() {
 
 $("shareButton").onclick = async () => {
   const [title, ref, verse] = activeTrack().days[day];
-  const text = `“${verse}” — ${ref}`;
+  const text = t("share.caption", { verse, ref });
   try {
     const blob = await buildVerseCard();
     const file = blob ? new File([blob], `stand-day-${String(day + 1).padStart(2, "0")}.png`, { type: "image/png" }) : null;
     if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: `Day ${day + 1}: ${title} — Stand`, text });
+      await navigator.share({ files: [file], title: t("share.title", { n: day + 1, title }), text });
       return;
     }
     if (navigator.share) {
-      await navigator.share({ title: `Day ${day + 1}: ${title} — Stand`, text, url: location.href });
+      await navigator.share({ title: t("share.title", { n: day + 1, title }), text, url: location.href });
       return;
     }
     // Desktop fallback: save the verse card and copy the text.
@@ -837,12 +889,10 @@ $("favoriteButton").onclick = () => {
 let noteTimer;
 $("notes").oninput = event => {
   clearTimeout(noteTimer);
-  $("saveStatus").textContent = "Saving…";
+  $("saveStatus").textContent = t("notes.saving");
   noteTimer = setTimeout(() => {
     tdata().notes[day] = event.target.value;
-    $("saveStatus").textContent = save()
-      ? "Saved on this device"
-      : "Could not save — storage is unavailable in this browser";
+    $("saveStatus").textContent = t(save() ? "notes.saved" : "notes.failed");
   }, 350);
 };
 
@@ -864,7 +914,7 @@ function renderJournal() {
   if (!entries.length) {
     const empty = document.createElement("p");
     empty.className = "empty-note";
-    empty.textContent = "No reflections yet — notes you write on any day will appear here.";
+    empty.textContent = t("journal.empty");
     list.append(empty);
     return;
   }
@@ -873,7 +923,7 @@ function renderJournal() {
     entry.className = "journal-entry";
     const kicker = document.createElement("p");
     kicker.className = "section-kicker";
-    kicker.textContent = `DAY ${String(d + 1).padStart(2, "0")} · ${activeTrack().days[d][0].toUpperCase()}`;
+    kicker.textContent = `${t("day.number", { n: String(d + 1).padStart(2, "0") })} · ${activeTrack().days[d][0].toUpperCase()}`;
     const body = document.createElement("p");
     body.textContent = tdata().notes[d];
     entry.append(kicker, body);
@@ -894,9 +944,10 @@ function downloadFile(name, content, type) {
 }
 
 $("exportButton").onclick = () => {
-  const lines = ["STAND — MY REFLECTIONS", `Exported ${localISO(new Date())}`, ""];
+  const lines = [t("journal.exportTitle"), t("journal.exported", { date: localISO(new Date()) }), ""];
   for (const d of daysWithNotes()) {
-    lines.push(`DAY ${String(d + 1).padStart(2, "0")} · ${activeTrack().days[d][0]}`, tdata().notes[d].trim(), "");
+    lines.push(`${t("day.number", { n: String(d + 1).padStart(2, "0") })} · ${activeTrack().days[d][0]}`,
+      tdata().notes[d].trim(), "");
   }
   downloadFile("stand-reflections.txt", lines.join("\n"), "text/plain");
 };
@@ -925,15 +976,16 @@ $("restoreInput").onchange = async event => {
     clean = restoreFromBackup(JSON.parse(await file.text()));
   } catch { /* unreadable or invalid JSON */ }
   if (!clean) {
-    alert("That file doesn't look like a Stand backup.");
+    alert(t("backup.bad"));
     return;
   }
-  if (!confirm("Replace the data on this device with this backup?")) return;
+  if (!confirm(t("backup.confirm"))) return;
   Object.assign(state, clean);
   save();
   day = Math.max(0, Math.min(day, DAYS() - 1));
   location.hash = String(day + 1);
   applyTheme();
+  applyUi();
   renderLedger();
   renderJournal();
   renderTrackPicker();
@@ -941,7 +993,7 @@ $("restoreInput").onchange = async event => {
 };
 
 $("eraseButton").onclick = () => {
-  if (!confirm("Erase all notes, favorites, and progress from this device? This cannot be undone.")) return;
+  if (!confirm(t("erase.confirm"))) return;
   try { localStorage.removeItem(STORAGE_KEY); } catch { /* nothing to remove */ }
   location.reload();
 };
@@ -1053,19 +1105,18 @@ $("reminderButton").onclick = () => {
     `DTSTART:${stamp(start)}`,
     "DURATION:PT10M",
     "RRULE:FREQ=DAILY",
-    `SUMMARY:${icsText("Stand — daily prayer")}`,
+    `SUMMARY:${icsText(t("reminder.summary"))}`,
     // /app, not the origin: the origin is the landing page, and someone
     // tapping this at 7am wants the prayer, not a page describing it.
-    `DESCRIPTION:${icsText(`A few minutes to stand. Open the app: ${location.origin}/app`)}`,
+    `DESCRIPTION:${icsText(t("reminder.description", { url: `${location.origin}/app` }))}`,
     `URL:${location.origin}/app`,
-    "BEGIN:VALARM", "TRIGGER:PT0S", "ACTION:DISPLAY", `DESCRIPTION:${icsText("Time to stand")}`, "END:VALARM",
+    "BEGIN:VALARM", "TRIGGER:PT0S", "ACTION:DISPLAY", `DESCRIPTION:${icsText(t("reminder.alarm"))}`, "END:VALARM",
     "END:VEVENT", "END:VCALENDAR"
   ].map(icsFold).join("\r\n") + "\r\n";
 
   downloadFile("stand-daily-reminder.ics", ics, "text/calendar");
-  $("reminderStatus").textContent = state.reminderSeq === 0
-    ? `Saved for ${chosen} daily — open the downloaded file to add it to your calendar.`
-    : `Updated to ${chosen} daily — open the downloaded file and your calendar will replace the old reminder.`;
+  $("reminderStatus").textContent =
+    t(state.reminderSeq === 0 ? "reminder.saved" : "reminder.updated", { time: chosen });
 };
 
 /* ---------- iOS install hint ---------- */
@@ -1350,10 +1401,12 @@ $("prayerLang").onchange = () => {
   state.lang = $("prayerLang").value;
   save();
   renderPrayerSurface();
-  // The choice is app-wide: the devotional day, the week label and the
-  // library all follow it, so repaint them behind the open dialog.
+  // The choice is app-wide: the interface, the devotional day, the week label
+  // and the library all follow it, so repaint them behind the open dialog.
+  applyUi();
   render();
   renderTrackPicker();
+  renderFearFinder();
 };
 $("prayerMode").onchange = () => {
   prayerState.mode = $("prayerMode").value;
@@ -1403,6 +1456,7 @@ $("prayerCopy").onclick = async () => {
 
 function start() {
   applyTheme();
+  applyUi();
   initReminder();
   if (dayFromHash() === null) history.replaceState(null, "", `${location.search}#${day + 1}`);
   render();

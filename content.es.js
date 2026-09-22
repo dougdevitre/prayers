@@ -291,4 +291,22 @@ const esFearIndex = [
   ["Quiero el camino completo de treinta días", "core"]
 ];
 
-if (typeof module !== "undefined" && module.exports) module.exports = { esGroups, esTracks, esFearIndex };
+// The four SOS sets in Spanish, in the same order as sosSets in app.js. The
+// verses are Reina-Valera 1909 like the rest, and verify-scripture gates them
+// alongside the days.
+const esSos = [
+  { ref: "Salmo 27:1", verse: "Jehová es mi luz y mi salvación: ¿de quién temeré?",
+    prayer: "Señor, tráeme de vuelta a este momento. Calma mi corazón, serena mi respiración y quédate firme aquí conmigo. Te entrego lo que no puedo controlar.",
+    declaration: "El miedo puede hablar, pero no tiene la última palabra." },
+  { ref: "Josué 1:9", verse: "No temas ni desmayes, porque Jehová tu Dios será contigo en donde quiera que fueres.",
+    prayer: "Dios, dame valor para los próximos minutos; no se me pide nada más ahora mismo. Quédate cerca y afirma mis pasos.",
+    declaration: "Puedo tener miedo y aun así ser fiel." },
+  { ref: "Mateo 6:34", verse: "No os congojéis por el día de mañana; que el día de mañana traerá su fatiga.",
+    prayer: "Padre, suelto los futuros que mi miedo no deja de escribir. Mantenme en el día de hoy, en esta respiración, en Tus manos.",
+    declaration: "Soy responsable de la fidelidad, no del control de cada resultado." },
+  { ref: "Salmo 42:11", verse: "Espera á Dios; porque aun le tengo de alabar.",
+    prayer: "Dios, cuando mis sentimientos griten en absolutos, recuérdame que este momento no es la historia completa. Dame esperanza suficiente para un paso.",
+    declaration: "No necesito toda la esperanza, solo la suficiente para el siguiente paso." }
+];
+
+if (typeof module !== "undefined" && module.exports) module.exports = { esGroups, esTracks, esFearIndex, esSos };

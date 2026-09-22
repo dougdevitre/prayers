@@ -33,7 +33,7 @@ const norm = t => t.replace(/\s+/g, " ").trim().toLowerCase();
 // unlicensed text as the day pages.
 function sosVerses() {
   const src = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
-  const block = src.slice(src.indexOf("const sosSets = ["));
+  const block = src.slice(src.indexOf("const sosSetsEn = ["));
   return [...block.slice(0, block.indexOf("\n];")).matchAll(/\{ ref: "([^"]+)", verse: "([^"]+)"/g)]
     .map(m => ({ ref: m[1], verse: m[2], label: `sos ${m[1]}` }));
 }
@@ -104,6 +104,31 @@ let esFail = 0, esOk = 0, esPunct = 0, esDays = 0;
           console.error(`FAIL ${id} day ${i + 1} (${d[1]}) — not in the Reina-Valera 1909`);
           console.error(`     app: ${d[2]}`);
           console.error(`     RV1909: ${ES_SOURCE[english[1]] || "(reference not in es-source.json)"}`);
+        }
+      });
+    }
+    // The four SOS sets live in app.js on the English side and content.es.js
+    // on the Spanish; they quote the same four references.
+    let esSos = null;
+    try { ({ esSos } = require("../content.es.js")); } catch { /* not present */ }
+    if (esSos) {
+      const englishSos = sosVerses();
+      if (esSos.length !== englishSos.length) {
+        console.error(`FAIL Spanish SOS: ${esSos.length} sets vs ${englishSos.length} English`); esFail++;
+      }
+      esSos.forEach((set, i) => {
+        const enRef = englishSos[i] && englishSos[i].ref;
+        if (!enRef) return;
+        if (set.ref !== esRefFor(enRef)) {
+          console.error(`FAIL Spanish SOS ${i + 1}: reference is "${set.ref}", expected "${esRefFor(enRef)}"`); esFail++; return;
+        }
+        const hay = norm(ES_SOURCE[enRef] || "");
+        const needle = norm(set.verse);
+        if (hay.includes(needle) || hay.includes(needle.replace(/[.?!]$/, ""))) esOk++;
+        else {
+          esFail++;
+          console.error(`FAIL Spanish SOS ${i + 1} (${set.ref}) — not in the Reina-Valera 1909`);
+          console.error(`     app: ${set.verse}`);
         }
       });
     }

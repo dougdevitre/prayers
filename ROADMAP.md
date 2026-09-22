@@ -76,7 +76,11 @@ Carried over from REMAM's audio framework: per-prayer pacing metadata (`speed`/`
 
 Deliberately not carried over: the Laudato Si' slot and the creation/defenders intentions, both specific to REMAM's ecological mission.
 
-Both languages ship. Every corpus block carries `{ en, es }`, the chosen language is app-wide state (`state.lang`, saved with the rest), and one seed picks the same blocks in either language — so switching translates the prayer rather than composing a different one. Narration sets the utterance language and uses that language's break anchors. The 30-day devotional content is still English only; the translation layer in Phase 1 is what would change that.
+Both languages ship. Every corpus block carries `{ en, es }`, the chosen language is app-wide state (`state.lang`, saved with the rest), and one seed picks the same blocks in either language — so switching translates the prayer rather than composing a different one. Narration sets the utterance language and uses that language's break anchors.
+
+All 108 devotional days now ship in Spanish too (`content.es.js`), and so does the app's own interface: 142 strings in `ui.js`, painted from `data-i18n` annotations rather than a hand-kept list of ids, and gated by `npm run verify:ui` so the two languages cannot drift apart or from the English in the markup. The SOS flow draws its Spanish verses from `esSos` rather than translating the English ones, so both languages quote a public-domain edition directly — WEB in English, Reina-Valera 1909 in Spanish, each checked in CI.
+
+Next on this thread: nothing structural. A third language is now a matter of adding a key block to `ui.js`, a content file, and a source text for the scripture gate — the surfaces that used to need editing one by one are annotation-driven.
 
 Roman Catholic material is present and named. Six of the traditional prayers, and the Marian and Franciscan closings, are tagged `roman-catholic` and shown under their own labelled heading with a one-line note, rather than folded in with the prayers shared across the wider Christian tradition. `meta.defaultClosingTraditions` (shipping as `["universal"]`) governs only what "As composed" draws on, so a Roman Catholic closing is a deliberate pick.
 
@@ -234,4 +238,4 @@ Each phase ships behind the same discipline as v1.0–v1.2: small validated comm
 
 ---
 
-**ASSUMPTIONS (labeled):** solo developer or very small team; ~zero infra budget until Phase 3; the app is now fully bilingual (English and Spanish) across prayers and all 108 devotional days; the fear/anxiety focus is the intended brand direction rather than general devotionals; scripture is now public-domain WEB throughout, verified in CI.
+**ASSUMPTIONS (labeled):** solo developer or very small team; ~zero infra budget until Phase 3; the app is now fully bilingual (English and Spanish) across prayers, all 108 devotional days and the interface itself; the fear/anxiety focus is the intended brand direction rather than general devotionals; scripture is now public-domain WEB throughout, verified in CI.

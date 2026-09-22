@@ -545,6 +545,91 @@ const server = http.createServer((req, res) => {
   check("English returns to the day view", (await page.textContent("#dayTitle")) === "Stand");
 
   // ---------------------------------------------------------------------
+  // Interface translation. The content going Spanish while the chrome around
+  // it stayed English was the visible half of this gap, so the chrome is
+  // asserted the same way the content is: field by field, and back again.
+  const chrome = async () => ({
+    htmlLang: await page.getAttribute("html", "lang"),
+    complete: await page.textContent("#completeButton"),
+    audio: await page.textContent("#audioTime"),
+    progress: await page.textContent("#progressLabel"),
+    count: await page.textContent("#progressPercent"),
+    notes: await page.textContent('label[for="notes"]'),
+    scale: await page.textContent("#checkinNote"),
+    sos: await page.textContent("#sosButton"),
+    timer: await page.textContent('#sleepTimer option[value="5"]'),
+    title: await page.title()
+  });
+  const enChrome = await chrome();
+  check("chrome starts in English", enChrome.htmlLang === "en" && enChrome.complete === "Mark day complete");
+
+  await page.click("#prayerButton");
+  await page.selectOption("#prayerLang", "es");
+  await page.click("#closePrayer");
+  const esChrome = await chrome();
+  check("document language follows the choice", esChrome.htmlLang === "es");
+  check("buttons are Spanish", esChrome.complete === "Marcar el día como completado");
+  check("audio length is Spanish", esChrome.audio === "Unos 3 minutos");
+  check("progress is Spanish", esChrome.progress === "Día 1 de 30");
+  check("progress count is Spanish", esChrome.count.includes("de 30 completados"));
+  check("form labels are Spanish", esChrome.notes === "Mi reflexión");
+  check("the check-in scale is Spanish", esChrome.scale === "1 = en calma · 5 = abrumador");
+  check("the SOS button is Spanish", esChrome.sos === "Calma ahora");
+  check("select options are Spanish", esChrome.timer === "5 min");
+  check("the document title is Spanish", esChrome.title.startsWith("Día 1: Firmeza"));
+  check("every chrome field changed", Object.keys(enChrome).filter(k => k !== "timer")
+    .every(k => esChrome[k] !== enChrome[k]));
+
+  // Nothing in the shell may still read English once Spanish is chosen. This
+  // is the check that catches a string added later and never translated.
+  const strays = await page.evaluate(() => {
+    const needles = ["Mark day complete", "About 3 minutes", "Guided prayer", "My reflection",
+      "Reflection", "Pray", "Declare", "Practice", "Previous", "Next", "Steady me now",
+      "No timer", "Narration speed", "Journey progress"];
+    const text = document.querySelector("main").innerText;
+    return needles.filter(n => text.includes(n));
+  });
+  check(`no English left in the Spanish shell${strays.length ? ` (found: ${strays.join(", ")})` : ""}`,
+    strays.length === 0);
+
+  // Dialogs and generated files follow too.
+  await page.click("#journalButton");
+  check("the journal is Spanish", (await page.textContent("#exportButton")) === "Descargar mis reflexiones (.txt)");
+  check("the ledger is Spanish", (await page.textContent("#ledger")).includes("REGISTRO DE CALMA"));
+  await page.click("#closeJournal");
+
+  await page.click("#libraryButton");
+  check("the library is Spanish", (await page.textContent("#libraryDialog h2")) === "Elige tu camino");
+  check("the reminder label is Spanish",
+    (await page.textContent('label[for="reminderTime"]')) === "Recordatorio diario");
+  const [esDownload] = await Promise.all([page.waitForEvent("download"), page.click("#reminderButton")]);
+  const esIcs = fs.readFileSync(await esDownload.path(), "utf8");
+  check("the calendar reminder is Spanish", esIcs.includes("SUMMARY:Stand — oración diaria"));
+  check("the calendar alarm is Spanish", esIcs.includes("Hora de estar firme"));
+  check("the reminder status is Spanish",
+    (await page.textContent("#reminderStatus")).includes("cada día"));
+  await page.click("#closeLibrary");
+
+  // SOS runs entirely on Spanish content: the verses come from esSos, not
+  // from a translated wrapper around the English ones.
+  await page.click("#sosButton");
+  check("SOS opens in Spanish", (await page.textContent("#sosStage")).includes("¿Dónde está tu miedo"));
+  await page.click('#sosStage .checkin-scale button:nth-child(4)');
+  await page.click("#sosStage .complete-button");
+  const esAnchor = await page.textContent("#sosStage");
+  check("SOS verses are Reina-Valera", esAnchor.includes("Jehová es mi luz y mi salvación"));
+  check("SOS references are Spanish", esAnchor.includes("Salmo 27:1"));
+  check("SOS prayers close in Spanish", esAnchor.includes("Amén."));
+  await page.click("#closeSos");
+
+  await page.click("#prayerButton");
+  await page.selectOption("#prayerLang", "en");
+  await page.click("#closePrayer");
+  const backChrome = await chrome();
+  check("switching back restores every English string",
+    Object.keys(enChrome).every(k => backChrome[k] === enChrome[k]));
+
+  // ---------------------------------------------------------------------
   // Daily reminder (.ics). The generated file is parsed rather than eyeballed:
   // every previous defect here was invisible from the UI.
   await page.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
@@ -627,7 +712,12 @@ const server = http.createServer((req, res) => {
   check("/es is the Spanish landing page", (await page.title()).includes("compañero de oración"));
   check("/es declares its language", await page.getAttribute("html", "lang") === "es");
   check("/es ships no script", (await page.$$("script:not([type='application/ld+json'])")).length === 0);
-  check("/es is honest about the interface", (await page.textContent("#see")).includes("parcialmente en inglés"));
+  // This line used to warn that the interface was still partly English. It
+  // isn't any more, and a stale promise on the landing page is its own defect.
+  check("/es no longer warns about an English interface",
+    !(await page.textContent("#see")).includes("parcialmente en inglés"));
+  check("/es says the interface is Spanish too",
+    (await page.textContent("#see")).includes("la interfaz de la app"));
 
   await page.goto("http://localhost:8123/es/day/01-firmeza", { waitUntil: "networkidle" });
   check("Spanish day page loads", (await page.textContent("h1")) === "Firmeza");

@@ -24,17 +24,17 @@
   <noscript><p class="noscript-note">Stand needs JavaScript to play audio, save notes, and track your journey. Please enable JavaScript and reload.</p></noscript>
   <div class="app-shell">
     <header class="topbar">
-      <a class="brand" href="#" aria-label="Stand home"><span class="brand-mark">✦</span><span>STAND</span></a>
+      <a class="brand" href="#" aria-label="Stand home" data-i18n-aria="brand.home"><span class="brand-mark">✦</span><span>STAND</span></a>
       <div class="top-actions">
-        <button class="icon-button" id="themeButton" aria-label="Toggle dark mode">◐</button>
-        <button class="icon-button" id="journalButton" aria-label="Open my reflections journal">✎</button>
-        <button class="icon-button" id="prayerButton" aria-label="Open the prayer composer">✛</button>
-        <button class="icon-button" id="libraryButton" aria-label="Open the 30-day library">☰</button>
+        <button class="icon-button" id="themeButton" aria-label="Toggle dark mode" data-i18n-aria="topbar.theme">◐</button>
+        <button class="icon-button" id="journalButton" aria-label="Open my reflections journal" data-i18n-aria="topbar.journal">✎</button>
+        <button class="icon-button" id="prayerButton" aria-label="Open the prayer composer" data-i18n-aria="topbar.prayer">✛</button>
+        <button class="icon-button" id="libraryButton" aria-label="Open the 30-day library" data-i18n-aria="topbar.library">☰</button>
       </div>
     </header>
 
     <main>
-      <section class="progress-wrap" aria-label="Journey progress">
+      <section class="progress-wrap" aria-label="Journey progress" data-i18n-aria="progress.aria">
         <div class="progress-copy"><span id="progressLabel">Day 1 of 30</span><span id="progressPercent">0% complete</span></div>
         <div class="progress-track"><span id="progressBar"></span></div>
       </section>
@@ -44,8 +44,8 @@
         <div class="title-row">
           <div><p class="day-number" id="dayNumber">DAY 01</p><h1 id="dayTitle">Stand</h1></div>
           <div class="title-actions">
-            <button class="favorite-button share-button" id="shareButton" aria-label="Share this day">↗</button>
-            <button class="favorite-button" id="favoriteButton" aria-label="Save this day to favorites" aria-pressed="false">♡</button>
+            <button class="favorite-button share-button" id="shareButton" aria-label="Share this day" data-i18n-aria="day.share">↗</button>
+            <button class="favorite-button" id="favoriteButton" aria-label="Save this day to favorites" data-i18n-aria="day.favorite" aria-pressed="false">♡</button>
           </div>
         </div>
 
@@ -55,79 +55,79 @@
         </blockquote>
 
         <div class="audio-card">
-          <button class="play-button" id="playButton" aria-label="Play daily prayer"><span id="playIcon">▶</span></button>
+          <button class="play-button" id="playButton" aria-label="Play daily prayer" data-i18n-aria="audio.play"><span id="playIcon">▶</span></button>
           <div class="audio-main">
-            <div class="audio-labels"><strong>Guided prayer</strong><span id="audioTime">About 3 minutes</span></div>
+            <div class="audio-labels"><strong data-i18n="audio.title">Guided prayer</strong><span id="audioTime" data-i18n="audio.length">About 3 minutes</span></div>
             <div class="audio-track"><span id="audioProgress"></span></div>
           </div>
           <div class="audio-extras">
-            <select id="voiceRate" aria-label="Narration speed"><option value="0.85">0.85×</option><option value="1" selected>1×</option><option value="1.15">1.15×</option></select>
-            <button class="repeat-button" id="repeatButton" aria-label="Repeat this prayer until stopped" aria-pressed="false">⟳</button>
-            <select id="sleepTimer" aria-label="Sleep timer"><option value="0">No timer</option><option value="5">5 min</option><option value="10">10 min</option><option value="15">15 min</option><option value="30">30 min</option></select>
+            <select id="voiceRate" aria-label="Narration speed" data-i18n-aria="audio.speed"><option value="0.85">0.85×</option><option value="1" selected>1×</option><option value="1.15">1.15×</option></select>
+            <button class="repeat-button" id="repeatButton" aria-label="Repeat this prayer until stopped" data-i18n-aria="audio.repeat" aria-pressed="false">⟳</button>
+            <select id="sleepTimer" aria-label="Sleep timer" data-i18n-aria="audio.timer"><option value="0" data-i18n="audio.noTimer">No timer</option><option value="5" data-i18n="audio.min" data-i18n-n="5">5 min</option><option value="10" data-i18n="audio.min" data-i18n-n="10">10 min</option><option value="15" data-i18n="audio.min" data-i18n-n="15">15 min</option><option value="30" data-i18n="audio.min" data-i18n-n="30">30 min</option></select>
           </div>
         </div>
 
         <section class="content-section">
-          <h2>Reflection</h2>
+          <h2 data-i18n="section.reflection">Reflection</h2>
           <p id="reflection"></p>
         </section>
 
         <section class="prayer-panel">
-          <p class="section-kicker">PRAY</p>
+          <p class="section-kicker" data-i18n="section.pray">PRAY</p>
           <p id="prayer"></p>
-          <p class="amen">Amen.</p>
+          <p class="amen" data-i18n="section.amen">Amen.</p>
         </section>
 
         <section class="declaration-panel">
-          <p class="section-kicker">DECLARE</p>
+          <p class="section-kicker" data-i18n="section.declare">DECLARE</p>
           <p id="declaration"></p>
         </section>
 
         <section class="action-panel">
-          <div class="action-icon">→</div><div><p class="section-kicker">TODAY'S PRACTICE</p><p id="action"></p></div>
+          <div class="action-icon">→</div><div><p class="section-kicker" data-i18n="section.practice">TODAY'S PRACTICE</p><p id="action"></p></div>
         </section>
 
         <section class="checkin-section">
-          <p class="section-kicker">FEAR CHECK-IN</p>
-          <p class="checkin-question">Where is your fear right now?</p>
-          <div class="checkin-scale" id="dayCheckin" role="group" aria-label="Fear level, 1 calm to 5 overwhelming">
+          <p class="section-kicker" data-i18n="checkin.kicker">FEAR CHECK-IN</p>
+          <p class="checkin-question" data-i18n="checkin.question">Where is your fear right now?</p>
+          <div class="checkin-scale" id="dayCheckin" role="group" aria-label="Fear level, 1 calm to 5 overwhelming" data-i18n-aria="checkin.aria">
             <button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button>
           </div>
-          <p class="checkin-note" id="checkinNote" aria-live="polite">1 = calm · 5 = overwhelming</p>
+          <p class="checkin-note" id="checkinNote" aria-live="polite" data-i18n="checkin.scale">1 = calm · 5 = overwhelming</p>
         </section>
 
         <section class="notes-section">
-          <label for="notes">My reflection</label>
-          <textarea id="notes" rows="4" placeholder="What is God showing me today?"></textarea>
-          <p class="save-status" id="saveStatus" aria-live="polite">Saved on this device</p>
+          <label for="notes" data-i18n="notes.label">My reflection</label>
+          <textarea id="notes" rows="4" placeholder="What is God showing me today?" data-i18n-placeholder="notes.placeholder"></textarea>
+          <p class="save-status" id="saveStatus" aria-live="polite" data-i18n="notes.saved">Saved on this device</p>
         </section>
 
-        <button class="complete-button" id="completeButton">Mark day complete</button>
-        <nav class="day-nav" aria-label="Day navigation"><button id="prevButton">← Previous</button><button id="nextButton">Next →</button></nav>
+        <button class="complete-button" id="completeButton" data-i18n="day.complete">Mark day complete</button>
+        <nav class="day-nav" aria-label="Day navigation" data-i18n-aria="day.nav"><button id="prevButton" data-i18n="day.prev">← Previous</button><button id="nextButton" data-i18n="day.next">Next →</button></nav>
       </article>
     </main>
   </div>
 
   <dialog id="libraryDialog">
-    <div class="dialog-header"><div><p class="eyebrow">YOUR JOURNEYS</p><h2>Choose your path</h2></div><button class="icon-button" id="closeLibrary" aria-label="Close library">×</button></div>
+    <div class="dialog-header"><div><p class="eyebrow" data-i18n="library.kicker">YOUR JOURNEYS</p><h2 data-i18n="library.title">Choose your path</h2></div><button class="icon-button" id="closeLibrary" aria-label="Close library" data-i18n-aria="library.close">×</button></div>
     <div class="fear-finder">
-      <label for="fearFinder">Where are you right now?</label>
-      <select id="fearFinder"><option value="">Choose what fits…</option></select>
+      <label for="fearFinder" data-i18n="library.finder">Where are you right now?</label>
+      <select id="fearFinder"><option value="" data-i18n="library.finderPlaceholder">Choose what fits…</option></select>
     </div>
-    <div class="track-picker" id="trackPicker" aria-label="Choose a journey"></div>
-    <div class="filter-tabs" aria-label="Filter days">
-      <button class="filter-tab active" data-filter="all">All</button>
-      <button class="filter-tab" data-filter="favorites">Favorites</button>
-      <button class="filter-tab" data-filter="completed">Completed</button>
+    <div class="track-picker" id="trackPicker" aria-label="Choose a journey" data-i18n-aria="library.chooseJourney"></div>
+    <div class="filter-tabs" aria-label="Filter days" data-i18n-aria="library.filters">
+      <button class="filter-tab active" data-filter="all" data-i18n="library.all">All</button>
+      <button class="filter-tab" data-filter="favorites" data-i18n="library.favorites">Favorites</button>
+      <button class="filter-tab" data-filter="completed" data-i18n="library.completed">Completed</button>
     </div>
     <div class="day-grid" id="dayGrid"></div>
     <div class="reminder-row">
-      <label for="reminderTime">Daily reminder</label>
+      <label for="reminderTime" data-i18n="reminder.label">Daily reminder</label>
       <input type="time" id="reminderTime" value="07:00" />
-      <button class="text-button" id="reminderButton">Add to my calendar</button>
+      <button class="text-button" id="reminderButton" data-i18n="reminder.button">Add to my calendar</button>
     </div>
     <p class="save-status" id="reminderStatus" role="status" aria-live="polite"></p>
-    <p class="library-about"><a class="text-button" href="/fears">Start from a fear</a> · <a class="text-button" href="/">What Stand does</a></p>
+    <p class="library-about"><a class="text-button" href="/fears" data-i18n="library.fears">Start from a fear</a> · <a class="text-button" href="/" data-i18n="library.about">What Stand does</a></p>
   </dialog>
 
   <dialog id="prayerDialog">
@@ -156,58 +156,59 @@
   </dialog>
 
   <dialog id="journalDialog">
-    <div class="dialog-header"><div><p class="eyebrow">MY REFLECTIONS</p><h2>Journal</h2></div><button class="icon-button" id="closeJournal" aria-label="Close journal">×</button></div>
+    <div class="dialog-header"><div><p class="eyebrow" data-i18n="journal.kicker">MY REFLECTIONS</p><h2 data-i18n="journal.title">Journal</h2></div><button class="icon-button" id="closeJournal" aria-label="Close journal" data-i18n-aria="journal.close">×</button></div>
     <div class="ledger" id="ledger"></div>
     <div id="journalList"></div>
-    <button class="complete-button" id="exportButton">Download my reflections (.txt)</button>
+    <button class="complete-button" id="exportButton" data-i18n="journal.download">Download my reflections (.txt)</button>
     <div class="data-actions">
-      <button class="text-button" id="backupButton">Back up all data (.json)</button>
-      <label class="text-button" for="restoreInput">Restore from backup<input type="file" id="restoreInput" accept="application/json,.json" hidden /></label>
-      <button class="text-button danger" id="eraseButton">Erase all data</button>
+      <button class="text-button" id="backupButton" data-i18n="journal.backup">Back up all data (.json)</button>
+      <label class="text-button" for="restoreInput"><span data-i18n="journal.restore">Restore from backup</span><input type="file" id="restoreInput" accept="application/json,.json" hidden /></label>
+      <button class="text-button danger" id="eraseButton" data-i18n="journal.erase">Erase all data</button>
     </div>
   </dialog>
 
   <dialog id="welcomeDialog">
-    <p class="eyebrow">WELCOME</p>
-    <h2>Thirty days to stand</h2>
-    <p>Each day pairs Scripture with a short reflection, a guided prayer you can listen to, a declaration to speak, and one small practice.</p>
+    <p class="eyebrow" data-i18n="welcome.kicker">WELCOME</p>
+    <h2 data-i18n="welcome.title">Thirty days to stand</h2>
+    <p data-i18n="welcome.body">Each day pairs Scripture with a short reflection, a guided prayer you can listen to, a declaration to speak, and one small practice.</p>
     <ul class="welcome-list">
-      <li>Press ▶ to hear the guided prayer, or read at your own pace.</li>
-      <li>Save favorites with ♡ and keep private notes with ✎ — everything stays on your device.</li>
-      <li>Mark each day complete to track progress and build a daily streak.</li>
+      <li data-i18n="welcome.point1">Press ▶ to hear the guided prayer, or read at your own pace.</li>
+      <li data-i18n="welcome.point2">Save favorites with ♡ and keep private notes with ✎ — everything stays on your device.</li>
+      <li data-i18n="welcome.point3">Mark each day complete to track progress and build a daily streak.</li>
     </ul>
-    <p class="section-kicker">WHERE WOULD YOU LIKE TO BEGIN?</p>
+    <p class="section-kicker" data-i18n="welcome.begin">WHERE WOULD YOU LIKE TO BEGIN?</p>
     <div class="welcome-paths">
-      <button class="path-button" id="beginButton" data-track="core"><strong>The 30-day journey</strong><small>The full path from fear to faith</small></button>
-      <button class="path-button" data-track="unknown"><strong>Fear of the unknown</strong><small>A focused five-day track</small></button>
-      <button class="path-button" data-track="night"><strong>Fear at night</strong><small>Five days toward rest</small></button>
-      <button class="path-button" data-track="giant"><strong>A courage story</strong><small>Four days in one heroic account</small></button>
+      <button class="path-button" id="beginButton" data-track="core"><strong data-i18n="welcome.core">The 30-day journey</strong><small data-i18n="welcome.coreNote">The full path from fear to faith</small></button>
+      <button class="path-button" data-track="unknown"><strong data-i18n="welcome.unknown">Fear of the unknown</strong><small data-i18n="welcome.unknownNote">A focused five-day track</small></button>
+      <button class="path-button" data-track="night"><strong data-i18n="welcome.night">Fear at night</strong><small data-i18n="welcome.nightNote">Five days toward rest</small></button>
+      <button class="path-button" data-track="giant"><strong data-i18n="welcome.courage">A courage story</strong><small data-i18n="welcome.courageNote">Four days in one heroic account</small></button>
     </div>
   </dialog>
 
   <div class="install-hint" id="installHint" hidden>
-    <p>Keep Stand one tap away: in Safari, tap <strong>Share</strong> → <strong>Add to Home Screen</strong>.</p>
-    <button class="icon-button" id="dismissHint" aria-label="Dismiss install tip">×</button>
+    <p><span data-i18n="install.tip">Keep Stand one tap away: in Safari, tap</span> <strong data-i18n="install.share">Share</strong> → <strong data-i18n="install.add">Add to Home Screen</strong>.</p>
+    <button class="icon-button" id="dismissHint" aria-label="Dismiss install tip" data-i18n-aria="install.dismiss">×</button>
   </div>
 
-  <button class="sos-button" id="sosButton">Steady me now</button>
+  <button class="sos-button" id="sosButton" data-i18n="sos.button">Steady me now</button>
 
   <dialog id="sosDialog" class="sos-dialog">
-    <button class="icon-button sos-close" id="closeSos" aria-label="Close">×</button>
+    <button class="icon-button sos-close" id="closeSos" aria-label="Close" data-i18n-aria="sos.close">×</button>
     <div class="sos-stage" id="sosStage"></div>
     <div class="sos-footer">
-      <button class="text-button" id="sosSupport" aria-expanded="false">Fear feels unmanageable? Get support</button>
+      <button class="text-button" id="sosSupport" aria-expanded="false" data-i18n="sos.support">Fear feels unmanageable? Get support</button>
       <div class="sos-resources" id="sosResources" hidden>
-        <p>If fear feels bigger than you can carry right now, you don't have to carry it alone:</p>
+        <p data-i18n="sos.supportIntro">If fear feels bigger than you can carry right now, you don't have to carry it alone:</p>
         <ul>
-          <li><strong>988</strong> — Suicide &amp; Crisis Lifeline (call or text, 24/7)</li>
-          <li>Text <strong>HOME</strong> to <strong>741741</strong> — Crisis Text Line</li>
-          <li><strong>911</strong> — if you are in immediate physical danger</li>
+          <li><strong>988</strong> <span data-i18n="sos.lifeline">— Suicide &amp; Crisis Lifeline (call or text, 24/7)</span></li>
+          <li><span data-i18n="sos.textVerb">Text</span> <strong>HOME</strong> <span data-i18n="sos.textTo">to</span> <strong>741741</strong> <span data-i18n="sos.textLine">— Crisis Text Line</span></li>
+          <li><strong>911</strong> <span data-i18n="sos.emergency">— if you are in immediate physical danger</span></li>
         </ul>
-        <p>Stand offers spiritual encouragement. It isn't medical or crisis care, and reaching out for more help is its own act of courage.</p>
+        <p data-i18n="sos.disclaimer">Stand offers spiritual encouragement. It isn't medical or crisis care, and reaching out for more help is its own act of courage.</p>
       </div>
     </div>
   </dialog>
+  <script src="/ui.js"></script>
   <script src="/content.js"></script>
   <script src="/content.es.js"></script>
   <script src="/prayers.js"></script>

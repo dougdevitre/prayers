@@ -17,6 +17,7 @@ jobs:
       - run: npm run check
       - run: npm run validate
       - run: npm run verify:scripture
+      - run: npm run verify:ui
       - run: npm run test:unit
       # Generated pages must stay in sync with content.js. sitemap.xml is in
       # the guard because the generator now always writes it — previously it

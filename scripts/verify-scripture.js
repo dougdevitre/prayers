@@ -64,6 +64,52 @@ function classify({ ref, verse }) {
   return "not-in-source";
 }
 
+// ---- Spanish ---------------------------------------------------------------
+// The Spanish days quote the Reina-Valera 1909, which is public domain (the
+// 1960 revision is not, which is why the edition is pinned and named). Every
+// excerpt must be a contiguous substring of scripts/es-source.json. No
+// modernizing substitutions are applied on this side.
+const ES_SOURCE = JSON.parse(fs.readFileSync(path.join(__dirname, "es-source.json"), "utf8"));
+const ES_BOOKS = JSON.parse(fs.readFileSync(path.join(__dirname, "es-books.json"), "utf8"));
+const esRefFor = ref => ref.replace(/^(.*?)(\s+\d+:.*)$/, (_, b, rest) => (ES_BOOKS[b] || b) + rest);
+
+let esFail = 0, esOk = 0, esPunct = 0, esDays = 0;
+{
+  let esTracks = null;
+  try { ({ esTracks } = require("../content.es.js")); } catch { /* not present */ }
+  if (esTracks) {
+    for (const [id, track] of Object.entries(tracks)) {
+      const es = esTracks[id];
+      if (!es) { console.error(`FAIL Spanish track missing: ${id}`); esFail++; continue; }
+      if (es.days.length !== track.days.length) {
+        console.error(`FAIL ${id}: ${es.days.length} Spanish days vs ${track.days.length} English`); esFail++;
+      }
+      es.days.forEach((d, i) => {
+        esDays++;
+        const english = track.days[i];
+        if (!english) return;
+        if (d.length !== 7 || d.some(f => typeof f !== "string" || !f.trim())) {
+          console.error(`FAIL ${id} day ${i + 1}: expected seven non-empty Spanish fields`); esFail++; return;
+        }
+        const wantRef = esRefFor(english[1]);
+        if (d[1] !== wantRef) {
+          console.error(`FAIL ${id} day ${i + 1}: reference is "${d[1]}", expected "${wantRef}" for ${english[1]}`); esFail++; return;
+        }
+        const hay = norm(ES_SOURCE[english[1]] || "");
+        const needle = norm(d[2]);
+        if (hay.includes(needle)) esOk++;
+        else if (hay.includes(needle.replace(/[.?!]$/, ""))) esPunct++;
+        else {
+          esFail++;
+          console.error(`FAIL ${id} day ${i + 1} (${d[1]}) — not in the Reina-Valera 1909`);
+          console.error(`     app: ${d[2]}`);
+          console.error(`     RV1909: ${ES_SOURCE[english[1]] || "(reference not in es-source.json)"}`);
+        }
+      });
+    }
+  }
+}
+
 let failures = 0, verbatim = 0, punctuation = 0;
 for (const row of gated) {
   const verdict = classify(row);
@@ -79,11 +125,16 @@ for (const row of gated) {
 
 const adaptedNotInSource = adapted.filter(r => classify(r) === "not-in-source").length;
 
-if (failures) {
-  console.error(`\n✗ ${failures} of ${gated.length} quoted excerpts are not drawn from the WEB text.`);
+if (failures || esFail) {
+  if (failures) console.error(`\n✗ ${failures} of ${gated.length} English excerpts are not drawn from the WEB text.`);
+  if (esFail) console.error(`✗ ${esFail} Spanish problem(s) against the Reina-Valera 1909.`);
   process.exit(1);
 }
 console.log(`✓ scripture verified — ${gated.length} quoted excerpts all drawn from the World English Bible ` +
             `(${verbatim} verbatim, ${punctuation} differing only in trailing punctuation)`);
+if (esDays) {
+  console.log(`✓ Spanish verified — ${esDays} days, every verse drawn from the Reina-Valera 1909 ` +
+              `(${esOk} verbatim, ${esPunct} differing only in trailing punctuation)`);
+}
 console.log(`  ${adapted.length} courage-story excerpts are condensed paraphrases and are not gated here; ` +
             `${adaptedNotInSource} of them are not WEB substrings. Public domain either way — see the content note in README.md.`);

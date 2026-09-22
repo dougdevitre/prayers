@@ -488,6 +488,62 @@ const server = http.createServer((req, res) => {
   await page.click("#closeLibrary");
 
   // ---------------------------------------------------------------------
+  // Spanish devotional days. The prayer surface has been bilingual for a
+  // while; the 108 days were English only, which undercut the claim the
+  // landing page makes.
+  // Earlier blocks leave the app on another track, day and language, so pin
+  // all three before comparing — otherwise this asserts against whatever the
+  // previous test happened to leave behind.
+  // Set it through the app's own state rather than localStorage directly:
+  // app.js reads storage once at evaluation, so a raw write races with the
+  // next save() and gets clobbered — which left this block asserting against
+  // whatever track the previous test ended on.
+  await page.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
+  await page.evaluate(() => { state.lang = "en"; state.track = "core"; location.hash = "#1"; save(); });
+  // reload(), not goto("#1"): adding a hash to the current URL is a
+  // same-document navigation, so the page would not reload and this block
+  // would assert against the previous test's render.
+  await page.reload({ waitUntil: "networkidle" });
+  const dayText = async () => ({
+    title: await page.textContent("#dayTitle"),
+    ref: await page.textContent("#scriptureRef"),
+    verse: await page.textContent("#scriptureText"),
+    week: await page.textContent("#weekLabel"),
+    reflection: await page.textContent("#reflection")
+  });
+  const english = await dayText();
+  check("day starts in English", english.title === "Stand" && english.ref === "Ephesians 6:10–13");
+
+  await page.click("#prayerButton");
+  await page.selectOption("#prayerLang", "es");
+  await page.click("#closePrayer");
+  const spanish = await dayText();
+  check("day switches to Spanish", spanish.title === "Firmeza");
+  check("reference is localized", spanish.ref === "Efesios 6:10–13");
+  check("verse is Reina-Valera", spanish.verse.includes("Confortaos en el Señor"));
+  check("week label is Spanish", spanish.week.includes("SEMANA UNO"));
+  check("reflection is Spanish", spanish.reflection.includes("combate espiritual"));
+  check("every field actually changed", ["title", "ref", "verse", "week", "reflection"]
+    .every(k => spanish[k] !== english[k]));
+
+  // The library follows the same choice.
+  await page.click("#libraryButton");
+  check("library groups are Spanish", (await page.textContent("#trackPicker")).includes("HISTORIAS DE VALOR"));
+  check("library counts are Spanish", (await page.textContent("#trackPicker")).includes(" días"));
+  await page.click("#closeLibrary");
+
+  // Progress is keyed by index, not by text, so it must survive the switch.
+  check("language choice persists", await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("stand-state")).lang === "es"));
+  await page.reload({ waitUntil: "networkidle" });
+  check("Spanish survives a reload", (await page.textContent("#dayTitle")) === "Firmeza");
+
+  await page.click("#prayerButton");
+  await page.selectOption("#prayerLang", "en");
+  await page.click("#closePrayer");
+  check("English returns to the day view", (await page.textContent("#dayTitle")) === "Stand");
+
+  // ---------------------------------------------------------------------
   // Daily reminder (.ics). The generated file is parsed rather than eyeballed:
   // every previous defect here was invisible from the UI.
   await page.goto("http://localhost:8123/app", { waitUntil: "networkidle" });

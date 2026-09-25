@@ -144,9 +144,19 @@ function go(n) {
 
 /* ---------- Narration ---------- */
 
-function fullScript(d) {
-  const x = activeTrack().days[d];
-  return `Day ${d + 1}. ${x[0]}. Scripture, ${x[1]}. ${x[2]} Pause and breathe in slowly. Breathe out. Let your shoulders soften. Reflection. ${x[3]} Prayer. ${x[4]} Amen. Declaration. ${x[5]} Today's practice. ${x[6]} Closing blessing. May truth steady your mind, peace guard your heart, courage guide your next step, and grace carry what you cannot. Go in peace.`;
+// The words the reader hears come from narration.js, shared with the build
+// that renders the recordings, so the device's own voice says exactly what a
+// recording says. A recording is preferred when the manifest has one for this
+// day in this language; ?tts=1 forces the device voice (a kill switch for the
+// recordings that needs no deploy to try).
+const narrationScript = d => dayScript(activeTrack().days[d], d, state.lang);
+const ttsOnly = new URLSearchParams(location.search).get("tts") === "1";
+
+/** The CDN URL of a recording by manifest id, or null when there is none. */
+function recordedUrl(id) {
+  if (ttsOnly || !audioManifest.enabled) return null;
+  const item = audioManifest.items[id];
+  return item ? `${audioManifest.base}/${item.key}` : null;
 }
 
 const player = { status: "idle", keepAlive: 0, repeat: false, sleepTimer: 0, mode: "tts" };
@@ -158,7 +168,7 @@ let narrationVoice = null;
 const audioEl = new Audio();
 audioEl.preload = "none";
 
-const recordedFor = d => recordedAudio.days[`${state.track || "core"}-${d}`] || null;
+const recordedFor = d => recordedUrl(dayItemId(state.lang, state.track || "core", d));
 
 audioEl.addEventListener("timeupdate", () => {
   if (player.mode === "rec" && audioEl.duration) {
@@ -243,11 +253,14 @@ function stopAudio() {
 
 function speakDay() {
   player.mode = "tts";
-  const script = fullScript(day);
+  const script = narrationScript(day);
   const utterance = new SpeechSynthesisUtterance(script);
   utterance.rate = Number($("voiceRate").value);
   utterance.pitch = 0.96;
-  if (narrationVoice) utterance.voice = narrationVoice;
+  utterance.lang = state.lang === "es" ? "es-ES" : "en-US";
+  // The chosen fallback voice is English; Spanish is left to the device's own
+  // voice for the language rather than read with an English one.
+  if (narrationVoice && state.lang === "en") utterance.voice = narrationVoice;
   // Repeat mode re-speaks the same day until the sleep timer or the user stops it.
   utterance.onend = () => { player.repeat && player.status === "playing" ? speakDay() : stopAudio(); };
   utterance.onerror = stopAudio;
@@ -321,25 +334,8 @@ $("sleepTimer").onchange = () => {
 
 /* ---------- SOS mode ---------- */
 
-// English SOS sets. Their verses reuse day excerpts already in `themes`, so
-// the WEB gate covers them without a second source of scripture. The Spanish
-// sets are `esSos` in content.es.js and quote the Reina-Valera 1909 directly
-// rather than translating these — see sosSets() below.
-const sosSetsEn = [
-  { ref: "Psalm 27:1", verse: "The LORD is my light and my salvation. Whom shall I fear?",
-    prayer: "Lord, bring me back to this moment. Slow my heart, steady my breath, and stand with me here. I hand You what I cannot control.",
-    declaration: "Fear may speak, but it does not get the final word." },
-  { ref: "Joshua 1:9", verse: "Be strong and courageous. Don’t be afraid. Don’t be dismayed, for the LORD your God is with you wherever you go.",
-    prayer: "God, give me courage for the next few minutes—nothing more is asked of me right now. Be near, and steady my steps.",
-    declaration: "I can be afraid and still be faithful." },
-  { ref: "Matthew 6:34", verse: "Don’t be anxious for tomorrow, for tomorrow will be anxious for itself.",
-    prayer: "Father, I release the futures my fear keeps writing. Keep me in today, in this breath, in Your hands.",
-    declaration: "I am responsible for faithfulness, not control of every outcome." },
-  { ref: "Psalm 42:11", verse: "Hope in God! For I shall still praise him.",
-    prayer: "God, when my feelings shout in absolutes, remind me this moment is not the whole story. Give me hope enough for one step.",
-    declaration: "I do not need all the hope—only enough for the next step." }
-];
-
+// The English SOS sets are `sosSetsEn` in content.js; the Spanish ones are
+// `esSos` in content.es.js. See sosSets() below.
 // The active set is held as an index, not a reference: switching language swaps
 // the whole array, and an index survives that where an object reference would not.
 const sosSets = () => (state.lang === "es" && typeof esSos !== "undefined" ? esSos : sosSetsEn);
@@ -465,7 +461,7 @@ function sosAnchor() {
   listen.textContent = t("sos.listen");
   listen.onclick = () => {
     stopAudio();
-    const src = recordedAudio.sos[sos.i];
+    const src = recordedUrl(sosItemId(state.lang, sos.i));
     if (src) {
       player.mode = "rec";
       audioEl.src = src;
@@ -479,8 +475,7 @@ function sosAnchor() {
 
   function sosSpeak() {
     if (!canSpeak) return;
-    const utterance = new SpeechSynthesisUtterance(
-      `${sosSet().verse} ${sosSet().ref}. ${sosSet().prayer} ${t("section.amen")} ${sosSet().declaration}`);
+    const utterance = new SpeechSynthesisUtterance(sosScript(sosSet(), state.lang));
     utterance.rate = 0.95;
     utterance.pitch = 0.96;
     utterance.lang = state.lang === "es" ? "es-ES" : "en-US";

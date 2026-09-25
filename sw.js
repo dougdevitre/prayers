@@ -1,9 +1,9 @@
-const CACHE = "stand-v25";
+const CACHE = "stand-v28";
 // The app shell is /app, not "./" — the root is the landing page now, and
 // precaching it here would have served the app shell to anyone opening the
 // site. Paths are absolute so they do not depend on where sw.js is fetched.
 const APP_SHELL = "/app";
-const ASSETS = [APP_SHELL, "/styles.css", "/app.js", "/ui.js", "/content.js", "/content.es.js", "/prayers.js", "/compose.js", "/logic.js", "/reminder.js", "/manifest.webmanifest", "/icon.svg", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"];
+const ASSETS = [APP_SHELL, "/styles.css", "/app.js", "/ui.js", "/content.js", "/content.es.js", "/prayers.js", "/compose.js", "/logic.js", "/reminder.js", "/narration.js", "/audio-manifest.js", "/manifest.webmanifest", "/icon.svg", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"];
 
 self.addEventListener("install", event => {
   event.waitUntil(
@@ -26,8 +26,9 @@ self.addEventListener("fetch", event => {
   const { request } = event;
   const url = new URL(request.url);
   if (request.method !== "GET" || url.origin !== location.origin) return;
-  // Audio streams use range requests, which the Cache API can't store — let
-  // the browser handle them directly.
+  // Recordings come from the audio CDN, another origin, so the check above
+  // already leaves them to the browser. Anything under /audio/ (test fixtures,
+  // a local recording) uses range requests the Cache API can't store.
   if (url.pathname.startsWith("/audio/")) return;
   const isAppNavigation = request.mode === "navigate" && (url.pathname === APP_SHELL || url.pathname === "/app/index.html");
   // Only the app shell is served from cache on navigation; static pages

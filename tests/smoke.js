@@ -870,6 +870,53 @@ const server = http.createServer((req, res) => {
   // CSP stay strict and the <details> menu work with no JavaScript at all.
   check("the root ships no script", (await page.$$("script:not([type='application/ld+json'])")).length === 0);
 
+  // ---------------------------------------------------------------------
+  // Structured data on the day pages: an Article in a series, with its
+  // translation and a breadcrumb trail. Every generated page is parsed from
+  // disk, and two are read through the browser under the production CSP.
+  const ldOf = html => {
+    const m = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+    try { return m ? JSON.parse(m[1]) : null; } catch { return "unparseable"; }
+  };
+  let ldChecked = 0, ldBad = [];
+  for (const [lang, set] of [["en", tracks], ["es", require("../content.es.js").esTracks]]) {
+    for (const [id, track] of Object.entries(set)) {
+      for (let i = 0; i < track.days.length; i++) {
+        const prefix = lang === "es" ? "/es" : "";
+        const base = id === "core" ? `${prefix}/day` : `${prefix}/track/${id}`;
+        const name = `${String(i + 1).padStart(2, "0")}-${require("../logic.js").slugify(track.days[i][0])}`;
+        const html = fs.readFileSync(path.join(ROOT, `${base}/${name}.html`), "utf8");
+        const ld = ldOf(html);
+        const canonical = (html.match(/<link rel="canonical" href="([^"]+)"/) || [])[1];
+        const article = ld && ld !== "unparseable" && ld["@graph"].find(n => n["@type"] === "Article");
+        const crumbs = ld && ld !== "unparseable" && ld["@graph"].find(n => n["@type"] === "BreadcrumbList");
+        const ok = article && crumbs
+          && article.url === canonical && article.inLanguage === lang && article.position === i + 1
+          && article.name === track.days[i][0] && article.citation === track.days[i][1]
+          && article.isPartOf.name === track.name && article.isAccessibleForFree === true
+          && crumbs.itemListElement.length === 3 && crumbs.itemListElement[2].item === canonical
+          && !html.includes("</script>\n  </script>");
+        if (!ok) ldBad.push(`${base}/${name}`);
+        ldChecked++;
+      }
+    }
+  }
+  check(`every day page carries valid structured data (${ldChecked} pages)`, ldChecked === DAY_PAGE_COUNT * 2 && ldBad.length === 0);
+  if (ldBad.length) console.log("       " + ldBad.slice(0, 5).join(", "));
+
+  for (const [url, lang, altPart] of [["/day/07-the-word", "en", "/es/day/07-la-palabra"], ["/es/track/furnace/01-el-decreto", "es", "/track/furnace/01-the-decree"]]) {
+    await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
+    const ld = await page.evaluate(() => {
+      const el = document.querySelector('script[type="application/ld+json"]');
+      try { return el ? JSON.parse(el.textContent) : null; } catch { return "unparseable"; }
+    });
+    const article = ld && ld !== "unparseable" && ld["@graph"].find(n => n["@type"] === "Article");
+    const link = article && (article.workTranslation || article.translationOfWork);
+    check(`${url} structured data parses in the browser under the CSP`, Boolean(article));
+    check(`${url} names its translation`, Boolean(link) && link["@id"] === `${SITE}${altPart}#article` && link.inLanguage === (lang === "en" ? "es" : "en"));
+    check(`${url} ships no executable script`, (await page.$$("script:not([type='application/ld+json'])")).length === 0);
+  }
+
   await page.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
   check("/app is the app", (await page.$$("#dayNumber")).length === 1);
   check("/app keeps its assets", await page.evaluate(() =>

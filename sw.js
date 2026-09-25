@@ -1,4 +1,4 @@
-const CACHE = "stand-v25";
+const CACHE = "stand-v26";
 // The app shell is /app, not "./" — the root is the landing page now, and
 // precaching it here would have served the app shell to anyone opening the
 // site. Paths are absolute so they do not depend on where sw.js is fetched.
@@ -29,6 +29,9 @@ self.addEventListener("fetch", event => {
   // Audio streams use range requests, which the Cache API can't store — let
   // the browser handle them directly.
   if (url.pathname.startsWith("/audio/")) return;
+  // The calendar feed is a function of its query and must never be served
+  // from this cache.
+  if (url.pathname === "/calendar.ics" || url.pathname.startsWith("/api/")) return;
   const isAppNavigation = request.mode === "navigate" && (url.pathname === APP_SHELL || url.pathname === "/app/index.html");
   // Only the app shell is served from cache on navigation; static pages
   // (the landing page at /, the fear index, the crawlable day/ pages) must

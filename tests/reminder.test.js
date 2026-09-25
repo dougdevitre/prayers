@@ -140,6 +140,13 @@ test("the schedule starts at the first incomplete day", () => {
   assert.strictEqual(s.dates[1].getDate(), NOW.getDate() + 1);
 });
 
+test("a numeric start day is used as given, clamped to the journey, ignoring progress", () => {
+  const s = reminderSchedule({ dayCount: 30, completed: [0, 1, 2, 4], time: "21:30", now: NOW, from: 6 });
+  assert.deepStrictEqual(summary(s), { fromDay: 6, count: 24, offset: 0, restarted: false, weekdays: false });
+  assert.strictEqual(reminderSchedule({ dayCount: 4, completed: [], time: "21:30", now: NOW, from: 99 }).fromDay, 3);
+  assert.strictEqual(reminderSchedule({ dayCount: 4, completed: [0, 1, 2, 3], time: "21:30", now: NOW, from: 0 }).restarted, false);
+});
+
 test("\"Day 1\" starts the journey over regardless of progress", () => {
   const s = reminderSchedule({ dayCount: 30, completed: [0, 1, 2, 4], time: "21:30", now: NOW, from: "start" });
   assert.deepStrictEqual(summary(s), { fromDay: 0, count: 30, offset: 0, restarted: false, weekdays: false });

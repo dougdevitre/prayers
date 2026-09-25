@@ -1160,7 +1160,48 @@ function renderReminder() {
   const entry = reminderEntry({ track, trackId, lang, origin: location.origin, t, dayIndex: schedule.fromDay, position: 0 });
   $("reminderPreviewTitle").textContent = entry.summary;
   $("reminderPreviewBody").textContent = entry.description;
+  renderSubscribe(time, { trackId, lang, schedule });
 }
+
+// The subscription feed: the same file, served from a URL a calendar app
+// polls. The URL carries only the journey, the day to start on, the date of
+// that first reminder, the time, the language and the option flags —
+// nothing a reader would mind in a calendar's settings.
+function subscribeUrl(time, { trackId, lang, schedule }) {
+  const options = reminderOptions();
+  const first = schedule.dates[0];
+  const pad = n => String(n).padStart(2, "0");
+  const q = new URLSearchParams({
+    track: trackId, from: String(schedule.fromDay + 1),
+    start: `${first.getFullYear()}-${pad(first.getMonth() + 1)}-${pad(first.getDate())}`,
+    time, lang
+  });
+  if (options.weekdays) q.set("weekdays", "1");
+  if (options.lead) q.set("lead", String(options.lead));
+  if (options.evening) q.set("evening", options.evening);
+  return `${location.host}/calendar.ics?${q}`;
+}
+
+function renderSubscribe(time, context) {
+  const url = subscribeUrl(time, context);
+  // webcal: is what makes Apple Calendar (and Outlook) open a subscription
+  // dialog straight from the tap; the copy button carries the https form
+  // for Google Calendar's "From URL".
+  $("subscribeLink").href = `webcal://${url}`;
+  $("subscribeLink").dataset.https = `${location.protocol}//${url}`;
+}
+
+$("subscribeCopy").onclick = async () => {
+  const url = $("subscribeLink").dataset.https;
+  try {
+    await navigator.clipboard.writeText(url);
+    $("reminderStatus").textContent = t("reminder.subscribeCopied");
+  } catch {
+    // No clipboard (older browser, or permission refused): show the link
+    // itself so it can be selected by hand.
+    $("reminderStatus").textContent = url;
+  }
+};
 
 /* ---------- iOS install hint ---------- */
 

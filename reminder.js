@@ -87,7 +87,8 @@ const isWeekend = d => d.getDay() === 0 || d.getDay() === 6;
 /**
  * Which days to schedule and when each one lands.
  *   from       "current" (default) starts at the first incomplete day;
- *              "start" begins again at Day 1
+ *              "start" begins again at Day 1; a number is a 0-based day
+ *              to start on regardless of progress (the subscription feed)
  *   weekdays   true skips Saturdays and Sundays
  *   fromDay    the first day scheduled
  *   count      days from fromDay to the end of the journey
@@ -100,8 +101,9 @@ const isWeekend = d => d.getDay() === 0 || d.getDay() === 6;
 function reminderSchedule({ dayCount, completed, time, now, from = "current", weekdays = false }) {
   const done = new Set(completed || []);
   let fromDay = 0;
-  if (from !== "start") while (fromDay < dayCount && done.has(fromDay)) fromDay++;
-  const restarted = from !== "start" && fromDay >= dayCount;
+  if (typeof from === "number") fromDay = Math.max(0, Math.min(dayCount - 1, Math.floor(from)));
+  else if (from !== "start") while (fromDay < dayCount && done.has(fromDay)) fromDay++;
+  const restarted = from === "current" && fromDay >= dayCount;
   if (restarted) fromDay = 0;
   const [h, m] = time.split(":").map(Number);
   const chosenToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);

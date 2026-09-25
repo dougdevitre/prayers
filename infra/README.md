@@ -37,9 +37,13 @@ Then:
   `DistributionDomainName` output. Until it resolves, the build can use the
   distribution's own hostname as `--base` and the app's CSP will need that
   host instead; the committed CSP names the custom domain.
-- **GitHub secrets** (repository settings): `AWS_PUBLISHER_ROLE_ARN` from the
+- **GitHub settings** (Settings → Secrets and variables → Actions). One
+  secret: `ELEVENLABS_API_KEY` (create a key at elevenlabs.io → Developers →
+  API keys, restricted to text-to-speech, with a credit limit if you like).
+  Three variables, none of them secret: `AWS_PUBLISHER_ROLE_ARN` from the
   `PublisherRoleArn` output, `AUDIO_BUCKET` from `BucketName`, and
-  `ELEVENLABS_API_KEY`. `AUDIO_BASE_URL` is `https://audio.prayers.dougdevitre.org`.
+  `AUDIO_BASE_URL` = `https://audio.prayers.dougdevitre.org`. The workflow's
+  first step reports which are present without printing any value.
 
 If the account already has a GitHub OIDC provider, pass its ARN as
 `GitHubOidcProviderArn` so the stack does not try to create a second one

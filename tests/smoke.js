@@ -345,6 +345,33 @@ const server = http.createServer((req, res) => {
   await page.click('.traditional-chips[data-tradition="roman-catholic"] .traditional-chip');
   check("traditional prayer opens", await page.isVisible("#traditionalCard"));
   check("Roman Catholic prayer says so", (await page.textContent("#traditionalCard")).includes("Roman Catholic"));
+
+  // A traditional prayer's recording, from the manifest, through the same
+  // audio element as the day narration: the Listen button becomes Stop while
+  // it plays, resets when the file ends, and an unplayable file falls back to
+  // the device voice without touching the day player's state.
+  {
+    const openId = await page.evaluate(() => prayerState.openTraditional);
+    await page.evaluate(id => {
+      audioManifest.base = location.origin;
+      audioManifest.items[prayerItemId("en", id)] = { key: "tests/fixtures/silence.mp3", hash: "0".repeat(64), bytes: 15846, seconds: 1 };
+    }, openId);
+    await page.click(`.traditional-chip[data-prayer="${openId}"]`);
+    await page.click("#traditionalListen");
+    await page.waitForFunction(() => prayerAudio.playing, null, { timeout: 5000 }).catch(() => {});
+    check("a traditional prayer plays its recording", await page.evaluate(() =>
+      prayerAudio.playing && prayerAudio.recorded && audioEl.src === `${location.origin}/tests/fixtures/silence.mp3` && player.status === "idle"));
+    check("the prayer button reads Stop while it plays", (await page.textContent("#traditionalListen")).includes("Stop"));
+    await page.waitForFunction(() => !prayerAudio.playing, null, { timeout: 10000 }).catch(() => {});
+    check("the prayer recording ends and the button resets", await page.evaluate(() => !prayerAudio.playing && !prayerAudio.recorded)
+      && (await page.textContent("#traditionalListen")).includes("Listen"));
+    await page.evaluate(id => { audioManifest.items[prayerItemId("en", id)].key = "robots.txt"; }, openId);
+    await page.click("#traditionalListen");
+    await page.waitForFunction(() => !prayerAudio.recorded, null, { timeout: 5000 }).catch(() => {});
+    check("an unplayable prayer recording falls back to the device voice", await page.evaluate(() => !prayerAudio.recorded));
+    await page.evaluate(() => { stopPrayerNarration(); audioManifest.items = {}; audioManifest.base = ""; });
+    await page.click(`.traditional-chip[data-prayer="${openId}"]`);
+  }
   // language is app-wide state: switching repaints the corpus and the chrome
   await page.selectOption("#prayerLang", "es");
   check("Spanish switches the heading", (await page.textContent("#prayerHeading")) === prayerUi.es.title);

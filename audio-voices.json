@@ -1,18 +1,56 @@
 {
-  "_comment": "Voice ids and delivery settings per language and kind, read by scripts/build-audio.js. Changing anything here changes every item's hash, so the next build re-renders what it touches. No secrets live here; the API key comes from ELEVENLABS_API_KEY.",
+  "_comment": "Voice ids and delivery settings per language and kind, read by scripts/build-audio.js. Changing anything here changes every item's hash, so the next build re-renders what it touches. No secrets live here; the API key comes from ELEVENLABS_API_KEY. Traditional prayers start from the prayer settings and take stability, style and speed from their own entry in prayers.js when it has them.",
   "outputFormat": "mp3_44100_128",
   "en": {
     "voiceId": "alFofuDn3cOwyoz1i44T",
     "voiceName": "Dallin - Storyteller",
     "model": "eleven_multilingual_v2",
-    "day": { "stability": 0.55, "similarity": 0.8, "style": 0.15, "speed": 0.92, "boost": true },
-    "sos": { "stability": 0.6, "similarity": 0.8, "style": 0.1, "speed": 0.9, "boost": true }
+    "day": {
+      "stability": 0.55,
+      "similarity": 0.8,
+      "style": 0.15,
+      "speed": 0.92,
+      "boost": true
+    },
+    "sos": {
+      "stability": 0.6,
+      "similarity": 0.8,
+      "style": 0.1,
+      "speed": 0.9,
+      "boost": true
+    },
+    "prayer": {
+      "stability": 0.75,
+      "similarity": 0.8,
+      "style": 0,
+      "speed": 0.85,
+      "boost": true
+    }
   },
   "es": {
     "voiceId": "y3QZXBVdGkWBnlHwEtgG",
     "voiceName": "Nestor - Deep Calm Narrator",
     "model": "eleven_multilingual_v2",
-    "day": { "stability": 0.55, "similarity": 0.8, "style": 0.15, "speed": 0.92, "boost": true },
-    "sos": { "stability": 0.6, "similarity": 0.8, "style": 0.1, "speed": 0.9, "boost": true }
+    "day": {
+      "stability": 0.55,
+      "similarity": 0.8,
+      "style": 0.15,
+      "speed": 0.92,
+      "boost": true
+    },
+    "sos": {
+      "stability": 0.6,
+      "similarity": 0.8,
+      "style": 0.1,
+      "speed": 0.9,
+      "boost": true
+    },
+    "prayer": {
+      "stability": 0.75,
+      "similarity": 0.8,
+      "style": 0,
+      "speed": 0.85,
+      "boost": true
+    }
   }
 }

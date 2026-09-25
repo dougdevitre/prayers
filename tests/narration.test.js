@@ -5,7 +5,8 @@
 //   npm run test:unit
 
 const assert = require("assert");
-const { NARRATION_FRAMES, numberWords, parseRef, spokenRef, spokenText, dayScript, sosScript, narrationItems } = require("../narration.js");
+const { NARRATION_FRAMES, numberWords, parseRef, spokenRef, spokenText, dayScript, sosScript, prayerScript, narrationItems } = require("../narration.js");
+const { prayerCorpus } = require("../prayers.js");
 const { tracks, sosSetsEn } = require("../content.js");
 const { esTracks, esSos } = require("../content.es.js");
 
@@ -108,14 +109,38 @@ test("an SOS script is verse, reference, prayer with amen, declaration", () => {
   assert.ok(sosScript(esSos[0], "es").endsWith("... Amén.\n\nEl miedo puede hablar, pero no tiene la última palabra."));
 });
 
+test("a prayer script is its name, then the text with its pacing as break tags", () => {
+  const ourFather = prayerCorpus.traditional.find(t => t.id === "our-father");
+  const s = prayerScript(ourFather, "en");
+  assert.ok(s.startsWith("Our Father.\n\nOur Father, who art in heaven"));
+  assert.ok(s.includes('as it is in heaven. <break time="1s" /> Give us'), "the first anchor gets its pause");
+  assert.ok(s.includes('trespass against us; <break time="0.8s" /> and lead'), "the second anchor gets its pause");
+  assert.ok(s.endsWith("Amen."), "the prayer's own Amen closes it; none is added");
+  assert.strictEqual((s.match(/<break/g) || []).length, ourFather.audio.breaks.en.length);
+  const es = prayerScript(ourFather, "es");
+  assert.ok(es.startsWith("Padre Nuestro.\n\n"));
+  assert.strictEqual((es.match(/<break/g) || []).length, ourFather.audio.breaks.es.length);
+  const plain = prayerCorpus.traditional.find(t => t.id === "sign-of-the-cross");
+  assert.ok(!prayerScript(plain, "en").includes("<break"), "no breaks, no tags");
+  const capped = prayerScript({ name: { en: "X" }, text: { en: "One. Two." }, audio: { breaks: { en: [{ after: "One.", seconds: 9 }] } } }, "en");
+  assert.ok(capped.includes('<break time="3s" />'), "pauses are capped at the three seconds ElevenLabs honours");
+  const missing = prayerScript({ name: { en: "X" }, text: { en: "One. Two." }, audio: { breaks: { en: [{ after: "Three.", seconds: 1 }] } } }, "en");
+  assert.strictEqual(missing, "X.\n\nOne. Two.", "an anchor that is not in the text is skipped");
+});
+
 test("the frames carry the same keys in both languages", () => {
   assert.deepStrictEqual(Object.keys(NARRATION_FRAMES.es).sort(), Object.keys(NARRATION_FRAMES.en).sort());
   for (const [k, v] of Object.entries(NARRATION_FRAMES.es)) assert.ok(v && v.length, `es ${k} is empty`);
 });
 
-test("narrationItems lists every day and SOS set in both languages, once", () => {
-  const items = narrationItems({ tracks, esTracks, sosSets: sosEn, esSos });
+test("narrationItems lists every day, SOS set and traditional prayer in both languages, once", () => {
+  const items = narrationItems({ tracks, esTracks, sosSets: sosEn, esSos, prayers: prayerCorpus.traditional });
   const dayCount = Object.values(tracks).reduce((n, t) => n + t.days.length, 0);
+  assert.strictEqual(items.filter(i => i.kind === "prayer").length, prayerCorpus.traditional.length * 2);
+  const prayer = items.find(i => i.id === "es/prayer/our-father");
+  assert.strictEqual(prayer.title, "Padre Nuestro");
+  assert.strictEqual(prayer.slug, "our-father");
+  assert.strictEqual(prayer.audio.speed, prayerCorpus.traditional.find(t => t.id === "our-father").audio.speed);
   assert.strictEqual(items.filter(i => i.kind === "day" && i.lang === "en").length, dayCount);
   assert.strictEqual(items.filter(i => i.kind === "day" && i.lang === "es").length, dayCount);
   assert.strictEqual(items.filter(i => i.kind === "sos").length, sosEn.length + esSos.length);

@@ -63,6 +63,11 @@ function fakeApi({ failFirst = 0, status = 429 } = {}) {
     assert.strictEqual(prayer.settings.style, own.style);
     assert.notStrictEqual(own.speed, voices.en.prayer.speed, "and it differs from the default, so the override is real");
     assert.strictEqual(prayer.settings.similarity, voices.en.prayer.similarity, "the rest comes from the prayer defaults");
+    assert.strictEqual(prayer.settings.voiceId, voices.en.prayer.voiceId, "a kind's own voice wins over the language's");
+    assert.notStrictEqual(prayer.settings.voiceId, voices.en.voiceId);
+    assert.strictEqual(plan.find(p => p.item.id === "es/prayer/our-father").settings.voiceId, voices.es.prayer.voiceId);
+    assert.strictEqual(voices.en.prayer.voiceId, voices.es.prayer.voiceId, "the prayers share one voice across languages, as REMAM's do");
+    assert.strictEqual(plan.find(p => p.item.id === "en/sos/0").settings.voiceId, voices.en.voiceId, "kinds without a voice keep the language's");
     assert.strictEqual(plan.filter(p => p.item.kind === "prayer").length, 26);
   });
 

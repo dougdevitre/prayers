@@ -1,14 +1,14 @@
 {
   "name": "spiritual-combat-prayer-app",
-  "version": "1.12.0",
+  "version": "1.13.0",
   "private": true,
   "scripts": {
     "dev": "npx serve .",
-    "check": "node --check app.js && node --check ui.js && node --check logic.js && node --check reminder.js && node --check prayers.js && node --check compose.js && node --check tests/compose.test.js && node --check content.js && node --check content.es.js && node --check sw.js && node --check scripts/verify-deploy.js && node --check tests/smoke.js",
+    "check": "node --check app.js && node --check ui.js && node --check logic.js && node --check reminder.js && node --check prayers.js && node --check compose.js && node --check tests/compose.test.js && node --check content.js && node --check content.es.js && node --check sw.js && node --check api/calendar.js && node --check scripts/verify-deploy.js && node --check tests/smoke.js",
     "build:seo": "node scripts/build-day-pages.js",
     "test": "node tests/smoke.js",
     "validate": "node scripts/validate-prayers.js",
-    "test:unit": "node tests/logic.test.js && node tests/reminder.test.js && node tests/compose.test.js && node tests/deploy.test.js",
+    "test:unit": "node tests/logic.test.js && node tests/reminder.test.js && node tests/compose.test.js && node tests/deploy.test.js && node tests/api.test.js",
     "verify:scripture": "node scripts/verify-scripture.js",
     "verify:ui": "node scripts/verify-ui.js",
     "verify:deploy": "node scripts/verify-deploy.js https://prayers.dougdevitre.org --attempts 9"

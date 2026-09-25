@@ -103,6 +103,9 @@ main{padding-bottom:78px}
 .reminder-option input[type=time]:disabled{opacity:.5}
 .reminder-option select{border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:5px 8px;font:inherit}
 .reminder-help{margin:8px 0 0;font-size:.85rem;color:var(--muted)}
+.reminder-subscribe{margin:8px 0 0;font-size:.85rem}
+.reminder-subscribe>summary{color:var(--muted);cursor:pointer}
+.reminder-subscribe-actions{margin:8px 0 0}
 .reminder-preview{margin:8px 0 0;font-size:.85rem}
 .reminder-preview>summary{color:var(--muted);cursor:pointer}
 .reminder-preview-title{margin:10px 0 4px;font-weight:700}

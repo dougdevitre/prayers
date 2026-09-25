@@ -99,6 +99,8 @@ main{padding-bottom:78px}
 .reminder-options>summary{color:var(--muted);cursor:pointer}
 .reminder-option{display:flex;align-items:center;gap:10px;margin:8px 0 0}
 .reminder-option label{font-weight:700}
+.reminder-option input[type=time]{border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:5px 8px;font:inherit}
+.reminder-option input[type=time]:disabled{opacity:.5}
 .reminder-option select{border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:5px 8px;font:inherit}
 .reminder-help{margin:8px 0 0;font-size:.85rem;color:var(--muted)}
 .reminder-preview{margin:8px 0 0;font-size:.85rem}

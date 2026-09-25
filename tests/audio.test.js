@@ -55,6 +55,22 @@ function fakeApi({ failFirst = 0, status = 429 } = {}) {
     assert.strictEqual(new Set(plan.map(p => p.key)).size, plan.length, "keys are unique");
     assert.strictEqual(first.settings.voiceId, voices.en.voiceId);
     assert.strictEqual(plan.find(p => p.item.id === "es/day/core/0").settings.voiceId, voices.es.voiceId);
+    const prayer = plan.find(p => p.item.id === "en/prayer/our-father");
+    assert.match(prayer.key, /^en\/prayer\/our-father\.[0-9a-f]{8}\.mp3$/);
+    const own = prayer.item.audio;
+    assert.strictEqual(prayer.settings.speed, own.speed, "the prayer's own pacing wins");
+    assert.strictEqual(prayer.settings.stability, own.stability);
+    assert.strictEqual(prayer.settings.style, own.style);
+    assert.notStrictEqual(own.speed, voices.en.prayer.speed, "and it differs from the default, so the override is real");
+    assert.strictEqual(prayer.settings.similarity, voices.en.prayer.similarity, "the rest comes from the prayer defaults");
+    assert.strictEqual(plan.filter(p => p.item.kind === "prayer").length, 26);
+  });
+
+  await test("a prayer's own pacing is part of its hash", () => {
+    const item = items.find(i => i.id === "en/prayer/our-father");
+    const h = lib.itemHash(item.text, lib.settingsFor(voices, item));
+    const slower = { ...item, audio: { ...item.audio, speed: 0.8 } };
+    assert.notStrictEqual(lib.itemHash(slower.text, lib.settingsFor(voices, slower)), h);
   });
 
   await test("the hash moves with the script and with every setting", () => {
@@ -89,6 +105,9 @@ function fakeApi({ failFirst = 0, status = 429 } = {}) {
     assert.ok(r.problems.some(p => p.includes("base")));
     assert.ok(r.problems.some(p => p.includes("key is not a recording path")));
     assert.deepStrictEqual(r.fresh, []);
+    const prayerPlan = lib.planItems({ items, voices, slugify }).filter(p => p.item.kind === "prayer").slice(0, 1);
+    const good = { version: 1, enabled: true, base: "", items: { [prayerPlan[0].item.id]: { key: prayerPlan[0].key, hash: prayerPlan[0].hash } } };
+    assert.deepStrictEqual(lib.manifestReport(good, prayerPlan).fresh, [prayerPlan[0].item.id], "a prayer key is a recording path");
   });
 
   await test("the written manifest loads as the module the app reads", () => {

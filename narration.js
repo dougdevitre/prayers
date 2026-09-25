@@ -152,13 +152,36 @@ function sosScript(set, lang = "en") {
   ].join("\n\n");
 }
 
-/** The id a recording is filed under: "<lang>/day/<track>/<index>" or "<lang>/sos/<index>". */
+/**
+ * The narration for a traditional prayer: its name, then the text with the
+ * pauses its pacing metadata asks for. Each break names an anchor and a
+ * length in seconds; for a recording it becomes a <break time="Ns" /> tag,
+ * which ElevenLabs honours up to three seconds. The device voice does not
+ * read this script: compose.js turns the same anchors into timed silences
+ * between utterances, so both paths pause in the same places.
+ */
+function prayerScript(item, lang = "en") {
+  let text = spokenText(item.text[lang]);
+  const breaks = (item.audio && item.audio.breaks && item.audio.breaks[lang]) || [];
+  for (const b of breaks) {
+    const at = text.indexOf(b.after);
+    if (at === -1 || !(b.seconds > 0)) continue;
+    const end = at + b.after.length;
+    text = `${text.slice(0, end)} <break time="${Math.min(3, b.seconds)}s" />${text.slice(end)}`;
+  }
+  return `${closed(item.name[lang])}\n\n${text}`;
+}
+
+/** The id a recording is filed under: "<lang>/day/<track>/<index>",
+ * "<lang>/sos/<index>" or "<lang>/prayer/<prayer id>". */
 function dayItemId(lang, trackId, index) { return `${lang}/day/${trackId}/${index}`; }
 function sosItemId(lang, index) { return `${lang}/sos/${index}`; }
+function prayerItemId(lang, id) { return `${lang}/prayer/${id}`; }
 
 /**
  * Every narration item there is, in a stable order, each with the exact text
- * a recording of it must carry. deps: { tracks, esTracks, sosSets, esSos }.
+ * a recording of it must carry. deps: { tracks, esTracks, sosSets, esSos,
+ * prayers } (prayers: the corpus's traditional items, both languages each).
  * Used by the audio build and its verifier; the app itself only ever asks
  * for one day or one SOS set at a time.
  */
@@ -179,9 +202,15 @@ function narrationItems(deps) {
       items.push({ id: sosItemId(lang, i), lang, kind: "sos", track: null, index: i, title: set.ref, text: sosScript(set, lang) });
     });
   }
+  for (const lang of ["en", "es"]) {
+    (deps.prayers || []).forEach((p, i) => {
+      if (!p.text || !p.text[lang]) return;
+      items.push({ id: prayerItemId(lang, p.id), lang, kind: "prayer", track: null, index: i, slug: p.id, title: p.name[lang], audio: p.audio || null, text: prayerScript(p, lang) });
+    });
+  }
   return items;
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { NARRATION_FRAMES, numberWords, parseRef, spokenRef, spokenText, dayScript, sosScript, dayItemId, sosItemId, narrationItems };
+  module.exports = { NARRATION_FRAMES, numberWords, parseRef, spokenRef, spokenText, dayScript, sosScript, prayerScript, dayItemId, sosItemId, prayerItemId, narrationItems };
 }

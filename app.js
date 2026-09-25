@@ -161,7 +161,7 @@ function recordedUrl(id) {
 
 const player = { status: "idle", keepAlive: 0, repeat: false, sleepTimer: 0, mode: "tts" };
 // Composer narration state; declared here because stopAudio() runs on first render.
-const prayerAudio = { timer: 0, playing: false };
+const prayerAudio = { timer: 0, playing: false, recorded: false };
 let narrationVoice = null;
 
 // Recorded narration (preferred when a file exists for the day).
@@ -1419,7 +1419,11 @@ function showTraditional(item) {
   listen.textContent = ui().listen;
   // Pacing metadata is per language, so narration pauses where that language's
   // generator run would insert a break.
-  listen.onclick = () => speakPrayer(narrationSegments(item.text[state.lang], item.audio, state.lang), listen);
+  listen.onclick = () => {
+    const src = recordedUrl(prayerItemId(state.lang, item.id));
+    if (src) playPrayerRecording(src, listen, () => speakPrayer(narrationSegments(item.text[state.lang], item.audio, state.lang), listen));
+    else speakPrayer(narrationSegments(item.text[state.lang], item.audio, state.lang), listen);
+  };
   card.append(listen);
 }
 
@@ -1430,8 +1434,30 @@ function updatePrayerButton(button, playing) {
 function stopPrayerNarration() {
   clearTimeout(prayerAudio.timer);
   if (prayerAudio.playing && canSpeak) speechSynthesis.cancel();
+  if (prayerAudio.recorded) { prayerAudio.recorded = false; audioEl.pause(); }
   prayerAudio.playing = false;
   for (const id of ["prayerListen", "traditionalListen"]) updatePrayerButton($(id), false);
+}
+
+// Plays a prayer's recording through the shared audio element. The day
+// player's own state is left idle, so its progress bar and Media Session stay
+// out of it; the element's "ended" handler stops everything, which resets
+// the button. A file that will not play falls back to the device voice.
+function playPrayerRecording(src, button, fallback) {
+  if (prayerAudio.playing) { stopPrayerNarration(); return; }
+  stopAudio();
+  prayerAudio.playing = true;
+  prayerAudio.recorded = true;
+  updatePrayerButton(button, true);
+  audioEl.src = src;
+  audioEl.playbackRate = Number($("voiceRate").value);
+  audioEl.currentTime = 0;
+  audioEl.play().catch(() => {
+    if (!prayerAudio.recorded) return;
+    prayerAudio.recorded = false;
+    prayerAudio.playing = false;
+    fallback();
+  });
 }
 
 // Speaks segments in order, holding the silence each one asks for afterwards.

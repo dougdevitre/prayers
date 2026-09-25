@@ -28,14 +28,11 @@ const SOURCE = JSON.parse(fs.readFileSync(path.join(__dirname, "web-source.json"
 const MODERNIZE = t => t.replace(/Yahweh/g, "the LORD").replace(/utility belt/g, "belt");
 const norm = t => t.replace(/\s+/g, " ").trim().toLowerCase();
 
-// The SOS verses live in app.js rather than content.js, so they are read out
-// of the source. They were the easiest four to miss and carried the same
-// unlicensed text as the day pages.
+// The SOS verses were the easiest four to miss and carried the same
+// unlicensed text as the day pages, so they are gated alongside them.
 function sosVerses() {
-  const src = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
-  const block = src.slice(src.indexOf("const sosSetsEn = ["));
-  return [...block.slice(0, block.indexOf("\n];")).matchAll(/\{ ref: "([^"]+)", verse: "([^"]+)"/g)]
-    .map(m => ({ ref: m[1], verse: m[2], label: `sos ${m[1]}` }));
+  const { sosSetsEn } = require("../content.js");
+  return sosSetsEn.map(s => ({ ref: s.ref, verse: s.verse, label: `sos ${s.ref}` }));
 }
 
 // Every excerpt in the app is gated, the courage stories included. They used
@@ -101,8 +98,8 @@ let esFail = 0, esOk = 0, esPunct = 0, esDays = 0;
         }
       });
     }
-    // The four SOS sets live in app.js on the English side and content.es.js
-    // on the Spanish; they quote the same four references.
+    // The four SOS sets are sosSetsEn in content.js on the English side and
+    // esSos in content.es.js on the Spanish; they quote the same four references.
     let esSos = null;
     try { ({ esSos } = require("../content.es.js")); } catch { /* not present */ }
     if (esSos) {

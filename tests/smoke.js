@@ -20,7 +20,7 @@ const SITE = "https://prayers.dougdevitre.org";
 // The app is served from the test server, so runtime URLs use its origin.
 const SITE_ORIGIN = "http://localhost:8123";
 const DAY_PAGE_COUNT = Object.values(tracks).reduce((n, t) => n + t.days.length, 0);
-const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".xml": "application/xml", ".txt": "text/plain", ".webmanifest": "application/manifest+json" };
+const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".xml": "application/xml", ".txt": "text/plain", ".webmanifest": "application/manifest+json", ".mp3": "audio/mpeg" };
 
 // Mirrors the redirects in vercel.json, so the suite covers old links too.
 const REDIRECTS = { "/about": "/" };
@@ -49,7 +49,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, {
       "Content-Type": MIME[path.extname(full)] || "application/octet-stream",
       // Mirror the production CSP from vercel.json so violations fail the test.
-      "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+      "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self'; media-src 'self' https://audio.prayers.dougdevitre.org; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
     });
     res.end(data);
   } catch {
@@ -259,6 +259,48 @@ const server = http.createServer((req, res) => {
   // play button doesn't throw (voices may be absent headless)
   await page.click("#playButton");
   await page.waitForTimeout(300);
+  await page.evaluate(() => stopAudio());
+
+  // Recorded narration. The committed manifest is empty until recordings are
+  // rendered, so the suite points it at a one-second silent MP3 served from
+  // this origin (the CSP allows 'self' and the audio CDN) and checks the
+  // player takes the recording rather than the device voice, ends back at
+  // idle, and falls back to the device voice when the file is missing.
+  {
+    const csp = await page.evaluate(async () => (await fetch("/app")).headers.get("content-security-policy"));
+    check("CSP allows media from the audio CDN", /media-src 'self' https:\/\/audio\.prayers\.dougdevitre\.org;/.test(csp));
+    check("the day narration script is the shared one", await page.evaluate(() =>
+      narrationScript(0).startsWith("Day one. Stand.\n\nScripture... Ephesians, chapter six, verses ten through thirteen.")));
+    check("no recording is offered until the manifest has one", await page.evaluate(() =>
+      recordedFor(0) === null && document.getElementById("audioTime").textContent === "About 3 minutes"));
+    await page.evaluate(() => {
+      audioManifest.base = location.origin;
+      audioManifest.items[dayItemId("en", "core", 0)] = { key: "tests/fixtures/silence.mp3", hash: "0".repeat(64), bytes: 15846, seconds: 1 };
+      go(0);
+    });
+    check("a manifest entry labels the day as recorded", (await page.textContent("#audioTime")) === "Recorded narration · about 3 minutes");
+    await page.click("#playButton");
+    await page.waitForFunction(() => player.status === "playing", null, { timeout: 5000 }).catch(() => {});
+    check("play takes the recording from the manifest", await page.evaluate(() =>
+      player.mode === "rec" && player.status === "playing" && audioEl.src === `${location.origin}/tests/fixtures/silence.mp3`));
+    await page.waitForFunction(() => player.status === "idle", null, { timeout: 10000 }).catch(() => {});
+    check("a recording ends back at idle", await page.evaluate(() => player.status === "idle"));
+    // A file that is not audio (a 404 would log a console error and trip the
+    // page-error check below; an undecodable body rejects play() the same way).
+    await page.evaluate(() => { audioManifest.items[dayItemId("en", "core", 0)].key = "robots.txt"; });
+    await page.click("#playButton");
+    await page.waitForFunction(() => player.mode === "tts", null, { timeout: 5000 }).catch(() => {});
+    check("an unplayable recording falls back to the device voice", await page.evaluate(() => player.mode === "tts"));
+    await page.evaluate(() => { stopAudio(); audioManifest.items = {}; audioManifest.base = ""; go(0); });
+    // The kill switch: ?tts=1 ignores the manifest entirely.
+    await page.goto("http://localhost:8123/app?tts=1#1", { waitUntil: "networkidle" });
+    check("?tts=1 forces the device voice", await page.evaluate(() => {
+      audioManifest.items[dayItemId("en", "core", 0)] = { key: "tests/fixtures/silence.mp3", hash: "0".repeat(64) };
+      const forced = recordedFor(0) === null;
+      audioManifest.items = {};
+      return forced;
+    }));
+  }
 
   // service worker registered
   const swReady = await page.evaluate(() => navigator.serviceWorker.getRegistrations().then(r => r.length > 0));

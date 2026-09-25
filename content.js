@@ -332,15 +332,26 @@ const fearIndex = [
   ["I want the full thirty-day journey", "core"]
 ];
 
-// Recorded narration files that exist under audio/. Keys for days are
-// "<trackId>-<dayIndex>"; SOS entries are indexed by sosSets order.
-// Add entries here as new recordings land — days without one fall back
-// to the device's text-to-speech narration.
-const recordedAudio = {
-  days: {
-    // "core-0": "audio/day-01.mp3"  — add entries as recordings land
-  },
-  sos: []
-};
+// The four SOS sets in English. Their verses reuse day excerpts already in
+// `themes`, so the WEB gate covers them without a second source of scripture.
+// The Spanish sets are `esSos` in content.es.js, in the same order, and quote
+// the Reina-Valera 1909 directly rather than translating these. app.js picks
+// by language and holds the active set as an index, so a language switch
+// keeps the reader's place. Kept here rather than in app.js so the narration
+// build (scripts/build-audio.js) can read them in Node.
+const sosSetsEn = [
+  { ref: "Psalm 27:1", verse: "The LORD is my light and my salvation. Whom shall I fear?",
+    prayer: "Lord, bring me back to this moment. Slow my heart, steady my breath, and stand with me here. I hand You what I cannot control.",
+    declaration: "Fear may speak, but it does not get the final word." },
+  { ref: "Joshua 1:9", verse: "Be strong and courageous. Don’t be afraid. Don’t be dismayed, for the LORD your God is with you wherever you go.",
+    prayer: "God, give me courage for the next few minutes—nothing more is asked of me right now. Be near, and steady my steps.",
+    declaration: "I can be afraid and still be faithful." },
+  { ref: "Matthew 6:34", verse: "Don’t be anxious for tomorrow, for tomorrow will be anxious for itself.",
+    prayer: "Father, I release the futures my fear keeps writing. Keep me in today, in this breath, in Your hands.",
+    declaration: "I am responsible for faithfulness, not control of every outcome." },
+  { ref: "Psalm 42:11", verse: "Hope in God! For I shall still praise him.",
+    prayer: "God, when my feelings shout in absolutes, remind me this moment is not the whole story. Give me hope enough for one step.",
+    declaration: "I do not need all the hope—only enough for the next step." }
+];
 
-if (typeof module !== "undefined" && module.exports) module.exports = { themes, weeks, tracks, fearIndex, recordedAudio };
+if (typeof module !== "undefined" && module.exports) module.exports = { themes, weeks, tracks, fearIndex, sosSetsEn };

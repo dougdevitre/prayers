@@ -60,7 +60,7 @@ npx playwright install chromium
 npm test
 ```
 
-Alongside it, `npm run test:unit` runs 88 unit tests (no browser, no dependencies): 52 over the pure logic in `logic.js` — streak arithmetic, backup sanitizing, and calm-ledger aggregation — and 36 over the calendar reminder in `reminder.js`. The daylight-saving cases run in child processes with `TZ` set, so they exercise real zones rather than whichever one the machine happens to be in. Both suites run in CI.
+Alongside it, `npm run test:unit` runs 94 unit tests (no browser, no dependencies): 52 over the pure logic in `logic.js` — streak arithmetic, backup sanitizing, and calm-ledger aggregation — 36 over the calendar reminder in `reminder.js`, and 6 over the deploy check in `scripts/verify-deploy.js`, against local servers that serve this checkout, a tampered copy, and one that catches up mid-poll. The daylight-saving cases run in child processes with `TZ` set, so they exercise real zones rather than whichever one the machine happens to be in. Both suites run in CI.
 
 ## Publish with GitHub and Vercel
 
@@ -68,6 +68,8 @@ Alongside it, `npm run test:unit` runs 88 unit tests (no browser, no dependencie
 2. Upload this folder or push it with Git.
 3. In Vercel, select **Add New → Project**, import the repository, and click **Deploy**.
 4. Leave Framework Preset as **Other**. No build command or environment variables are required.
+
+A merge to main is not live until Vercel has built it and moved the production alias, and that can lag by minutes with nothing in GitHub to say so. `npm run verify:deploy` fetches the app shell, every script it loads and one page of each static shape from the production site and compares them byte for byte with your checkout, polling for up to three minutes; it exits non-zero naming any file that is missing or differs. The **Deploy check** workflow runs the same script on every successful production deployment, against the deployed commit, so a stale alias shows up as a red check on the commit rather than as a reader seeing last week’s build.
 
 ## Audio
 

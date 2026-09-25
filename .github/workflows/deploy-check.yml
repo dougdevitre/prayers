@@ -1,0 +1,24 @@
+# Proves a production deployment is actually live. Vercel reports the
+# deployment, GitHub records it, and nothing checks that the site now serves
+# the merged commit — the alias can lag the build by minutes. This fetches the
+# app shell, every script it loads and one page of each static shape from the
+# production site and compares them byte for byte with the deployed commit,
+# polling for up to three minutes while the alias catches up.
+name: Deploy check
+
+on:
+  deployment_status:
+
+jobs:
+  verify:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Production serves the deployed commit
+        run: node scripts/verify-deploy.js https://prayers.dougdevitre.org --attempts 9 --delay 20000

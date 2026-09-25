@@ -113,7 +113,7 @@ Pre-render each day and track as a real static page (`/day/8-fear`, `/track/nigh
 
 **RESOLVED.** The 30-day journey, both fear tracks and the four SOS sets read as NIV and were unlicensed. All 44 excerpts now come from the public-domain World English Bible, and `npm run verify:scripture` fails CI if any drifts back — checked against a committed 20 KB fixture of the WEB text for every reference the app cites. Reintroducing an NIV line fails the check, which was confirmed rather than assumed.
 
-Still open, and a labelling question rather than a licensing one: 56 of the 68 courage-story excerpts are condensed from the WEB rather than quoted from it — clauses dropped to fit a card, and in a few places wording from outside the WEB (Mark 4:38 reads "perishing" where the WEB has "dying"). The text is public domain either way, so nothing is at risk; but they are described in the app as scripture excerpts and they are closer to paraphrase. Converting them to true WEB substrings is the same exercise as the 44, just longer.
+**Also resolved.** The 68 courage-story excerpts were condensed from the WEB rather than quoted from it — clauses dropped to fit a card, and in a few places wording from outside the WEB. Each is now a contiguous WEB substring and the same `verify:scripture` gate covers them, so every scripture excerpt in the app, in both languages, is a quotation that CI checks.
 
 ## Phase 2 — Sound (v1.5, ~4–6 weeks)
 
@@ -188,7 +188,7 @@ If that ever needs to change, the constraint comes first and the pricing second:
 
 - Educational/spiritual framing throughout; no claims to treat, cure, or replace care for anxiety disorders — in-app and in all marketing copy ("supports your practice," never "treats anxiety").
 - Crisis resources surfaced calmly and persistently (988, Crisis Text Line), especially inside SOS.
-- Scripture licensing resolved (see Phase 1): everything quoted is public-domain WEB, gated in CI. The remaining item is honest labelling of the condensed courage-story excerpts, not a licence.
+- Scripture licensing resolved (see Phase 1): everything quoted is public-domain WEB or Reina-Valera 1909, and every excerpt in both languages is gated in CI as a contiguous substring of its source.
 - Accessibility as a feature: the current a11y baseline (ARIA states, focus styles, reduced-motion) is table stakes for an audience that includes people in distress.
 
 ## Edge cases to hold the line on

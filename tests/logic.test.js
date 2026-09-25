@@ -304,7 +304,7 @@ test("sanitizeTrackData returns empty structure for rubbish", () => {
 
 test("a restored backup is shaped like live state", () => {
   const clean = sanitizeBackup(validBackup({ completed: [0], completedDates: { 0: "2026-09-21" } }), DEPS);
-  for (const key of ["completed", "favorites", "notes", "completedDates", "checkins", "sos", "track", "tracks", "theme", "lang", "bilingual", "welcomed", "installHintDismissed", "reminderTime", "reminderSeq", "reminderFrom", "reminderWeekdays", "reminderLead"]) {
+  for (const key of ["completed", "favorites", "notes", "completedDates", "checkins", "sos", "track", "tracks", "theme", "lang", "bilingual", "welcomed", "installHintDismissed", "reminderTime", "reminderSeq", "reminderFrom", "reminderWeekdays", "reminderLead", "reminderEvening", "reminderEveningExported"]) {
     assert.ok(key in clean, `restored state is missing ${key}`);
   }
   // and it feeds the streak maths without further massaging
@@ -344,6 +344,16 @@ test("a restored backup keeps the reminder options and defaults anything malform
   assert.strictEqual(missing.reminderFrom, "current");
   assert.strictEqual(missing.reminderWeekdays, false);
   assert.strictEqual(missing.reminderLead, 0);
+});
+
+test("a restored backup keeps the evening check-in time and the exported flag, or drops them", () => {
+  const kept = sanitizeBackup(validBackup({ reminderEvening: "21:30", reminderEveningExported: true }), DEPS);
+  assert.strictEqual(kept.reminderEvening, "21:30");
+  assert.strictEqual(kept.reminderEveningExported, true);
+  for (const bad of ["9pm", "25:00", 2130, null, undefined]) {
+    assert.strictEqual(sanitizeBackup(validBackup({ reminderEvening: bad }), DEPS).reminderEvening, null, `accepted ${String(bad)}`);
+  }
+  assert.strictEqual(sanitizeBackup(validBackup({ reminderEveningExported: "yes" }), DEPS).reminderEveningExported, false);
 });
 
 test("a restored backup floors a bad reminder sequence at zero", () => {

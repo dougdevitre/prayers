@@ -25,8 +25,13 @@ const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css
 // Mirrors the redirects in vercel.json, so the suite covers old links too.
 const REDIRECTS = { "/about": "/" };
 
+// The calendar feed is a Vercel function reached through the rewrite in
+// vercel.json; the test server routes the same path to the same handler.
+const calendarFeed = require("../api/calendar.js");
+
 const server = http.createServer((req, res) => {
   let file = req.url.split("#")[0].split("?")[0];
+  if (file === "/calendar.ics" || file === "/api/calendar") return calendarFeed(req, res);
   if (REDIRECTS[file]) {
     res.writeHead(308, { Location: REDIRECTS[file] });
     return res.end();
@@ -830,6 +835,60 @@ const server = http.createServer((req, res) => {
   await page.click("#reminderOptions > summary");
   check("the export options are remembered", await page.inputValue("#reminderLead") === "10" && await page.inputValue("#reminderFrom") === "current" && !(await page.isChecked("#reminderWeekdays")));
   await page.selectOption("#reminderLead", "0");
+
+  // The evening check-in: a second series on the same days, and a single
+  // cancellation when it is turned off again.
+  check("the evening time is disabled until the check-in is on", await page.isDisabled("#reminderEveningTime"));
+  await page.check("#reminderEvening");
+  await page.fill("#reminderEveningTime", "20:45");
+  const withEvening = await readIcs();
+  const eveningEvents = unfold(withEvening).split("BEGIN:VEVENT").filter(ev => ev.includes("UID:stand-evening-checkin@"));
+  check("the evening check-in is a second series", eveningEvents.length === overrideCount(withEvening.split("UID:stand-evening-checkin@")[0]) + 1);
+  check("the evening series runs at the chosen time", eveningEvents.every(ev => /DTSTART:\d{8}T204500/.test(ev)));
+  check("the evening entries ask how it went and link to the check-in", eveningEvents.slice(1).every(ev => ev.includes("How did it go?") && ev.includes(`URL:${SITE_ORIGIN}/app?checkin=1#`)));
+  check("the status mentions the evening check-in", (await page.textContent("#reminderStatus")).includes("evening check-in at 20:45"));
+
+  await page.uncheck("#reminderEvening");
+  const cancelled = await readIcs();
+  check("turning the evening check-in off cancels the series once", cancelled.includes("UID:stand-evening-checkin@") && cancelled.includes("STATUS:CANCELLED") && !unfold(cancelled).includes("How did it go?"));
+  check("the status says the evening series is cancelled", (await page.textContent("#reminderStatus")).includes("cancelled"));
+  const clean = await readIcs();
+  check("the next export carries no evening series at all", !clean.includes("stand-evening-checkin@"));
+
+  // The subscription feed: the link the app builds must serve the same
+  // series the download does, from the same options.
+  await page.click("#reminderSubscribe > summary");
+  const webcal = await page.getAttribute("#subscribeLink", "href");
+  const feedHttps = await page.getAttribute("#subscribeLink", "data-https");
+  check("the subscribe link is a webcal URL on this origin", webcal.startsWith("webcal://localhost:8123/calendar.ics?") && feedHttps === webcal.replace("webcal://", "http://"));
+  check("the subscribe link carries the journey, start day, date, time and language", /[?&]track=core(&|$)/.test(webcal) && /[?&]from=\d+(&|$)/.test(webcal) && /[?&]start=\d{4}-\d{2}-\d{2}(&|$)/.test(webcal) && /[?&]time=06(%3A|:)15(&|$)/.test(webcal) && /[?&]lang=en(&|$)/.test(webcal));
+  const feedRes = await fetch(feedHttps);
+  const feed = await feedRes.text();
+  const downloaded = await readIcs();
+  const firstOf = ics => unfold(ics).split("BEGIN:VEVENT").slice(2)[0].match(/SUMMARY:([^\r\n]+)/)[1];
+  check("the feed serves a calendar", feedRes.status === 200 && feedRes.headers.get("content-type").startsWith("text/calendar") && feed.startsWith("BEGIN:VCALENDAR"));
+  check("the feed starts on the same day as the download", firstOf(feed) === firstOf(downloaded) && overrideCount(feed) === overrideCount(downloaded));
+  check("the feed's links point at this origin", unfold(feed).includes(`URL:${SITE_ORIGIN}/app#`));
+  await page.check("#reminderWeekdays");
+  check("changing an option changes the feed link", /[?&]weekdays=1(&|$)/.test(await page.getAttribute("#subscribeLink", "href")));
+  await page.uncheck("#reminderWeekdays");
+  await page.click("#subscribeCopy");
+  // The copy is asynchronous: wait for the status to change from the last export message.
+  await page.waitForFunction(() => /Feed link copied|\/calendar\.ics\?/.test(document.getElementById("reminderStatus").textContent), null, { timeout: 5000 }).catch(() => {});
+  const copied = await page.textContent("#reminderStatus");
+  check("copying the feed link reports it, or shows the link when the clipboard is unavailable", copied.includes("Feed link copied") || copied.includes("/calendar.ics?"));
+  const badFeed = await fetch("http://localhost:8123/calendar.ics?track=nope&start=2026-09-26");
+  check("the feed refuses a bad query", badFeed.status === 400);
+
+  // The evening link lands on the fear check-in.
+  await page.goto("http://localhost:8123/app?checkin=1#3", { waitUntil: "networkidle" });
+  const checkinInView = await page.evaluate(() => {
+    const r = document.getElementById("dayCheckin").getBoundingClientRect();
+    return r.top >= 0 && r.bottom <= innerHeight;
+  });
+  check("?checkin=1 opens the day with the fear check-in in view", checkinInView && (await page.textContent("#dayNumber")) === "DAY 03");
+  await page.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
+  await page.click("#libraryButton");
 
   // The chosen time survives a reload; it used to reset to 07:00.
   await page.reload({ waitUntil: "networkidle" });

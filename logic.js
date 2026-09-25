@@ -11,6 +11,15 @@ function localISO(date) {
   return date.toLocaleDateString("en-CA");
 }
 
+/** A title as a URL slug: "The Word" -> "the-word", "La Palabra" -> "la-palabra".
+ * NFD + stripping combining marks folds á->a and ñ->n, so Spanish titles
+ * produce ASCII slugs. Shared by the page generator and the calendar
+ * reminder, so the links the app writes match the pages that exist. */
+function slugify(title) {
+  return title.normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
 /** Every local date on which a day was completed, on any journey — completing
  * a day on any track keeps the one streak alive. */
 function completedDatesOf(state) {
@@ -139,5 +148,5 @@ function sanitizeBackup(raw, deps) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { localISO, completedDatesOf, streakFrom, ledgerStats, sanitizeTrackData, sanitizeBackup };
+  module.exports = { localISO, slugify, completedDatesOf, streakFrom, ledgerStats, sanitizeTrackData, sanitizeBackup };
 }

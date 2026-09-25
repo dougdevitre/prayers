@@ -731,15 +731,7 @@ document.querySelectorAll(".filter-tab").forEach(tab => {
 
 /* ---------- Rendering ---------- */
 
-function weekLabelFor(d) {
-  const w = activeTrack().weeks;
-  if (w.length < 5) return w[0];
-  if (d < 7) return w[0];
-  if (d < 14) return w[1];
-  if (d < 21) return w[2];
-  if (d < 29) return w[3];
-  return w[4];
-}
+const weekLabelFor = d => weekLabel(activeTrack().weeks, d);
 
 function render() {
   stopAudio();
@@ -1042,33 +1034,12 @@ $("welcomeDialog").addEventListener("close", () => {
 
 /* ---------- Daily reminder (.ics) ---------- */
 
-// One calendar entry, updated in place. The UID used to be regenerated on
-// every export, so tapping the button twice left two daily alarms running
-// forever with no way to tell them apart. A fixed UID plus a SEQUENCE that
-// only ever increases means a re-import updates the existing event instead.
-const REMINDER_UID = "stand-daily-reminder@prayers.dougdevitre.org";
-
-// RFC 5545 §3.3.11: TEXT values escape backslash, semicolon, comma and
-// newline. Nothing in the current strings needs it — this is here so that
-// editing the summary later cannot quietly produce an invalid file.
-const icsText = v => String(v).replace(/\\/g, "\\\\").replace(/([;,])/g, "\\$1").replace(/\r?\n/g, "\\n");
-
-// RFC 5545 §3.1: content lines are at most 75 OCTETS, continued with CRLF and
-// one leading space. Octets, not characters — the em dash in the summary is
-// three bytes — and a multi-byte character must never be split across a fold.
-function icsFold(line) {
-  const octets = ch => { const c = ch.codePointAt(0); return c < 0x80 ? 1 : c < 0x800 ? 2 : c < 0x10000 ? 3 : 4; };
-  const out = [];
-  let current = "", used = 0;
-  for (const ch of line) {            // by code point, so surrogate pairs stay whole
-    const n = octets(ch);
-    if (used + n > 75) { out.push(current); current = " "; used = 1; }
-    current += ch;
-    used += n;
-  }
-  out.push(current);
-  return out.join("\r\n");
-}
+// The file itself is built in reminder.js, which is pure so it can be tested
+// in Node: one recurring master (the UID the app has always used) plus one
+// override per remaining day of the journey, each carrying that day's title,
+// scripture, practice, declaration, a tip and a link straight to the day.
+// A fixed UID plus a SEQUENCE that only ever increases means a re-import
+// updates the existing series instead of adding a second one.
 
 function initReminder() {
   const field = $("reminderTime");
@@ -1081,42 +1052,34 @@ function initReminder() {
 
 $("reminderButton").onclick = () => {
   const chosen = /^\d{2}:\d{2}$/.test($("reminderTime").value) ? $("reminderTime").value : "07:00";
-  const [h, m] = chosen.split(":").map(Number);
   state.reminderTime = chosen;
   // Each export must out-rank the last or calendars ignore the update.
   state.reminderSeq = Number.isInteger(state.reminderSeq) ? state.reminderSeq + 1 : 0;
   save();
 
-  const start = new Date();
-  start.setHours(h, m, 0, 0);
-  if (start <= new Date()) start.setDate(start.getDate() + 1);
-  const pad = n => String(n).padStart(2, "0");
-  // Deliberately a FLOATING time: no Z and no TZID, so the reminder fires at
-  // the chosen wall-clock time wherever the reader happens to be, rather than
-  // drifting when they travel. Do not "fix" this into UTC.
-  const stamp = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
-
-  const ics = [
-    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Stand//Daily Prayer//EN", "CALSCALE:GREGORIAN",
-    "BEGIN:VEVENT",
-    `UID:${REMINDER_UID}`,
-    `SEQUENCE:${state.reminderSeq}`,
-    `DTSTAMP:${stamp(new Date())}`,
-    `DTSTART:${stamp(start)}`,
-    "DURATION:PT10M",
-    "RRULE:FREQ=DAILY",
-    `SUMMARY:${icsText(t("reminder.summary"))}`,
-    // /app, not the origin: the origin is the landing page, and someone
-    // tapping this at 7am wants the prayer, not a page describing it.
-    `DESCRIPTION:${icsText(t("reminder.description", { url: `${location.origin}/app` }))}`,
-    `URL:${location.origin}/app`,
-    "BEGIN:VALARM", "TRIGGER:PT0S", "ACTION:DISPLAY", `DESCRIPTION:${icsText(t("reminder.alarm"))}`, "END:VALARM",
-    "END:VEVENT", "END:VCALENDAR"
-  ].map(icsFold).join("\r\n") + "\r\n";
+  // activeTrack() already falls back to core for an id it does not know; the
+  // id must fall back with it or the links would name a journey that is not there.
+  const trackId = tracks[state.track] ? state.track : "core";
+  const track = activeTrack();
+  const now = new Date();
+  const schedule = reminderSchedule({ dayCount: track.days.length, completed: tdata().completed, time: chosen, now });
+  const ics = buildReminderIcs({
+    track, trackId,
+    // localizedTrack() hands back the English object itself when no Spanish
+    // version exists, and the page links must follow the titles they carry.
+    lang: track === tracks[trackId] ? "en" : "es",
+    time: chosen, seq: state.reminderSeq, now, origin: location.origin, t, schedule
+  });
 
   downloadFile("stand-daily-reminder.ics", ics, "text/calendar");
+  const vars = {
+    count: schedule.count, from: schedule.fromDay + 1, to: track.days.length, track: track.short,
+    time: chosen, start: t(schedule.offset ? "reminder.tomorrow" : "reminder.today")
+  };
+  const one = schedule.count === 1;
+  const key = state.reminderSeq === 0 ? (one ? "reminder.savedOne" : "reminder.savedPlan") : (one ? "reminder.updatedOne" : "reminder.updatedPlan");
   $("reminderStatus").textContent =
-    t(state.reminderSeq === 0 ? "reminder.saved" : "reminder.updated", { time: chosen });
+    (schedule.restarted ? t("reminder.restarted", { track: track.short }) + " " : "") + t(key, vars);
 };
 
 /* ---------- iOS install hint ---------- */

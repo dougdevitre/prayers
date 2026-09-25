@@ -23,10 +23,9 @@ const SITE_URL = (process.env.SITE_URL || "https://prayers.dougdevitre.org").rep
 const OG_IMAGE = `${SITE_URL}/og-card.png`;
 const root = path.join(__dirname, "..");
 
-// NFD + stripping combining marks folds á->a and ñ->n, so Spanish titles
-// produce ASCII slugs. English titles are unaffected.
-const slugify = title => title.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-  .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+// slugify is shared with the app's calendar reminder (logic.js), so the
+// links the app writes and the pages this generates cannot drift.
+const { slugify } = require("../logic.js");
 const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const pageName = (track, i) => `${String(i + 1).padStart(2, "0")}-${slugify(track.days[i][0])}`;
 

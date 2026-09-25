@@ -21,7 +21,8 @@ const path = require("path");
 const root = path.join(__dirname, "..");
 const { appUi } = require(path.join(root, "ui.js"));
 const html = fs.readFileSync(path.join(root, "app", "index.html"), "utf8");
-const js = fs.readFileSync(path.join(root, "app.js"), "utf8");
+// reminder.js builds the calendar file and asks for its own strings.
+const js = ["app.js", "reminder.js"].map(f => fs.readFileSync(path.join(root, f), "utf8")).join("\n");
 
 const problems = [];
 const langs = Object.keys(appUi);
@@ -69,10 +70,10 @@ for (const m of html.matchAll(/<(\w+)([^>]*\sdata-i18n="([^"]+)"[^>]*)>([\s\S]*?
   }
 }
 
-// 5: keys app.js asks for, and keys nobody asks for.
+// 5: keys app.js and reminder.js ask for, and keys nobody asks for.
 for (const m of js.matchAll(/\bt\(\s*"([^"]+)"/g)) {
   used.add(m[1]);
-  if (!(m[1] in appUi.en)) problems.push(`app.js calls t("${m[1]}") but ui.js has no such key`);
+  if (!(m[1] in appUi.en)) problems.push(`the app calls t("${m[1]}") but ui.js has no such key`);
 }
 // Keys reached through a variable rather than a literal.
 for (const m of js.matchAll(/"((?:sos|audio|notes|day|ledger|library|progress|reminder|backup|journal|share|checkin|section|welcome|install|brand|topbar|erase)\.[a-zA-Z]+)"/g)) used.add(m[1]);

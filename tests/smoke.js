@@ -606,6 +606,8 @@ const server = http.createServer((req, res) => {
   const esIcs = fs.readFileSync(await esDownload.path(), "utf8");
   check("the calendar reminder is Spanish", esIcs.includes("SUMMARY:Stand — oración diaria"));
   check("the calendar alarm is Spanish", esIcs.includes("Hora de estar firme"));
+  check("the calendar days link to the Spanish pages",
+    esIcs.replace(/\r\n /g, "").includes(`Léelo en la web: ${SITE_ORIGIN}/es/`));
   check("the reminder status is Spanish",
     (await page.textContent("#reminderStatus")).includes("cada día"));
   await page.click("#closeLibrary");
@@ -695,6 +697,33 @@ const server = http.createServer((req, res) => {
   check("a second export out-ranks the first", Number(ics2.match(/SEQUENCE:(\d+)/)[1]) > seq1);
   check("a second export uses the new time", /DTSTART:\d{8}T061500/.test(ics2));
   check("the button reports what happened", (await page.textContent("#reminderStatus")).includes("06:15"));
+
+  // Every remaining day is its own RECURRENCE-ID override of the one series,
+  // linking to the day itself rather than the app's front door.
+  const unfold = ics => ics.replace(/\r\n /g, "");
+  const overrideCount = ics => ics.split("RECURRENCE-ID:").length - 1;
+  const expected = await page.evaluate(() => reminderSchedule({ dayCount: DAYS(), completed: tdata().completed, time: "06:15", now: new Date() }));
+  check("one override per remaining day", overrideCount(ics2) === expected.count && expected.count > 1);
+  check("the series stops when the journey does", ics2.includes(`RRULE:FREQ=DAILY;COUNT=${expected.count}`));
+  const firstDay = expected.fromDay + 1;
+  check("the first override is the first incomplete day",
+    ics2.includes(`URL:${SITE_ORIGIN}/app#${firstDay}`) && unfold(ics2).includes(`SUMMARY:Stand · Day ${firstDay} · `));
+  check("an override carries the practice and the page link",
+    unfold(ics2).includes("Today’s practice: ") && unfold(ics2).includes(`Read it on the web: ${SITE_ORIGIN}/day/`));
+  check("every override names its own occurrence", unfold(ics2).split("BEGIN:VEVENT").slice(2)
+    .every(ev => ev.match(/RECURRENCE-ID:(\S+)/)[1] === ev.match(/DTSTART:(\S+)/)[1]));
+  check("the status names the range", /Day \d+ to Day \d+/.test(await page.textContent("#reminderStatus")));
+
+  // Completing a day moves the series forward on the next export.
+  await page.click("#closeLibrary");
+  await page.click("#completeButton");   // the current day is the first incomplete one
+  await page.click("#libraryButton");
+  const ics3 = await readIcs();
+  check("completing a day drops one override", overrideCount(ics3) === overrideCount(ics2) - 1);
+  check("completing a day moves the first override on", ics3.includes(`URL:${SITE_ORIGIN}/app#${firstDay + 1}`));
+  await page.click("#closeLibrary");
+  await page.click("#completeButton");   // put it back
+  await page.click("#libraryButton");
 
   // The chosen time survives a reload; it used to reset to 07:00.
   await page.reload({ waitUntil: "networkidle" });

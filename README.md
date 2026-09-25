@@ -60,7 +60,7 @@ npx playwright install chromium
 npm test
 ```
 
-Alongside it, `npm run test:unit` runs 88 unit tests (no browser, no dependencies): 52 over the pure logic in `logic.js` — streak arithmetic, backup sanitizing, and calm-ledger aggregation — and 36 over the calendar reminder in `reminder.js`. The daylight-saving cases run in child processes with `TZ` set, so they exercise real zones rather than whichever one the machine happens to be in. Both suites run in CI.
+Alongside it, `npm run test:unit` runs 108 unit tests (no browser, no dependencies): 52 over the pure logic in `logic.js` — streak arithmetic, backup sanitizing, and calm-ledger aggregation — 36 over the calendar reminder in `reminder.js`, and 20 over the prayer composer in `compose.js` — every line of every prayer traced back to a corpus block across all modes, intentions, languages and 25 seeds; "As composed" never choosing a closing outside the default traditions; the petition inserted as text and cut at the limit; a bilingual prayer being the same blocks in both languages; and every traditional prayer's narration anchors found in its text. The daylight-saving cases run in child processes with `TZ` set, so they exercise real zones rather than whichever one the machine happens to be in. Both suites run in CI.
 
 ## Publish with GitHub and Vercel
 

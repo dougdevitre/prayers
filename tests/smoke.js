@@ -608,6 +608,8 @@ const server = http.createServer((req, res) => {
   check("the calendar alarm is Spanish", esIcs.includes("Hora de estar firme"));
   check("the calendar days link to the Spanish pages",
     esIcs.replace(/\r\n /g, "").includes(`Léelo en la web: ${SITE_ORIGIN}/es/`));
+  check("the reminder button and preview are Spanish",
+    (await page.textContent("#reminderButton")).startsWith("Añadir") && (await page.textContent("#reminderPreviewTitle")).includes("Día"));
   check("the reminder status is Spanish",
     (await page.textContent("#reminderStatus")).includes("cada día"));
   await page.click("#closeLibrary");
@@ -713,6 +715,38 @@ const server = http.createServer((req, res) => {
   check("every override names its own occurrence", unfold(ics2).split("BEGIN:VEVENT").slice(2)
     .every(ev => ev.match(/RECURRENCE-ID:(\S+)/)[1] === ev.match(/DTSTART:(\S+)/)[1]));
   check("the status names the range", /Day \d+ to Day \d+/.test(await page.textContent("#reminderStatus")));
+
+  // The button says what it will add, and the preview shows the first
+  // reminder as the calendar will: the same summary and notes as the file.
+  const buttonText = await page.textContent("#reminderButton");
+  check("the button says how many reminders it adds", buttonText.includes(`${expected.count} reminders`) && buttonText.includes(`Day ${firstDay}`));
+  const previewBody = await page.textContent("#reminderPreviewBody");
+  check("the preview is the first reminder in the file",
+    unfold(ics2).includes(`SUMMARY:${await page.textContent("#reminderPreviewTitle")}`)
+    && unfold(ics2).includes(`DESCRIPTION:${previewBody.replace(/([;,])/g, "\\$1").replace(/\n/g, "\\n")}`));
+  check("the calendar is published under its own name", ics2.includes("METHOD:PUBLISH\r\n") && ics2.includes("X-WR-CALNAME:Stand\r\n"));
+
+  // Every link in the file opens the day it names: the app deep link renders
+  // the same day and practice the notes carry, and the web page exists with
+  // the practice anchored. Checked for every override, not a sample.
+  const overrideEvents = unfold(ics2).split("BEGIN:VEVENT").slice(2);
+  const linkPage = await browser.newPage();
+  const linkFailures = [];
+  for (const ev of overrideEvents) {
+    const url = ev.match(/\r\nURL:(\S+)/)[1];
+    const notes = ev.match(/\r\nDESCRIPTION:(.+)/)[1].replace(/\\n/g, "\n").replace(/\\([;,\\])/g, "$1").split("\n");
+    const practice = notes.find(l => l.startsWith("Today’s practice: ")).slice("Today’s practice: ".length);
+    const pageUrl = notes[notes.length - 1].replace(/^[^:]+: /, "");
+    await linkPage.goto(url, { waitUntil: "networkidle" });
+    const title = await linkPage.textContent("#dayTitle"), action = await linkPage.textContent("#action");
+    const res = await fetch(pageUrl.replace(/#practice$/, ""));
+    const html = await res.text();
+    const escaped = practice.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    if (!(ev.includes(`· ${title}`) && action === practice && res.status === 200 && html.includes(escaped) && html.includes('id="practice"') && pageUrl.endsWith("#practice"))) linkFailures.push(url);
+  }
+  await linkPage.close();
+  check(`every one of ${overrideEvents.length} reminder links opens the day it names`, overrideEvents.length === expected.count && linkFailures.length === 0);
+  if (linkFailures.length) console.log("     failing links: " + linkFailures.join(", "));
 
   // Completing a day moves the series forward on the next export.
   await page.click("#closeLibrary");

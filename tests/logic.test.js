@@ -304,7 +304,7 @@ test("sanitizeTrackData returns empty structure for rubbish", () => {
 
 test("a restored backup is shaped like live state", () => {
   const clean = sanitizeBackup(validBackup({ completed: [0], completedDates: { 0: "2026-09-21" } }), DEPS);
-  for (const key of ["completed", "favorites", "notes", "completedDates", "checkins", "sos", "track", "tracks", "theme", "lang", "bilingual", "welcomed", "installHintDismissed", "reminderTime", "reminderSeq"]) {
+  for (const key of ["completed", "favorites", "notes", "completedDates", "checkins", "sos", "track", "tracks", "theme", "lang", "bilingual", "welcomed", "installHintDismissed", "reminderTime", "reminderSeq", "reminderFrom", "reminderWeekdays", "reminderLead"]) {
     assert.ok(key in clean, `restored state is missing ${key}`);
   }
   // and it feeds the streak maths without further massaging
@@ -331,6 +331,21 @@ test("a restored backup accepts the edges of the clock", () => {
 
 // The sequence is what makes a re-exported .ics out-rank the one already in
 // the calendar, so a nonsense value must floor at 0 rather than propagate.
+test("a restored backup keeps the reminder options and defaults anything malformed", () => {
+  const kept = sanitizeBackup(validBackup({ reminderFrom: "start", reminderWeekdays: true, reminderLead: 30 }), DEPS);
+  assert.strictEqual(kept.reminderFrom, "start");
+  assert.strictEqual(kept.reminderWeekdays, true);
+  assert.strictEqual(kept.reminderLead, 30);
+  const bad = sanitizeBackup(validBackup({ reminderFrom: "yesterday", reminderWeekdays: "yes", reminderLead: 15 }), DEPS);
+  assert.strictEqual(bad.reminderFrom, "current");
+  assert.strictEqual(bad.reminderWeekdays, false);
+  assert.strictEqual(bad.reminderLead, 0);
+  const missing = sanitizeBackup(validBackup({}), DEPS);
+  assert.strictEqual(missing.reminderFrom, "current");
+  assert.strictEqual(missing.reminderWeekdays, false);
+  assert.strictEqual(missing.reminderLead, 0);
+});
+
 test("a restored backup floors a bad reminder sequence at zero", () => {
   for (const bad of [-3, 1.5, "4", null, undefined, NaN]) {
     assert.strictEqual(sanitizeBackup(validBackup({ reminderSeq: bad }), DEPS).reminderSeq, 0, `accepted ${String(bad)}`);

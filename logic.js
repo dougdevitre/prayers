@@ -143,7 +143,11 @@ function sanitizeBackup(raw, deps) {
     // what makes a re-exported .ics out-rank the one already in the calendar,
     // and a reset to 0 would leave the update silently ignored.
     reminderTime: /^([01]\d|2[0-3]):[0-5]\d$/.test(raw.reminderTime) ? raw.reminderTime : null,
-    reminderSeq: Number.isInteger(raw.reminderSeq) && raw.reminderSeq >= 0 ? raw.reminderSeq : 0
+    reminderSeq: Number.isInteger(raw.reminderSeq) && raw.reminderSeq >= 0 ? raw.reminderSeq : 0,
+    // The export options, each reduced to its default when malformed.
+    reminderFrom: raw.reminderFrom === "start" ? "start" : "current",
+    reminderWeekdays: raw.reminderWeekdays === true,
+    reminderLead: [0, 10, 30].includes(raw.reminderLead) ? raw.reminderLead : 0
   };
 }
 

@@ -759,6 +759,36 @@ const server = http.createServer((req, res) => {
   await page.click("#completeButton");   // put it back
   await page.click("#libraryButton");
 
+  // The export options. Each one changes the file, the label or the status,
+  // and all three survive a reload. They sit inside a closed disclosure.
+  await page.click("#reminderOptions > summary");
+  await page.selectOption("#reminderFrom", "start");
+  const fromStart = await readIcs();
+  check("\"Day 1\" starts the series at the first day", fromStart.includes(`URL:${SITE_ORIGIN}/app#1`) && overrideCount(fromStart) === await page.evaluate(() => DAYS()));
+  check("the button follows the start option", (await page.textContent("#reminderButton")).includes("Day 1"));
+  await page.selectOption("#reminderFrom", "current");
+
+  await page.check("#reminderWeekdays");
+  const weekdays = await readIcs();
+  check("weekdays only writes a Monday-to-Friday rule", weekdays.includes("RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;COUNT="));
+  check("weekdays only puts no override on a weekend", unfold(weekdays).split("BEGIN:VEVENT").slice(2).every(ev => {
+    const m = ev.match(/DTSTART:(\d{4})(\d{2})(\d{2})T/);
+    const day = new Date(+m[1], +m[2] - 1, +m[3], 12).getDay();
+    return day >= 1 && day <= 5;
+  }));
+  check("the status says each weekday", (await page.textContent("#reminderStatus")).includes("each weekday"));
+  await page.uncheck("#reminderWeekdays");
+
+  await page.selectOption("#reminderLead", "10");
+  const lead = await readIcs();
+  check("an alert lead fires the alarm ten minutes before", lead.includes("TRIGGER:-PT10M") && !lead.includes("TRIGGER:PT0S"));
+
+  await page.reload({ waitUntil: "networkidle" });
+  await page.click("#libraryButton");
+  await page.click("#reminderOptions > summary");
+  check("the export options are remembered", await page.inputValue("#reminderLead") === "10" && await page.inputValue("#reminderFrom") === "current" && !(await page.isChecked("#reminderWeekdays")));
+  await page.selectOption("#reminderLead", "0");
+
   // The chosen time survives a reload; it used to reset to 07:00.
   await page.reload({ waitUntil: "networkidle" });
   await page.click("#libraryButton");

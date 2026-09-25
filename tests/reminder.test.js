@@ -17,7 +17,7 @@ const { appUi } = require("../ui.js");
 const { slugify } = require("../logic.js");
 const {
   REMINDER_UID, REMINDER_TIPS, GUARDRAIL_TIPS, icsText, icsFold, dayPagePath, appDayLink,
-  reminderSchedule, tipKeyFor, weekLabel, reminderEntry, buildReminderIcs
+  REMINDER_LEADS, reminderSchedule, tipKeyFor, weekLabel, reminderEntry, buildReminderIcs
 } = require("../reminder.js");
 
 const ROOT = path.join(__dirname, "..");
@@ -127,9 +127,62 @@ test("appDayLink mirrors the static pages: no ?track= for core, named otherwise"
 
 /* ---------- schedule ---------- */
 
+// The shape without the dates, which the date tests check on their own.
+const summary = ({ fromDay, count, offset, restarted, weekdays }) => ({ fromDay, count, offset, restarted, weekdays });
+
 test("the schedule starts at the first incomplete day", () => {
   const s = reminderSchedule({ dayCount: 30, completed: [0, 1, 2, 4], time: "21:30", now: NOW });
-  assert.deepStrictEqual(s, { fromDay: 3, count: 27, offset: 0, restarted: false });
+  assert.deepStrictEqual(summary(s), { fromDay: 3, count: 27, offset: 0, restarted: false, weekdays: false });
+  assert.strictEqual(s.dates.length, 27);
+  assert.strictEqual(s.dates[0].getDate(), NOW.getDate());
+  assert.strictEqual(s.dates[1].getDate(), NOW.getDate() + 1);
+});
+
+test("\"Day 1\" starts the journey over regardless of progress", () => {
+  const s = reminderSchedule({ dayCount: 30, completed: [0, 1, 2, 4], time: "21:30", now: NOW, from: "start" });
+  assert.deepStrictEqual(summary(s), { fromDay: 0, count: 30, offset: 0, restarted: false, weekdays: false });
+});
+
+// NOW is a Friday evening. With a time still ahead, the first reminder is
+// today (Friday), then Monday; with a time already past it would be Saturday,
+// so it moves to Monday.
+test("weekdays only skips Saturday and Sunday, in the rule and in every date", () => {
+  assert.strictEqual(NOW.getDay(), 5, "the fixture is a Friday");
+  const s = reminderSchedule({ dayCount: 30, completed: [], time: "21:30", now: NOW, weekdays: true });
+  assert.strictEqual(s.offset, 0);
+  assert.strictEqual(s.dates[0].getDay(), 5);
+  assert.strictEqual(s.dates[1].getDay(), 1);
+  assert.strictEqual(s.dates.length, 30);
+  for (const d of s.dates) assert.ok(d.getDay() >= 1 && d.getDay() <= 5, `${d} is a weekend`);
+  // Friday plus 29 more weekdays: five full weeks and four days, so the
+  // last reminder is 41 calendar days after the first.
+  assert.strictEqual(Math.round((s.dates[29] - s.dates[0]) / 86400000), 41);
+  const later = reminderSchedule({ dayCount: 4, completed: [], time: "07:00", now: NOW, weekdays: true });
+  assert.strictEqual(later.offset, 3, "Saturday morning moves to Monday");
+  assert.strictEqual(later.dates[0].getDay(), 1);
+});
+
+test("weekdays only writes a weekly Monday-to-Friday rule and every override is a weekday", () => {
+  const { master, overrides } = parse(build({ schedule: reminderSchedule({ dayCount: 30, completed: [], time: "21:30", now: NOW, weekdays: true }) }));
+  assert.strictEqual(master.RRULE, "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;COUNT=30");
+  assert.strictEqual(overrides.length, 30);
+  assert.strictEqual(overrides[1].DTSTART, "20260928T213000", "Monday follows Friday");
+  overrides.forEach(ev => {
+    const d = new Date(+ev.DTSTART.slice(0, 4), +ev.DTSTART.slice(4, 6) - 1, +ev.DTSTART.slice(6, 8), 12);
+    assert.ok(d.getDay() >= 1 && d.getDay() <= 5, `${ev.DTSTART} is a weekend`);
+    assert.strictEqual(ev["RECURRENCE-ID"], ev.DTSTART);
+  });
+});
+
+test("an alarm lead fires the alarm before the time, on the master and every override", () => {
+  assert.deepStrictEqual(REMINDER_LEADS, [0, 10, 30]);
+  const none = parse(build());
+  assert.strictEqual(none.master.alarm.TRIGGER, "PT0S");
+  assert.ok(none.overrides.every(ev => ev.alarm.TRIGGER === "PT0S"));
+  const ten = parse(build({ lead: 10 }));
+  assert.strictEqual(ten.master.alarm.TRIGGER, "-PT10M");
+  assert.ok(ten.overrides.every(ev => ev.alarm.TRIGGER === "-PT10M"));
+  assert.strictEqual(ten.master.DTSTART, none.master.DTSTART, "the lead moves the alarm, not the event");
 });
 
 test("a chosen time already past starts tomorrow", () => {
@@ -140,7 +193,7 @@ test("a chosen time already past starts tomorrow", () => {
 
 test("a finished journey starts again from Day 1", () => {
   const s = reminderSchedule({ dayCount: 4, completed: [0, 1, 2, 3], time: "21:30", now: NOW });
-  assert.deepStrictEqual(s, { fromDay: 0, count: 4, offset: 0, restarted: true });
+  assert.deepStrictEqual(summary(s), { fromDay: 0, count: 4, offset: 0, restarted: true, weekdays: false });
 });
 
 test("only the last day left yields a single reminder", () => {
@@ -377,6 +430,13 @@ if (process.env.STAND_DST_ZONE) {
         - Date.UTC(+prev.slice(0, 4), +prev.slice(4, 6) - 1, +prev.slice(6, 8))) / 86400000;
       assert.strictEqual(days, 1, `${zone}: override ${k} is not the next day`);
     }
+  });
+  const weekdayPlan = reminderSchedule({ dayCount: 30, completed: [], time: "02:30", now, weekdays: true });
+  const weekdayOnly = parse(build({ time: "02:30", now, schedule: weekdayPlan })).overrides;
+  weekdayOnly.forEach((ev, k) => {
+    assert.ok(ev.DTSTART.endsWith("T023000"), `${zone} weekdays: override ${k} at ${ev.DTSTART}`);
+    const d = new Date(+ev.DTSTART.slice(0, 4), +ev.DTSTART.slice(4, 6) - 1, +ev.DTSTART.slice(6, 8), 12);
+    assert.ok(d.getDay() >= 1 && d.getDay() <= 5, `${zone} weekdays: ${ev.DTSTART} is a weekend`);
   });
   console.log(`PASS floating times hold across DST in ${zone}`);
 } else {

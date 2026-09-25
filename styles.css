@@ -95,6 +95,11 @@ main{padding-bottom:78px}
 .path-button small{color:var(--muted)}
 .reminder-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);font-size:.9rem}
 .reminder-row label{font-weight:700}
+.reminder-options{margin:8px 0 0;font-size:.85rem}
+.reminder-options>summary{color:var(--muted);cursor:pointer}
+.reminder-option{display:flex;align-items:center;gap:10px;margin:8px 0 0}
+.reminder-option label{font-weight:700}
+.reminder-option select{border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:5px 8px;font:inherit}
 .reminder-help{margin:8px 0 0;font-size:.85rem;color:var(--muted)}
 .reminder-preview{margin:8px 0 0;font-size:.85rem}
 .reminder-preview>summary{color:var(--muted);cursor:pointer}

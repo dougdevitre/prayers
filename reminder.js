@@ -76,22 +76,45 @@ function appDayLink(origin, trackId, index) {
   return `${origin}/app${trackId === "core" ? "" : `?track=${trackId}`}#${index + 1}`;
 }
 
+/** The alarm lead times the reader can choose, in minutes before the time. */
+const REMINDER_LEADS = [0, 10, 30];
+
+const isWeekend = d => d.getDay() === 0 || d.getDay() === 6;
+
 /**
- * Which days to schedule and when the first one lands.
- *   fromDay    first incomplete day; 0 when the journey is finished
+ * Which days to schedule and when each one lands.
+ *   from       "current" (default) starts at the first incomplete day;
+ *              "start" begins again at Day 1
+ *   weekdays   true skips Saturdays and Sundays
+ *   fromDay    the first day scheduled
  *   count      days from fromDay to the end of the journey
- *   offset     0 when the chosen time is still ahead today, else 1 (tomorrow)
- *   restarted  true when the journey was complete and starts over
+ *   offset     calendar days from today to the first reminder: 0 when the
+ *              chosen time is still ahead today, 1 for tomorrow, more when a
+ *              weekend is skipped
+ *   dates      one noon-anchored Date per reminder, in order
+ *   restarted  true when "current" found the journey complete and started over
  */
-function reminderSchedule({ dayCount, completed, time, now }) {
+function reminderSchedule({ dayCount, completed, time, now, from = "current", weekdays = false }) {
   const done = new Set(completed || []);
   let fromDay = 0;
-  while (fromDay < dayCount && done.has(fromDay)) fromDay++;
-  const restarted = fromDay >= dayCount;
+  if (from !== "start") while (fromDay < dayCount && done.has(fromDay)) fromDay++;
+  const restarted = from !== "start" && fromDay >= dayCount;
   if (restarted) fromDay = 0;
   const [h, m] = time.split(":").map(Number);
   const chosenToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
-  return { fromDay, count: dayCount - fromDay, offset: chosenToday > now ? 0 : 1, restarted };
+  // Noon-anchored, like the streak cursor: adding days at noon can never land
+  // in a deleted or repeated hour.
+  const first = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (chosenToday > now ? 0 : 1), 12);
+  while (weekdays && isWeekend(first)) first.setDate(first.getDate() + 1);
+  const dates = [];
+  const cursor = new Date(first);
+  while (dates.length < dayCount - fromDay) {
+    if (!(weekdays && isWeekend(cursor))) dates.push(new Date(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12);
+  const offset = Math.round((first - today) / 86400000);
+  return { fromDay, count: dayCount - fromDay, offset, dates, restarted, weekdays: !!weekdays };
 }
 
 // Every tip is a literal here so scripts/verify-ui.js can see it is used.
@@ -170,15 +193,19 @@ function reminderEntry({ track, trackId, lang, origin, t, dayIndex, position }) 
  *   now       the moment of export (DTSTAMP and the first date)
  *   origin    e.g. "https://prayers.dougdevitre.org"
  *   t         the string lookup, t(key, vars)
+ *   lead      minutes before the time the alarm fires; 0 fires at the time
  *   schedule  from reminderSchedule(); computed here when omitted
  */
-function buildReminderIcs({ track, trackId, lang, time, seq, now, origin, t, completed, schedule }) {
+function buildReminderIcs({ track, trackId, lang, time, seq, now, origin, t, lead = 0, completed, schedule }) {
   const plan = schedule || reminderSchedule({ dayCount: track.days.length, completed, time, now });
   const [hh, mm] = time.split(":");
   const dayStamp = d => `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}T${hh}${mm}00`;
-  // Noon-anchored, like the streak cursor: adding days at noon can never land
-  // in a deleted or repeated hour.
-  const dateAt = k => new Date(now.getFullYear(), now.getMonth(), now.getDate() + plan.offset + k, 12);
+  const dateAt = k => plan.dates[k];
+  // A negative duration fires before the start; PT0S is "at the time".
+  const trigger = lead > 0 ? `TRIGGER:-PT${lead}M` : "TRIGGER:PT0S";
+  // Weekdays only is a weekly rule on Monday to Friday; the overrides' dates
+  // come from the same schedule, so every one names a real occurrence.
+  const rrule = plan.weekdays ? `FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;COUNT=${plan.count}` : `FREQ=DAILY;COUNT=${plan.count}`;
   const dtstamp = `${now.getFullYear()}${pad2(now.getMonth() + 1)}${pad2(now.getDate())}T${pad2(now.getHours())}${pad2(now.getMinutes())}${pad2(now.getSeconds())}`;
   const lines = [
     "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Stand//Daily Prayer//EN", "CALSCALE:GREGORIAN",
@@ -195,7 +222,7 @@ function buildReminderIcs({ track, trackId, lang, time, seq, now, origin, t, com
     `DTSTAMP:${dtstamp}`,
     `DTSTART:${dayStamp(dateAt(0))}`,
     "DURATION:PT10M",
-    `RRULE:FREQ=DAILY;COUNT=${plan.count}`,
+    `RRULE:${rrule}`,
     // A prayer is not "busy": it must not block the reader's free/busy view.
     "TRANSP:TRANSPARENT",
     `SUMMARY:${icsText(t("reminder.summary"))}`,
@@ -203,7 +230,7 @@ function buildReminderIcs({ track, trackId, lang, time, seq, now, origin, t, com
     // tapping this at 7am wants the prayer, not a page describing it.
     `DESCRIPTION:${icsText(t("reminder.description", { url: `${origin}/app` }))}`,
     `URL:${origin}/app`,
-    "BEGIN:VALARM", "TRIGGER:PT0S", "ACTION:DISPLAY", `DESCRIPTION:${icsText(t("reminder.alarm"))}`, "END:VALARM",
+    "BEGIN:VALARM", trigger, "ACTION:DISPLAY", `DESCRIPTION:${icsText(t("reminder.alarm"))}`, "END:VALARM",
     "END:VEVENT"
   ];
 
@@ -222,7 +249,7 @@ function buildReminderIcs({ track, trackId, lang, time, seq, now, origin, t, com
       `SUMMARY:${icsText(entry.summary)}`,
       `DESCRIPTION:${icsText(entry.description)}`,
       `URL:${entry.url}`,
-      "BEGIN:VALARM", "TRIGGER:PT0S", "ACTION:DISPLAY",
+      "BEGIN:VALARM", trigger, "ACTION:DISPLAY",
       `DESCRIPTION:${icsText(entry.alarm)}`,
       "END:VALARM",
       "END:VEVENT"
@@ -234,5 +261,5 @@ function buildReminderIcs({ track, trackId, lang, time, seq, now, origin, t, com
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { REMINDER_UID, REMINDER_TIPS, GUARDRAIL_TIPS, icsText, icsFold, dayPagePath, appDayLink, reminderSchedule, tipKeyFor, weekLabel, reminderEntry, buildReminderIcs };
+  module.exports = { REMINDER_UID, REMINDER_TIPS, GUARDRAIL_TIPS, REMINDER_LEADS, icsText, icsFold, dayPagePath, appDayLink, reminderSchedule, tipKeyFor, weekLabel, reminderEntry, buildReminderIcs };
 }

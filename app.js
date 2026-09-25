@@ -1042,14 +1042,30 @@ $("welcomeDialog").addEventListener("close", () => {
 // A fixed UID plus a SEQUENCE that only ever increases means a re-import
 // updates the existing series instead of adding a second one.
 
+// The export options. Read through here rather than off state directly so a
+// state saved before the options existed, or a hand-edited one, still yields
+// a usable value.
+const reminderOptions = () => ({
+  from: state.reminderFrom === "start" ? "start" : "current",
+  weekdays: state.reminderWeekdays === true,
+  lead: REMINDER_LEADS.includes(state.reminderLead) ? state.reminderLead : 0
+});
+
 function initReminder() {
   const field = $("reminderTime");
   if (/^\d{2}:\d{2}$/.test(state.reminderTime || "")) field.value = state.reminderTime;
+  const options = reminderOptions();
+  $("reminderFrom").value = options.from;
+  $("reminderLead").value = String(options.lead);
+  $("reminderWeekdays").checked = options.weekdays;
+  const changed = () => { save(); $("reminderStatus").textContent = ""; renderReminder(); };
   field.onchange = () => {
-    if (/^\d{2}:\d{2}$/.test(field.value)) { state.reminderTime = field.value; save(); }
-    $("reminderStatus").textContent = "";
-    renderReminder();
+    if (/^\d{2}:\d{2}$/.test(field.value)) state.reminderTime = field.value;
+    changed();
   };
+  $("reminderFrom").onchange = () => { state.reminderFrom = $("reminderFrom").value === "start" ? "start" : "current"; changed(); };
+  $("reminderLead").onchange = () => { state.reminderLead = Number($("reminderLead").value); changed(); };
+  $("reminderWeekdays").onchange = () => { state.reminderWeekdays = $("reminderWeekdays").checked; changed(); };
 }
 
 $("reminderButton").onclick = async () => {
@@ -1060,10 +1076,10 @@ $("reminderButton").onclick = async () => {
   save();
 
   const { trackId, track, lang, schedule } = reminderContext(chosen);
-  const ics = buildReminderIcs({ track, trackId, lang, time: chosen, seq: state.reminderSeq, now: new Date(), origin: location.origin, t, schedule });
+  const ics = buildReminderIcs({ track, trackId, lang, time: chosen, seq: state.reminderSeq, now: new Date(), origin: location.origin, t, lead: reminderOptions().lead, schedule });
   const vars = {
     count: schedule.count, from: schedule.fromDay + 1, to: track.days.length, track: track.short,
-    time: chosen, start: t(schedule.offset ? "reminder.tomorrow" : "reminder.today")
+    time: chosen, start: reminderStartLabel(schedule), cadence: t(schedule.weekdays ? "reminder.cadenceWeekdays" : "reminder.cadenceDaily")
   };
   const one = schedule.count === 1;
 
@@ -1101,8 +1117,15 @@ function reminderContext(time) {
     // localizedTrack() hands back the English object itself when no Spanish
     // version exists, and the page links must follow the titles they carry.
     lang: track === tracks[trackId] ? "en" : "es",
-    schedule: reminderSchedule({ dayCount: track.days.length, completed: tdata().completed, time, now: new Date() })
+    schedule: reminderSchedule({ dayCount: track.days.length, completed: tdata().completed, time, now: new Date(), ...reminderOptions() })
   };
+}
+
+// "today", "tomorrow", or the day itself when a weekend was skipped.
+function reminderStartLabel(schedule) {
+  if (schedule.offset === 0) return t("reminder.today");
+  if (schedule.offset === 1) return t("reminder.tomorrow");
+  return schedule.dates[0].toLocaleDateString(state.lang === "es" ? "es" : "en", { weekday: "long", day: "numeric", month: "long" });
 }
 
 // The button says what it will add, and the preview shows the first reminder

@@ -4,8 +4,9 @@
 # any other change; the recordings themselves are already in S3 by then, keyed
 # by hash, so merging the manifest is what makes them live.
 #
-# Secrets: ELEVENLABS_API_KEY, AWS_PUBLISHER_ROLE_ARN, AUDIO_BUCKET.
-# Variables: AUDIO_BASE_URL (https://audio.prayers.dougdevitre.org).
+# The one secret is ELEVENLABS_API_KEY. The AWS role ARN, bucket name and base
+# URL are not secrets and live as repository variables (AWS_PUBLISHER_ROLE_ARN,
+# AUDIO_BUCKET, AUDIO_BASE_URL); a secret of the same name is honoured too.
 name: Build audio
 
 on:
@@ -44,17 +45,33 @@ jobs:
       - run: npm install --no-save @aws-sdk/client-s3
       - run: npm run verify:audio
 
+      - name: Preflight, reporting which settings are present without printing values
+        env:
+          HAS_KEY: ${{ secrets.ELEVENLABS_API_KEY != '' }}
+          ROLE: ${{ vars.AWS_PUBLISHER_ROLE_ARN || secrets.AWS_PUBLISHER_ROLE_ARN }}
+          BUCKET: ${{ vars.AUDIO_BUCKET || secrets.AUDIO_BUCKET }}
+          BASE: ${{ vars.AUDIO_BASE_URL }}
+        run: |
+          echo "ELEVENLABS_API_KEY secret: $([ "$HAS_KEY" = "true" ] && echo set || echo MISSING)"
+          echo "AWS_PUBLISHER_ROLE_ARN:    $([ -n "$ROLE" ] && echo set || echo MISSING)"
+          echo "AUDIO_BUCKET:              ${BUCKET:-MISSING}"
+          echo "AUDIO_BASE_URL:            ${BASE:-MISSING}"
+          if [ "${{ inputs.dry_run }}" != "true" ] && { [ "$HAS_KEY" != "true" ] || [ -z "$ROLE" ] || [ -z "$BUCKET" ]; }; then
+            echo "::error::A real run needs the ElevenLabs key secret, the role ARN and the bucket. Set them, or run with dry_run."
+            exit 1
+          fi
+
       - name: Configure AWS credentials (OIDC, no stored keys)
         if: ${{ !inputs.dry_run }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_PUBLISHER_ROLE_ARN }}
+          role-to-assume: ${{ vars.AWS_PUBLISHER_ROLE_ARN || secrets.AWS_PUBLISHER_ROLE_ARN }}
           aws-region: us-east-1
 
       - name: Render and upload
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
-          AUDIO_BUCKET: ${{ secrets.AUDIO_BUCKET }}
+          AUDIO_BUCKET: ${{ vars.AUDIO_BUCKET || secrets.AUDIO_BUCKET }}
           AUDIO_BASE_URL: ${{ vars.AUDIO_BASE_URL }}
         run: |
           set -euo pipefail

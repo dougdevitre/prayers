@@ -60,7 +60,7 @@ npx playwright install chromium
 npm test
 ```
 
-Alongside it, `npm run test:unit` runs 113 unit tests (no browser, no dependencies): 53 over the pure logic in `logic.js` — streak arithmetic, backup sanitizing, and calm-ledger aggregation — 40 over the calendar reminder in `reminder.js`, and 20 over the prayer composer in `compose.js` — every line of every prayer traced back to a corpus block across all modes, intentions, languages and 25 seeds; "As composed" never choosing a closing outside the default traditions; the petition inserted as text and cut at the limit; a bilingual prayer being the same blocks in both languages; and every traditional prayer's narration anchors found in its text. The daylight-saving cases run in child processes with `TZ` set, so they exercise real zones rather than whichever one the machine happens to be in. Both suites run in CI.
+Alongside it, `npm run test:unit` runs 119 unit tests (no browser, no dependencies): 53 over the pure logic in `logic.js` — streak arithmetic, backup sanitizing, and calm-ledger aggregation — 40 over the calendar reminder in `reminder.js`, 20 over the prayer composer in `compose.js` — every line of every prayer traced back to a corpus block across all modes, intentions, languages and 25 seeds; "As composed" never choosing a closing outside the default traditions; the petition inserted as text and cut at the limit; a bilingual prayer being the same blocks in both languages; and every traditional prayer's narration anchors found in its text. The daylight-saving cases run in child processes with `TZ` set, so they exercise real zones rather than whichever one the machine happens to be in. Both suites run in CI, and 6 over the deploy check in `scripts/verify-deploy.js`, against local servers that serve this checkout, a tampered copy, and one that catches up mid-poll.
 
 ## Publish with GitHub and Vercel
 
@@ -68,6 +68,8 @@ Alongside it, `npm run test:unit` runs 113 unit tests (no browser, no dependenci
 2. Upload this folder or push it with Git.
 3. In Vercel, select **Add New → Project**, import the repository, and click **Deploy**.
 4. Leave Framework Preset as **Other**. No build command or environment variables are required.
+
+A merge to main is not live until Vercel has built it and moved the production alias, and that can lag by minutes with nothing in GitHub to say so. `npm run verify:deploy` fetches the app shell, every script it loads and one page of each static shape from the production site and compares them byte for byte with your checkout, polling for up to three minutes; it exits non-zero naming any file that is missing or differs. The **Deploy check** workflow runs the same script on every successful production deployment, against the deployed commit, so a stale alias shows up as a red check on the commit rather than as a reader seeing last week’s build.
 
 ## Audio
 

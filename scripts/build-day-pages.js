@@ -209,7 +209,7 @@ ${siteNav(L, relPath, altPath)}
         <section class="content-section"><h2>${L.reflection}</h2><p>${esc(reflection)}</p></section>
         <section class="prayer-panel"><p class="section-kicker">${L.pray}</p><p>${esc(prayer)}</p><p class="amen">${L.amen}</p></section>
         <section class="declaration-panel"><p class="section-kicker">${L.declare}</p><p>${esc(declaration)}</p></section>
-        <section class="action-panel"><div class="action-icon">→</div><div><p class="section-kicker">${L.practice}</p><p>${esc(action)}</p></div></section>
+        <section class="action-panel" id="practice"><div class="action-icon">→</div><div><p class="section-kicker">${L.practice}</p><p>${esc(action)}</p></div></section>
         <a class="complete-button" href="${APP}${appQuery}#${i + 1}">${L.openDay(i + 1)}</a>
         <nav class="day-nav" aria-label="${L.code === "es" ? "Navegación de días" : "Day navigation"}">${prev}${next}</nav>
       </article>

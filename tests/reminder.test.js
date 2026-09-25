@@ -16,8 +16,8 @@ const { esTracks } = require("../content.es.js");
 const { appUi } = require("../ui.js");
 const { slugify } = require("../logic.js");
 const {
-  REMINDER_UID, REMINDER_TIPS, icsText, icsFold, dayPagePath, appDayLink,
-  reminderSchedule, tipKeyFor, weekLabel, buildReminderIcs
+  REMINDER_UID, REMINDER_TIPS, GUARDRAIL_TIPS, icsText, icsFold, dayPagePath, appDayLink,
+  reminderSchedule, tipKeyFor, weekLabel, reminderEntry, buildReminderIcs
 } = require("../reminder.js");
 
 const ROOT = path.join(__dirname, "..");
@@ -239,7 +239,7 @@ test("a core day carries its title, week, scripture, practice, declaration, tip 
   assert.strictEqual(d[6], "Declare: Truth will remain after today's noise disappears.");
   assert.ok(d[8].startsWith("Tip: Set aside ten minutes."));
   assert.strictEqual(d[10], `Open Day 7 in the app: ${ORIGIN}/app#7`);
-  assert.strictEqual(d[11], `Read it on the web: ${ORIGIN}/day/07-the-word`);
+  assert.strictEqual(d[11], `Read it on the web: ${ORIGIN}/day/07-the-word#practice`);
   assert.strictEqual(day7.URL, `${ORIGIN}/app#7`);
   assert.strictEqual(day7.alarm.DESCRIPTION, "Time to stand — Day 7: The Word");
 });
@@ -249,7 +249,7 @@ test("a courage-story day names its journey and links with ?track=", () => {
   assert.strictEqual(master.RRULE, "FREQ=DAILY;COUNT=4");
   assert.strictEqual(overrides[0].SUMMARY, "Stand · The Furnace · Day 1 · The Decree");
   assert.strictEqual(overrides[0].URL, `${ORIGIN}/app?track=furnace#1`);
-  assert.ok(overrides[0].DESCRIPTION.includes(`Read it on the web: ${ORIGIN}/track/furnace/01-the-decree`));
+  assert.ok(overrides[0].DESCRIPTION.includes(`Read it on the web: ${ORIGIN}/track/furnace/01-the-decree#practice`));
   assert.ok(overrides[0].DESCRIPTION.includes("COURAGE STORY · THE FURNACE"));
   assert.ok(overrides[3].DESCRIPTION.includes("Tip: This is the last day of this journey."));
 });
@@ -261,7 +261,7 @@ test("a Spanish export is Spanish throughout and links to the Spanish pages", ()
   assert.strictEqual(overrides[0].SUMMARY, "Stand · El horno · Día 1 · El decreto");
   assert.ok(overrides[0].DESCRIPTION.startsWith("Día 1 de 4 · El decreto"));
   assert.ok(overrides[0].DESCRIPTION.includes("Práctica de hoy:"));
-  assert.ok(overrides[0].DESCRIPTION.includes(`Léelo en la web: ${ORIGIN}/es/track/furnace/01-el-decreto`));
+  assert.ok(overrides[0].DESCRIPTION.includes(`Léelo en la web: ${ORIGIN}/es/track/furnace/01-el-decreto#practice`));
   assert.strictEqual(overrides[0].alarm.DESCRIPTION, "Hora de estar firme — Día 1: El decreto");
 });
 
@@ -308,11 +308,54 @@ test("every day of every journey in both languages builds a valid file", () => {
           assert.ok(!/(^|[^\\])[,;]/.test(ev[key]), `${lang}/${id} day ${i + 1}: unescaped separator in ${key}`);
         }
         assert.ok(ev.DESCRIPTION.includes(track.days[i][6].replace(/([;,])/g, "\\$1")), `${lang}/${id} day ${i + 1}: practice missing`);
-        assert.ok(ev.DESCRIPTION.endsWith(`${ORIGIN}${dayPagePath(id, track, i, lang)}`), `${lang}/${id} day ${i + 1}: page link`);
+        assert.ok(ev.DESCRIPTION.endsWith(`${ORIGIN}${dayPagePath(id, track, i, lang)}#practice`), `${lang}/${id} day ${i + 1}: page link`);
         assert.strictEqual(ev.URL, appDayLink(ORIGIN, id, i));
       });
     }
   }
+});
+
+test("the page link lands on the practice section, which every generated page carries", () => {
+  const { pageUrl } = reminderEntry({ track: tracks.core, trackId: "core", lang: "en", origin: ORIGIN, t: tFor("en"), dayIndex: 6, position: 0 });
+  assert.strictEqual(pageUrl, `${ORIGIN}/day/07-the-word#practice`);
+  for (const [lang, set] of [["en", tracks], ["es", esTracks]]) {
+    for (const [id, track] of Object.entries(set)) {
+      for (let i = 0; i < track.days.length; i++) {
+        const html = fs.readFileSync(path.join(ROOT, dayPagePath(id, track, i, lang) + ".html"), "utf8");
+        assert.ok(html.includes(' id="practice"'), `${lang}/${id} day ${i + 1} has no #practice anchor`);
+      }
+    }
+  }
+});
+
+test("the preview entry is exactly what the file carries", () => {
+  const { overrides } = parse(build({ completed: [0, 1, 2, 3, 4, 5] }));
+  const entry = reminderEntry({ track: tracks.core, trackId: "core", lang: "en", origin: ORIGIN, t: tFor("en"), dayIndex: 6, position: 0 });
+  assert.strictEqual(overrides[0].SUMMARY, icsText(entry.summary));
+  assert.strictEqual(overrides[0].DESCRIPTION, icsText(entry.description));
+  assert.strictEqual(overrides[0].URL, entry.url);
+  assert.strictEqual(overrides[0].alarm.DESCRIPTION, icsText(entry.alarm));
+});
+
+test("the calendar is published under its own name", () => {
+  const ics = build();
+  assert.ok(ics.includes("\r\nMETHOD:PUBLISH\r\n"));
+  assert.ok(ics.includes("\r\nX-WR-CALNAME:Stand\r\n"));
+  assert.ok(ics.indexOf("METHOD:PUBLISH") < ics.indexOf("BEGIN:VEVENT"), "calendar properties come before the components");
+});
+
+test("the health and financial journeys repeat their guardrail on the second reminder", () => {
+  assert.strictEqual(tipKeyFor({ position: 1, dayIndex: 1, total: 4, trackId: "turning" }), "reminder.tipHealth");
+  assert.strictEqual(tipKeyFor({ position: 1, dayIndex: 1, total: 4, trackId: "hem" }), "reminder.tipHealth");
+  assert.strictEqual(tipKeyFor({ position: 1, dayIndex: 1, total: 4, trackId: "zarephath" }), "reminder.tipMoney");
+  assert.notStrictEqual(tipKeyFor({ position: 1, dayIndex: 1, total: 4, trackId: "furnace" }), "reminder.tipHealth");
+  // The last day still hands off to the library, even on those journeys.
+  assert.strictEqual(tipKeyFor({ position: 1, dayIndex: 3, total: 4, trackId: "hem" }), "reminder.tipLast");
+  for (const key of new Set(Object.values(GUARDRAIL_TIPS))) {
+    assert.ok(appUi.en[key] && appUi.es[key], `${key} missing from a language`);
+  }
+  const { overrides } = parse(build({ trackId: "zarephath" }));
+  assert.ok(overrides[1].DESCRIPTION.includes("not a technique for producing money"));
 });
 
 /* ---------- daylight saving ---------- */

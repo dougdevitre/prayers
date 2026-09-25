@@ -770,6 +770,7 @@ function render() {
   document.title = t("share.title", { n: day + 1, title });
   renderDayCheckin();
   renderGrid();
+  renderReminder();
 }
 
 /* ---------- Interactions ---------- */
@@ -1047,40 +1048,74 @@ function initReminder() {
   field.onchange = () => {
     if (/^\d{2}:\d{2}$/.test(field.value)) { state.reminderTime = field.value; save(); }
     $("reminderStatus").textContent = "";
+    renderReminder();
   };
 }
 
-$("reminderButton").onclick = () => {
+$("reminderButton").onclick = async () => {
   const chosen = /^\d{2}:\d{2}$/.test($("reminderTime").value) ? $("reminderTime").value : "07:00";
   state.reminderTime = chosen;
   // Each export must out-rank the last or calendars ignore the update.
   state.reminderSeq = Number.isInteger(state.reminderSeq) ? state.reminderSeq + 1 : 0;
   save();
 
-  // activeTrack() already falls back to core for an id it does not know; the
-  // id must fall back with it or the links would name a journey that is not there.
-  const trackId = tracks[state.track] ? state.track : "core";
-  const track = activeTrack();
-  const now = new Date();
-  const schedule = reminderSchedule({ dayCount: track.days.length, completed: tdata().completed, time: chosen, now });
-  const ics = buildReminderIcs({
-    track, trackId,
-    // localizedTrack() hands back the English object itself when no Spanish
-    // version exists, and the page links must follow the titles they carry.
-    lang: track === tracks[trackId] ? "en" : "es",
-    time: chosen, seq: state.reminderSeq, now, origin: location.origin, t, schedule
-  });
-
-  downloadFile("stand-daily-reminder.ics", ics, "text/calendar");
+  const { trackId, track, lang, schedule } = reminderContext(chosen);
+  const ics = buildReminderIcs({ track, trackId, lang, time: chosen, seq: state.reminderSeq, now: new Date(), origin: location.origin, t, schedule });
   const vars = {
     count: schedule.count, from: schedule.fromDay + 1, to: track.days.length, track: track.short,
     time: chosen, start: t(schedule.offset ? "reminder.tomorrow" : "reminder.today")
   };
   const one = schedule.count === 1;
+
+  // On a phone, a downloaded .ics lands in Files and the reader has to go and
+  // find it; the share sheet puts Calendar one tap away. Feature-detected, so
+  // desktop browsers and older phones still get the download.
+  const file = new File([ics], "stand-daily-reminder.ics", { type: "text/calendar" });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: t("reminder.summary") });
+      $("reminderStatus").textContent = t(one ? "reminder.sharedOne" : "reminder.shared", vars);
+      return;
+    } catch (error) {
+      // The reader closed the sheet: nothing to add, nothing to report.
+      if (error && error.name === "AbortError") return;
+      // Anything else falls through to the download.
+    }
+  }
+
+  downloadFile("stand-daily-reminder.ics", ics, "text/calendar");
   const key = state.reminderSeq === 0 ? (one ? "reminder.savedOne" : "reminder.savedPlan") : (one ? "reminder.updatedOne" : "reminder.updatedPlan");
   $("reminderStatus").textContent =
     (schedule.restarted ? t("reminder.restarted", { track: track.short }) + " " : "") + t(key, vars);
 };
+
+// What an export would contain right now, for the button label, the preview
+// and the export itself, so the three can never disagree.
+function reminderContext(time) {
+  // activeTrack() already falls back to core for an id it does not know; the
+  // id must fall back with it or the links would name a journey that is not there.
+  const trackId = tracks[state.track] ? state.track : "core";
+  const track = activeTrack();
+  return {
+    trackId, track,
+    // localizedTrack() hands back the English object itself when no Spanish
+    // version exists, and the page links must follow the titles they carry.
+    lang: track === tracks[trackId] ? "en" : "es",
+    schedule: reminderSchedule({ dayCount: track.days.length, completed: tdata().completed, time, now: new Date() })
+  };
+}
+
+// The button says what it will add, and the preview shows the first reminder
+// as the calendar will. Re-run on every render: completing a day changes both.
+function renderReminder() {
+  const time = /^\d{2}:\d{2}$/.test($("reminderTime").value) ? $("reminderTime").value : "07:00";
+  const { trackId, track, lang, schedule } = reminderContext(time);
+  const vars = { count: schedule.count, from: schedule.fromDay + 1, to: track.days.length };
+  $("reminderButton").textContent = t(schedule.count === 1 ? "reminder.buttonOne" : "reminder.buttonPlan", vars);
+  const entry = reminderEntry({ track, trackId, lang, origin: location.origin, t, dayIndex: schedule.fromDay, position: 0 });
+  $("reminderPreviewTitle").textContent = entry.summary;
+  $("reminderPreviewBody").textContent = entry.description;
+}
 
 /* ---------- iOS install hint ---------- */
 

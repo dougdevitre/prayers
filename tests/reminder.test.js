@@ -16,8 +16,8 @@ const { esTracks } = require("../content.es.js");
 const { appUi } = require("../ui.js");
 const { slugify } = require("../logic.js");
 const {
-  REMINDER_UID, REMINDER_TIPS, GUARDRAIL_TIPS, icsText, icsFold, dayPagePath, appDayLink,
-  REMINDER_LEADS, reminderSchedule, tipKeyFor, weekLabel, reminderEntry, buildReminderIcs
+  REMINDER_UID, EVENING_UID, REMINDER_TIPS, GUARDRAIL_TIPS, icsText, icsFold, dayPagePath, appDayLink,
+  REMINDER_LEADS, reminderSchedule, tipKeyFor, weekLabel, reminderEntry, eveningEntry, buildReminderIcs
 } = require("../reminder.js");
 
 const ROOT = path.join(__dirname, "..");
@@ -72,7 +72,9 @@ function parse(ics) {
       if (inAlarm) current.alarm[key] = value; else current[key] = value;
     }
   }
-  return { lines, master: events[0], overrides: events.slice(1), events };
+  const morning = events.filter(e => e.UID === REMINDER_UID);
+  const evening = events.filter(e => e.UID === EVENING_UID);
+  return { lines, master: morning[0], overrides: morning.slice(1), events, evening: { master: evening[0], overrides: evening.slice(1) } };
 }
 
 /* ---------- text escaping and folding ---------- */
@@ -409,6 +411,71 @@ test("the health and financial journeys repeat their guardrail on the second rem
   }
   const { overrides } = parse(build({ trackId: "zarephath" }));
   assert.ok(overrides[1].DESCRIPTION.includes("not a technique for producing money"));
+});
+
+/* ---------- the evening check-in ---------- */
+
+test("without the option there is no evening series and no cancellation", () => {
+  const { evening } = parse(build());
+  assert.strictEqual(evening.master, undefined);
+});
+
+test("the evening check-in is its own series on the same days, at its own time", () => {
+  const plan = reminderSchedule({ dayCount: 30, completed: [0, 1, 2, 3, 4, 5], time: "07:00", now: NOW, weekdays: true });
+  const { master, overrides, evening } = parse(build({ time: "07:00", evening: "21:00", lead: 10, schedule: plan }));
+  assert.strictEqual(evening.master.UID, EVENING_UID);
+  assert.notStrictEqual(evening.master.UID, master.UID);
+  assert.strictEqual(evening.master.RRULE, master.RRULE, "same cadence and count");
+  assert.strictEqual(evening.master.SEQUENCE, master.SEQUENCE);
+  assert.strictEqual(evening.master.DURATION, "PT5M");
+  assert.strictEqual(evening.master.alarm.TRIGGER, "-PT10M", "the lead applies to both series");
+  assert.strictEqual(evening.overrides.length, overrides.length);
+  evening.overrides.forEach((ev, k) => {
+    assert.strictEqual(ev.DTSTART.slice(0, 8), overrides[k].DTSTART.slice(0, 8), `evening ${k} is on a different day`);
+    assert.ok(ev.DTSTART.endsWith("T210000"), `evening ${k} at ${ev.DTSTART}`);
+    assert.strictEqual(ev["RECURRENCE-ID"], ev.DTSTART);
+  });
+  const first = evening.overrides[0];
+  assert.strictEqual(first.SUMMARY, "Stand · Day 7 · How did it go?");
+  assert.ok(first.DESCRIPTION.startsWith("Day 7 of 30 · The Word\\n\\nThis morning’s practice: Choose one short verse"));
+  assert.ok(first.DESCRIPTION.includes("How did it go? Open the day\\, mark it complete\\, and note where your fear is now."));
+  assert.strictEqual(first.URL, `${ORIGIN}/app?checkin=1#7`);
+  assert.strictEqual(first.alarm.DESCRIPTION, "How did Day 7 go? — The Word");
+});
+
+test("the evening link keeps the journey query on other tracks", () => {
+  const e = eveningEntry({ track: tracks.furnace, trackId: "furnace", lang: "en", origin: ORIGIN, t: tFor("en"), dayIndex: 1 });
+  assert.strictEqual(e.url, `${ORIGIN}/app?checkin=1&track=furnace#2`);
+});
+
+test("turning the evening check-in off cancels the series once, with a higher sequence and no overrides", () => {
+  const { evening, master } = parse(build({ seq: 4, cancelEvening: true }));
+  assert.strictEqual(evening.master.UID, EVENING_UID);
+  assert.strictEqual(evening.master.STATUS, "CANCELLED");
+  assert.strictEqual(evening.master.SEQUENCE, "4");
+  assert.strictEqual(evening.overrides.length, 0);
+  assert.strictEqual(master.RRULE, "FREQ=DAILY;COUNT=30", "the morning series is untouched");
+});
+
+test("the evening series is Spanish when the export is", () => {
+  const { evening } = parse(build({ trackId: "furnace", lang: "es", evening: "21:30" }));
+  assert.strictEqual(evening.master.SUMMARY, "Stand — revisión de la noche");
+  assert.strictEqual(evening.overrides[0].SUMMARY, "Stand · Día 1 · ¿Cómo fue?");
+  assert.ok(evening.overrides[0].DESCRIPTION.includes("La práctica de esta mañana:"));
+});
+
+test("every line of a file with an evening series still folds and escapes cleanly", () => {
+  for (const [lang, set] of [["en", tracks], ["es", esTracks]]) {
+    for (const [id, track] of Object.entries(set)) {
+      const ics = build({ trackId: id, lang, evening: "21:00" });
+      for (const line of ics.split("\r\n")) assert.ok(Buffer.byteLength(line, "utf8") <= 75, `${lang}/${id}: over-long line`);
+      const { evening } = parse(ics);
+      assert.strictEqual(evening.overrides.length, track.days.length);
+      for (const ev of evening.overrides) for (const key of ["SUMMARY", "DESCRIPTION"]) {
+        assert.ok(!/(^|[^\\])[,;]/.test(ev[key]), `${lang}/${id}: unescaped separator in evening ${key}`);
+      }
+    }
+  }
 });
 
 /* ---------- daylight saving ---------- */

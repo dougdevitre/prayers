@@ -1048,7 +1048,8 @@ $("welcomeDialog").addEventListener("close", () => {
 const reminderOptions = () => ({
   from: state.reminderFrom === "start" ? "start" : "current",
   weekdays: state.reminderWeekdays === true,
-  lead: REMINDER_LEADS.includes(state.reminderLead) ? state.reminderLead : 0
+  lead: REMINDER_LEADS.includes(state.reminderLead) ? state.reminderLead : 0,
+  evening: /^\d{2}:\d{2}$/.test(state.reminderEvening || "") ? state.reminderEvening : null
 });
 
 function initReminder() {
@@ -1066,6 +1067,20 @@ function initReminder() {
   $("reminderFrom").onchange = () => { state.reminderFrom = $("reminderFrom").value === "start" ? "start" : "current"; changed(); };
   $("reminderLead").onchange = () => { state.reminderLead = Number($("reminderLead").value); changed(); };
   $("reminderWeekdays").onchange = () => { state.reminderWeekdays = $("reminderWeekdays").checked; changed(); };
+  // The evening time field is live only while the check-in is on; its value
+  // is kept either way so turning it back on remembers the time.
+  const eveningTime = $("reminderEveningTime");
+  $("reminderEvening").checked = Boolean(options.evening);
+  if (options.evening) eveningTime.value = options.evening;
+  eveningTime.disabled = !options.evening;
+  const syncEvening = () => {
+    const on = $("reminderEvening").checked;
+    eveningTime.disabled = !on;
+    state.reminderEvening = on && /^\d{2}:\d{2}$/.test(eveningTime.value) ? eveningTime.value : null;
+    changed();
+  };
+  $("reminderEvening").onchange = syncEvening;
+  eveningTime.onchange = syncEvening;
 }
 
 $("reminderButton").onclick = async () => {
@@ -1076,7 +1091,14 @@ $("reminderButton").onclick = async () => {
   save();
 
   const { trackId, track, lang, schedule } = reminderContext(chosen);
-  const ics = buildReminderIcs({ track, trackId, lang, time: chosen, seq: state.reminderSeq, now: new Date(), origin: location.origin, t, lead: reminderOptions().lead, schedule });
+  const options = reminderOptions();
+  // A reader who had the evening series and turned it off gets it cancelled
+  // once; after that the flag clears so the file stays lean.
+  const cancelEvening = !options.evening && state.reminderEveningExported === true;
+  const ics = buildReminderIcs({ track, trackId, lang, time: chosen, seq: state.reminderSeq, now: new Date(), origin: location.origin, t, lead: options.lead, evening: options.evening, cancelEvening, schedule });
+  state.reminderEveningExported = Boolean(options.evening);
+  save();
+  const eveningNote = options.evening ? " " + t("reminder.eveningOn", { time: options.evening }) : (cancelEvening ? " " + t("reminder.eveningCancelled") : "");
   const vars = {
     count: schedule.count, from: schedule.fromDay + 1, to: track.days.length, track: track.short,
     time: chosen, start: reminderStartLabel(schedule), cadence: t(schedule.weekdays ? "reminder.cadenceWeekdays" : "reminder.cadenceDaily")
@@ -1090,7 +1112,7 @@ $("reminderButton").onclick = async () => {
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({ files: [file], title: t("reminder.summary") });
-      $("reminderStatus").textContent = t(one ? "reminder.sharedOne" : "reminder.shared", vars);
+      $("reminderStatus").textContent = t(one ? "reminder.sharedOne" : "reminder.shared", vars) + eveningNote;
       return;
     } catch (error) {
       // The reader closed the sheet: nothing to add, nothing to report.
@@ -1102,7 +1124,7 @@ $("reminderButton").onclick = async () => {
   downloadFile("stand-daily-reminder.ics", ics, "text/calendar");
   const key = state.reminderSeq === 0 ? (one ? "reminder.savedOne" : "reminder.savedPlan") : (one ? "reminder.updatedOne" : "reminder.updatedPlan");
   $("reminderStatus").textContent =
-    (schedule.restarted ? t("reminder.restarted", { track: track.short }) + " " : "") + t(key, vars);
+    (schedule.restarted ? t("reminder.restarted", { track: track.short }) + " " : "") + t(key, vars) + eveningNote;
 };
 
 // What an export would contain right now, for the button label, the preview
@@ -1481,6 +1503,10 @@ function start() {
   initReminder();
   if (dayFromHash() === null) history.replaceState(null, "", `${location.search}#${day + 1}`);
   render();
+  // The evening calendar check-in links here: land on the fear check-in.
+  if (new URLSearchParams(location.search).has("checkin")) {
+    $("dayCheckin").scrollIntoView({ block: "center" });
+  }
   if (new URLSearchParams(location.search).has("sos")) {
     state.welcomed = true;
     save();

@@ -30,6 +30,9 @@ self.addEventListener("fetch", event => {
   // already leaves them to the browser. Anything under /audio/ (test fixtures,
   // a local recording) uses range requests the Cache API can't store.
   if (url.pathname.startsWith("/audio/")) return;
+  // The calendar feed is a function of its query and must never be served
+  // from this cache.
+  if (url.pathname === "/calendar.ics" || url.pathname.startsWith("/api/")) return;
   const isAppNavigation = request.mode === "navigate" && (url.pathname === APP_SHELL || url.pathname === "/app/index.html");
   // Only the app shell is served from cache on navigation; static pages
   // (the landing page at /, the fear index, the crawlable day/ pages) must

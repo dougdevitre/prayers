@@ -1,0 +1,223 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  Stand narration CDN: a private S3 bucket for the rendered MP3s, served only
+  through a CloudFront distribution (Origin Access Control), with a publisher
+  role that GitHub Actions assumes through OIDC to upload new recordings.
+  Nothing here is public except the distribution, and it serves GET/HEAD only.
+
+Parameters:
+  DomainName:
+    Type: String
+    Default: audio.prayers.dougdevitre.org
+    Description: The hostname the app loads recordings from (audioManifest.base and the CSP media-src).
+  CertificateArn:
+    Type: String
+    Description: ACM certificate for DomainName. CloudFront requires it in us-east-1.
+  AppOrigin:
+    Type: String
+    Default: https://prayers.dougdevitre.org
+    Description: The site allowed to fetch recordings cross-origin.
+  GitHubRepository:
+    Type: String
+    Default: dougdevitre/prayers
+    Description: owner/name of the repository whose main-branch workflows may publish.
+  GitHubOidcProviderArn:
+    Type: String
+    Default: ""
+    Description: >-
+      ARN of an existing token.actions.githubusercontent.com OIDC provider in
+      this account. Leave empty to create one.
+  BucketName:
+    Type: String
+    Default: ""
+    Description: Leave empty to let CloudFormation name the bucket.
+
+Conditions:
+  CreateOidcProvider: !Equals [!Ref GitHubOidcProviderArn, ""]
+  NameBucket: !Not [!Equals [!Ref BucketName, ""]]
+
+Resources:
+  AudioBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !If [NameBucket, !Ref BucketName, !Ref "AWS::NoValue"]
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      LifecycleConfiguration:
+        Rules:
+          - Id: expire-old-versions
+            Status: Enabled
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 30
+          - Id: abort-incomplete-uploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 2
+
+  # Only the distribution may read the bucket.
+  AudioBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AudioBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontRead
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub "${AudioBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${AudioDistribution}"
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: "*"
+            Action: s3:*
+            Resource:
+              - !GetAtt AudioBucket.Arn
+              - !Sub "${AudioBucket.Arn}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+
+  OriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${AWS::StackName}-oac"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # CORS for the app's origin only, plus the same hardening headers the site
+  # sends. Recordings are keyed by content hash, so the browser may keep them.
+  ResponseHeadersPolicy:
+    Type: AWS::CloudFront::ResponseHeadersPolicy
+    Properties:
+      ResponseHeadersPolicyConfig:
+        Name: !Sub "${AWS::StackName}-headers"
+        CorsConfig:
+          AccessControlAllowCredentials: false
+          AccessControlAllowHeaders:
+            Items: ["Range"]
+          AccessControlAllowMethods:
+            Items: [GET, HEAD]
+          AccessControlAllowOrigins:
+            Items: [!Ref AppOrigin]
+          AccessControlExposeHeaders:
+            Items: ["Content-Length", "Content-Range", "Accept-Ranges"]
+          OriginOverride: true
+        SecurityHeadersConfig:
+          ContentTypeOptions:
+            Override: true
+          ReferrerPolicy:
+            ReferrerPolicy: strict-origin-when-cross-origin
+            Override: true
+          StrictTransportSecurity:
+            AccessControlMaxAgeSec: 31536000
+            IncludeSubdomains: false
+            Override: true
+
+  AudioDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: Stand narration recordings
+        HttpVersion: http2and3
+        IPV6Enabled: true
+        PriceClass: PriceClass_100
+        Aliases: [!Ref DomainName]
+        ViewerCertificate:
+          AcmCertificateArn: !Ref CertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+        Origins:
+          - Id: audio-bucket
+            DomainName: !GetAtt AudioBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt OriginAccessControl.Id
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+        DefaultCacheBehavior:
+          TargetOriginId: audio-bucket
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD]
+          CachedMethods: [GET, HEAD]
+          Compress: false
+          # Managed CachingOptimized: no query strings, no cookies, long TTLs
+          # bounded by the objects' own Cache-Control.
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          ResponseHeadersPolicyId: !Ref ResponseHeadersPolicy
+
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Condition: CreateOidcProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList: [sts.amazonaws.com]
+      # GitHub's certificate chain is validated by AWS itself since 2023; the
+      # thumbprint is still a required field.
+      ThumbprintList: ["6938fd4d98bab03faadb97b34396831e3780aea1"]
+
+  # Assumed by the build-audio workflow on the main branch only. It can put
+  # and read objects in this one bucket, and nothing else.
+  PublisherRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AWS::StackName}-publisher"
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !If [CreateOidcProvider, !Ref GitHubOidcProvider, !Ref GitHubOidcProviderArn]
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+              StringLike:
+                token.actions.githubusercontent.com:sub: !Sub "repo:${GitHubRepository}:ref:refs/heads/main"
+      Policies:
+        - PolicyName: publish-recordings
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: [s3:PutObject, s3:GetObject]
+                Resource: !Sub "${AudioBucket.Arn}/*"
+              - Effect: Allow
+                Action: s3:ListBucket
+                Resource: !GetAtt AudioBucket.Arn
+
+Outputs:
+  BucketName:
+    Value: !Ref AudioBucket
+    Description: Pass as AUDIO_BUCKET / --bucket to the build.
+  DistributionId:
+    Value: !Ref AudioDistribution
+  DistributionDomainName:
+    Value: !GetAtt AudioDistribution.DomainName
+    Description: Point a CNAME for DomainName here.
+  AudioBaseUrl:
+    Value: !Sub "https://${DomainName}"
+    Description: Pass as AUDIO_BASE_URL / --base to the build; it becomes audioManifest.base.
+  PublisherRoleArn:
+    Value: !GetAtt PublisherRole.Arn
+    Description: Store as the AWS_PUBLISHER_ROLE_ARN repository secret for the build-audio workflow.

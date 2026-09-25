@@ -30,6 +30,9 @@
 // the occurrence it names.
 
 const REMINDER_UID = "stand-daily-reminder@prayers.dougdevitre.org";
+// The optional evening check-in is its own series, so a reader can keep the
+// morning reminder and drop the evening one, or the other way round.
+const EVENING_UID = "stand-evening-checkin@prayers.dougdevitre.org";
 
 // slugify lives in logic.js: a global in the browser, a require in Node. Not
 // named `slugify` here because a top-level const would collide with the
@@ -84,7 +87,8 @@ const isWeekend = d => d.getDay() === 0 || d.getDay() === 6;
 /**
  * Which days to schedule and when each one lands.
  *   from       "current" (default) starts at the first incomplete day;
- *              "start" begins again at Day 1
+ *              "start" begins again at Day 1; a number is a 0-based day
+ *              to start on regardless of progress (the subscription feed)
  *   weekdays   true skips Saturdays and Sundays
  *   fromDay    the first day scheduled
  *   count      days from fromDay to the end of the journey
@@ -97,8 +101,9 @@ const isWeekend = d => d.getDay() === 0 || d.getDay() === 6;
 function reminderSchedule({ dayCount, completed, time, now, from = "current", weekdays = false }) {
   const done = new Set(completed || []);
   let fromDay = 0;
-  if (from !== "start") while (fromDay < dayCount && done.has(fromDay)) fromDay++;
-  const restarted = from !== "start" && fromDay >= dayCount;
+  if (typeof from === "number") fromDay = Math.max(0, Math.min(dayCount - 1, Math.floor(from)));
+  else if (from !== "start") while (fromDay < dayCount && done.has(fromDay)) fromDay++;
+  const restarted = from === "current" && fromDay >= dayCount;
   if (restarted) fromDay = 0;
   const [h, m] = time.split(":").map(Number);
   const chosenToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
@@ -183,6 +188,28 @@ function reminderEntry({ track, trackId, lang, origin, t, dayIndex, position }) 
   return { summary, description, url: appLink, pageUrl: pageLink, alarm: t("reminder.alarmDay", { n, title }) };
 }
 
+/** The evening check-in for one day: the practice the morning asked for,
+ * a question, and a link that opens the day with the fear check-in in view. */
+function eveningEntry({ track, trackId, lang, origin, t, dayIndex }) {
+  const total = track.days.length;
+  const [title, , , , , declaration, practice] = track.days[dayIndex];
+  const n = dayIndex + 1;
+  const link = `${appDayLink(origin, trackId, dayIndex).replace("/app", "/app?checkin=1").replace("?checkin=1?", "?checkin=1&")}`;
+  const summary = t("reminder.eveningSummary", { n, title });
+  const description = [
+    t("reminder.dayOf", { n, total, title }),
+    "",
+    t("reminder.eveningPractice", { text: practice }),
+    "",
+    t("reminder.eveningQuestion"),
+    "",
+    t("reminder.declare", { text: declaration }),
+    "",
+    t("reminder.eveningOpen", { n, url: link })
+  ].join("\n");
+  return { summary, description, url: link, alarm: t("reminder.eveningAlarm", { n, title }) };
+}
+
 /**
  * The .ics file.
  *   track     the journey in the reader's language
@@ -194,9 +221,13 @@ function reminderEntry({ track, trackId, lang, origin, t, dayIndex, position }) 
  *   origin    e.g. "https://prayers.dougdevitre.org"
  *   t         the string lookup, t(key, vars)
  *   lead      minutes before the time the alarm fires; 0 fires at the time
+ *   evening   "HH:MM" to add an evening check-in series on the same days, or
+ *             null for none
+ *   cancelEvening  true emits the evening master as CANCELLED (no overrides),
+ *             for a reader who had the series and has turned it off
  *   schedule  from reminderSchedule(); computed here when omitted
  */
-function buildReminderIcs({ track, trackId, lang, time, seq, now, origin, t, lead = 0, completed, schedule }) {
+function buildReminderIcs({ track, trackId, lang, time, seq, now, origin, t, lead = 0, evening = null, cancelEvening = false, completed, schedule }) {
   const plan = schedule || reminderSchedule({ dayCount: track.days.length, completed, time, now });
   const [hh, mm] = time.split(":");
   const dayStamp = d => `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}T${hh}${mm}00`;
@@ -256,10 +287,63 @@ function buildReminderIcs({ track, trackId, lang, time, seq, now, origin, t, lea
     );
   }
 
+  if (evening) {
+    const [eh, em] = evening.split(":");
+    const eveningStamp = d => `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}T${eh}${em}00`;
+    lines.push(
+      "BEGIN:VEVENT",
+      `UID:${EVENING_UID}`,
+      `SEQUENCE:${seq}`,
+      `DTSTAMP:${dtstamp}`,
+      `DTSTART:${eveningStamp(dateAt(0))}`,
+      "DURATION:PT5M",
+      `RRULE:${rrule}`,
+      "TRANSP:TRANSPARENT",
+      `SUMMARY:${icsText(t("reminder.eveningMaster"))}`,
+      `DESCRIPTION:${icsText(t("reminder.eveningMasterDescription", { url: `${origin}/app` }))}`,
+      `URL:${origin}/app`,
+      "BEGIN:VALARM", trigger, "ACTION:DISPLAY", `DESCRIPTION:${icsText(t("reminder.eveningMaster"))}`, "END:VALARM",
+      "END:VEVENT"
+    );
+    for (let k = 0; k < plan.count; k++) {
+      const when = eveningStamp(dateAt(k));
+      const entry = eveningEntry({ track, trackId, lang, origin, t, dayIndex: plan.fromDay + k });
+      lines.push(
+        "BEGIN:VEVENT",
+        `UID:${EVENING_UID}`,
+        `RECURRENCE-ID:${when}`,
+        `SEQUENCE:${seq}`,
+        `DTSTAMP:${dtstamp}`,
+        `DTSTART:${when}`,
+        "DURATION:PT5M",
+        "TRANSP:TRANSPARENT",
+        `SUMMARY:${icsText(entry.summary)}`,
+        `DESCRIPTION:${icsText(entry.description)}`,
+        `URL:${entry.url}`,
+        "BEGIN:VALARM", trigger, "ACTION:DISPLAY", `DESCRIPTION:${icsText(entry.alarm)}`, "END:VALARM",
+        "END:VEVENT"
+      );
+    }
+  } else if (cancelEvening) {
+    // RFC 5545 §3.8.1.11: a cancelled component with a higher SEQUENCE. Apple
+    // and Outlook drop the series on import; Google's importer may not, which
+    // is why the status text also tells the reader what to delete.
+    lines.push(
+      "BEGIN:VEVENT",
+      `UID:${EVENING_UID}`,
+      `SEQUENCE:${seq}`,
+      `DTSTAMP:${dtstamp}`,
+      `DTSTART:${dayStamp(dateAt(0))}`,
+      "STATUS:CANCELLED",
+      `SUMMARY:${icsText(t("reminder.eveningMaster"))}`,
+      "END:VEVENT"
+    );
+  }
+
   lines.push("END:VCALENDAR");
   return lines.map(icsFold).join("\r\n") + "\r\n";
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { REMINDER_UID, REMINDER_TIPS, GUARDRAIL_TIPS, REMINDER_LEADS, icsText, icsFold, dayPagePath, appDayLink, reminderSchedule, tipKeyFor, weekLabel, reminderEntry, buildReminderIcs };
+  module.exports = { REMINDER_UID, EVENING_UID, REMINDER_TIPS, GUARDRAIL_TIPS, REMINDER_LEADS, icsText, icsFold, dayPagePath, appDayLink, reminderSchedule, tipKeyFor, weekLabel, reminderEntry, eveningEntry, buildReminderIcs };
 }

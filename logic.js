@@ -147,7 +147,11 @@ function sanitizeBackup(raw, deps) {
     // The export options, each reduced to its default when malformed.
     reminderFrom: raw.reminderFrom === "start" ? "start" : "current",
     reminderWeekdays: raw.reminderWeekdays === true,
-    reminderLead: [0, 10, 30].includes(raw.reminderLead) ? raw.reminderLead : 0
+    reminderLead: [0, 10, 30].includes(raw.reminderLead) ? raw.reminderLead : 0,
+    reminderEvening: /^([01]\d|2[0-3]):[0-5]\d$/.test(raw.reminderEvening) ? raw.reminderEvening : null,
+    // Whether an evening series has been exported, so turning it off can
+    // cancel it once.
+    reminderEveningExported: raw.reminderEveningExported === true
   };
 }
 

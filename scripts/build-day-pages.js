@@ -143,6 +143,45 @@ function socialMeta({ L, title, description, type, relPath, altPath }) {
 ${alternates}  <link rel="canonical" href="${SITE_URL}${relPath}" />`;
 }
 
+// Structured data for one day: an Article in a series, with its translation
+// and a breadcrumb trail. The landing page already carries a WebSite and a
+// SoftwareApplication under the same CSP — a JSON-LD block is data, not a
+// script, so script-src 'self' does not block it (the smoke suite checks).
+// "</" is escaped so no content string could ever close the script element.
+function structuredData({ L, track, id, i, title, ref, description, relPath, altPath, other }) {
+  const url = `${SITE_URL}${relPath}`;
+  const altUrl = `${SITE_URL}${altPath}`;
+  const seriesUrl = `${SITE_URL}${urlBaseFor(L, id)}/${slugs[L.code][id][0]}`;
+  const article = {
+    "@type": "Article",
+    "@id": `${url}#article`,
+    headline: `${L.dayNav(i + 1)}: ${title}`,
+    name: title,
+    description,
+    url,
+    mainEntityOfPage: url,
+    inLanguage: L.code,
+    image: OG_IMAGE,
+    isAccessibleForFree: true,
+    citation: ref,
+    position: i + 1,
+    isPartOf: { "@type": "CreativeWorkSeries", "@id": `${seriesUrl}#series`, name: track.name, url: seriesUrl, inLanguage: L.code },
+    publisher: { "@type": "Organization", name: "Stand", url: `${SITE_URL}/` }
+  };
+  // The two languages point at each other, so a search engine sees one work
+  // in two languages rather than two works.
+  article[L.code === "en" ? "workTranslation" : "translationOfWork"] = { "@type": "Article", "@id": `${altUrl}#article`, inLanguage: other };
+  const breadcrumb = {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Stand", item: `${SITE_URL}${L.brandHome}` },
+      { "@type": "ListItem", position: 2, name: track.short, item: seriesUrl },
+      { "@type": "ListItem", position: 3, name: `${L.dayNav(i + 1)}: ${title}`, item: url }
+    ]
+  };
+  return JSON.stringify({ "@context": "https://schema.org", "@graph": [article, breadcrumb] }, null, 2).replace(/<\//g, "<\\/");
+}
+
 function weekFor(track, i) {
   const w = track.weeks;
   if (w.length < 5) return w[0];
@@ -194,6 +233,9 @@ ${socialMeta({ L, title: pageTitle, description, type: "article", relPath, altPa
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/styles.css" />
   <title>${esc(pageTitle)}</title>
+  <script type="application/ld+json">
+${structuredData({ L, track, id, i, title, ref, description, relPath, altPath, other })}
+  </script>
 </head>
 <body>
   <div class="app-shell">

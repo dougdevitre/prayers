@@ -922,17 +922,18 @@ const server = http.createServer((req, res) => {
   // while the existing debt stays visible in every run rather than living
   // in someone's notes.
   //
-  // All current debt is one token: --gold #b88732 as text on the light
-  // palette. Fixing it means a second token (--gold-text) for text, leaving
-  // --gold for borders and fills; it visibly changes the brand's signature
-  // label colour, so it is a design decision, not a defect to patch. Dark
-  // mode already passes (the dark --gold is #f1c879).
+  // The list is empty. It used to hold four classes, all one token: --gold
+  // #b88732 as text on the light palette (2.92:1 on the paper). Text now uses
+  // --gold-text (#7f5b1a light, 5.60:1 on the paper and 4.74:1 on the gold
+  // wash; the dark palette keeps #f1c879), while borders, fills and the
+  // favourite glyph keep --gold. The list stays so a future shortfall has
+  // somewhere to be recorded rather than silently waved through.
   //
   // <option> is excluded: its popup is painted by the OS, not in the page,
   // so the nearest-ancestor background is the wrong comparison. The rule
   // that sets it exists precisely so options read on the browser's own
   // light popup while the closed select inherits the dark card's colour.
-  const KNOWN_CONTRAST_DEBT = ["brand-mark", "eyebrow", "section-kicker", "filter-tab"];
+  const KNOWN_CONTRAST_DEBT = [];
   const sweepContrast = () => page.evaluate(debt => {
     const lum = c => {
       const m = c.match(/[\d.]+/g);
@@ -974,10 +975,9 @@ const server = http.createServer((req, res) => {
     check(`no new contrast failures on ${url}`, bad.length === 0);
   }
 
-  // Dark mode is swept with NO debt allowance: the dark --gold (#f1c879) is
-  // 9.61:1 on the dark paper, so every page already passes outright. The
-  // contrast debt above is a light-mode problem only. Now that the static
-  // pages follow a dark device, this keeps that clean sheet honest.
+  // Dark mode is swept the same way: the dark --gold (#f1c879) is 9.61:1 on
+  // the dark paper, so every page passes outright. Now that the static pages
+  // follow a dark device, this keeps that clean sheet honest.
   await page.emulateMedia({ colorScheme: "dark" });
   for (const url of SWEEP_PAGES) {
     await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });

@@ -1,0 +1,87 @@
+# Renders narration with ElevenLabs and publishes it to the audio bucket, on
+# demand only. Nothing here runs on push. The result is a branch carrying the
+# updated audio-manifest.js, to be opened as a pull request and reviewed like
+# any other change; the recordings themselves are already in S3 by then, keyed
+# by hash, so merging the manifest is what makes them live.
+#
+# Secrets: ELEVENLABS_API_KEY, AWS_PUBLISHER_ROLE_ARN, AUDIO_BUCKET.
+# Variables: AUDIO_BASE_URL (https://audio.prayers.dougdevitre.org).
+name: Build audio
+
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Item id prefixes to render, comma-separated (e.g. en/day/core,es/sos). Empty renders everything not yet fresh."
+        required: false
+        default: ""
+      limit:
+        description: "Stop after this many renders (empty for no limit)."
+        required: false
+        default: ""
+      dry_run:
+        description: "List what would be rendered and its character count, without calling ElevenLabs."
+        type: boolean
+        default: true
+
+permissions:
+  id-token: write
+  contents: write
+
+concurrency:
+  group: build-audio
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm install --no-save @aws-sdk/client-s3
+      - run: npm run verify:audio
+
+      - name: Configure AWS credentials (OIDC, no stored keys)
+        if: ${{ !inputs.dry_run }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_PUBLISHER_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Render and upload
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          AUDIO_BUCKET: ${{ secrets.AUDIO_BUCKET }}
+          AUDIO_BASE_URL: ${{ vars.AUDIO_BASE_URL }}
+        run: |
+          set -euo pipefail
+          args=()
+          if [ -n "${{ inputs.only }}" ]; then args+=(--only "${{ inputs.only }}"); fi
+          if [ -n "${{ inputs.limit }}" ]; then args+=(--limit "${{ inputs.limit }}"); fi
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            node scripts/build-audio.js --dry-run "${args[@]}"
+          else
+            node scripts/build-audio.js --upload "${args[@]}"
+          fi
+
+      - run: npm run verify:audio
+
+      - name: Push the manifest as a branch
+        if: ${{ !inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- audio-manifest.js; then
+            echo "Nothing new was rendered; the manifest is unchanged."
+            exit 0
+          fi
+          branch="audio/manifest-${{ github.run_number }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add audio-manifest.js
+          git commit -m "Render narration (build-audio run ${{ github.run_number }})"
+          git push -u origin "$branch"
+          echo "Open a pull request from $branch" >> "$GITHUB_STEP_SUMMARY"

@@ -38,19 +38,13 @@ function sosVerses() {
     .map(m => ({ ref: m[1], verse: m[2], label: `sos ${m[1]}` }));
 }
 
-// Courage-story excerpts are condensed rather than quoted: they drop clauses
-// and in places use wording from outside the WEB ("perishing" for Mark 4:38's
-// "dying"). The underlying text is public domain either way, so this is a
-// labelling question, not a licensing one — but they are not quotations and
-// this reports them separately rather than pretending otherwise.
-const ADAPTED_GROUP = "COURAGE STORIES";
-
-const gated = [], adapted = [];
+// Every excerpt in the app is gated, the courage stories included. They used
+// to be condensed paraphrases (clauses dropped to fit a card, "perishing" for
+// Mark 4:38's "dying") and were reported separately; each one is now a
+// contiguous substring of the WEB text, so the same rule applies to all.
+const gated = [];
 for (const track of Object.values(tracks)) {
-  track.days.forEach((d, i) => {
-    const row = { ref: d[1], verse: d[2], label: `${track.id} day ${i + 1}` };
-    (track.group === ADAPTED_GROUP ? adapted : gated).push(row);
-  });
+  track.days.forEach((d, i) => gated.push({ ref: d[1], verse: d[2], label: `${track.id} day ${i + 1}` }));
 }
 gated.push(...sosVerses());
 
@@ -148,8 +142,6 @@ for (const row of gated) {
   }
 }
 
-const adaptedNotInSource = adapted.filter(r => classify(r) === "not-in-source").length;
-
 if (failures || esFail) {
   if (failures) console.error(`\n✗ ${failures} of ${gated.length} English excerpts are not drawn from the WEB text.`);
   if (esFail) console.error(`✗ ${esFail} Spanish problem(s) against the Reina-Valera 1909.`);
@@ -161,5 +153,3 @@ if (esDays) {
   console.log(`✓ Spanish verified — ${esDays} days, every verse drawn from the Reina-Valera 1909 ` +
               `(${esOk} verbatim, ${esPunct} differing only in trailing punctuation)`);
 }
-console.log(`  ${adapted.length} courage-story excerpts are condensed paraphrases and are not gated here; ` +
-            `${adaptedNotInSource} of them are not WEB substrings. Public domain either way — see the content note in README.md.`);

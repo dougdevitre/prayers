@@ -89,7 +89,7 @@ All scripture in the app is public domain. The 30-day journey, the two fear trac
 
 Those excerpts previously read as NIV, which is not licensed for redistribution. The swap removed the question rather than answering it.
 
-The 68 courage-story excerpts are **condensed** from the WEB rather than quoted from it, so they are reported separately and not gated. Public domain either way — this is a labelling matter, not a licensing one — but they should not be presented as quotations.
+The 68 courage-story excerpts used to be **condensed** from the WEB rather than quoted from it, and were reported separately rather than gated. Each one is now a contiguous substring of the WEB text (case and trailing punctuation aside), chosen to keep the clause the day's reflection leans on, so the same gate covers all 112 English excerpts and the four SOS sets. Where the WEB's wording differs from the paraphrase a reader may remember — “dying” rather than “perishing” in Mark 4:38, “given to the LORD” rather than “lent” in 1 Samuel 1:28 — the WEB wins, because the app calls these scripture excerpts and they should be exactly that.
 
 `scripts/es-source.json` holds the Reina-Valera 1909 text for the same 105 references — the 108 Spanish days and the four Spanish SOS sets, both gated, extracted from `scrollmapper/bible_databases`, which names the edition (`SpaRV: La Santa Biblia Reina-Valera (1909)`) and tracks a licence per translation. A widely-used alternative was rejected: it labelled its Spanish text only "Reina Valera" with no edition or licence, admitted the files were crawled, and listed copyrighted translations for other languages.
 

@@ -34,8 +34,11 @@ function settingsFor(voices, item) {
   if (!lang) throw new Error(`audio-voices.json has no voice for ${item.lang}`);
   const kind = lang[item.kind];
   if (!kind) throw new Error(`audio-voices.json has no ${item.kind} settings for ${item.lang}`);
+  // A kind may carry its own voice and model (the traditional prayers use
+  // the voice REMAM's prayer audio uses, in both languages); otherwise the
+  // language's apply.
   const settings = {
-    voiceId: lang.voiceId, model: lang.model, outputFormat: voices.outputFormat || "mp3_44100_128",
+    voiceId: kind.voiceId || lang.voiceId, model: kind.model || lang.model, outputFormat: voices.outputFormat || "mp3_44100_128",
     stability: kind.stability, similarity: kind.similarity, style: kind.style, speed: kind.speed, boost: kind.boost !== false
   };
   // A traditional prayer carries its own pacing (prayers.js, validated by

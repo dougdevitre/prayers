@@ -640,7 +640,10 @@ function sosDone(after) {
     sos.recorded = false;
     sosBreathing();
   };
-  stage.append(line, close, again);
+  const actions = document.createElement("div");
+  actions.className = "sos-actions";
+  actions.append(close, again);
+  stage.append(line, actions);
 }
 
 function openSos() {

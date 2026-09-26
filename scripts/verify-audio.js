@@ -14,21 +14,28 @@
  * the manifest recorded; --attempts and --delay poll, because the host
  * publishes a little after the files are pushed.
  *
- *   node scripts/verify-audio.js
+ * --allow-stale lists stale items without failing on them. The Build audio
+ * workflow checks the manifest that way before it renders (stale items are
+ * what a run is for), and after a dry run or a partial run (--only, --limit),
+ * which leave items stale by design. Problems and orphans still fail, and
+ * CI's check on the manifest's pull request stays strict.
+ *
+ *   node scripts/verify-audio.js [--allow-stale]
  *   node scripts/verify-audio.js --remote [--base https://host] [--attempts 12 --delay 15000]
  */
 
 const path = require("path");
 const lib = require("./audio-lib.js");
 
-function verify({ manifest = lib.readManifest(), items = lib.loadItems(), voices = lib.loadVoices(), slugify = require(path.join(lib.ROOT, "logic.js")).slugify } = {}) {
+function verify({ manifest = lib.readManifest(), items = lib.loadItems(), voices = lib.loadVoices(), slugify = require(path.join(lib.ROOT, "logic.js")).slugify, allowStale = false } = {}) {
   const plan = lib.planItems({ items, voices, slugify });
   const report = lib.manifestReport(manifest, plan);
   const lines = [];
   for (const p of report.problems) lines.push(`✗ ${p}`);
-  for (const s of report.stale) lines.push(`✗ ${s.id} is stale: rendered as ${s.key}, the current script and settings give ${s.expected}`);
   for (const o of report.orphan) lines.push(`✗ ${o} is in the manifest but not in the content`);
-  const ok = !lines.length;
+  const ok = !lines.length && (allowStale || !report.stale.length);
+  const mark = allowStale ? "•" : "✗";
+  for (const s of report.stale) lines.push(`${mark} ${s.id} is stale: rendered as ${s.key}, the current script and settings give ${s.expected}`);
   if (report.stale.length) {
     lines.push(`  re-render with: node scripts/build-audio.js --only ${report.stale.map(s => s.id).join(",")}`);
   }
@@ -82,7 +89,7 @@ async function verifyRemote({ attempts = 1, delayMs = 0, log = () => {}, ...opts
 if (require.main === module) {
   const argv = process.argv.slice(2);
   const opt = (flag, fallback) => { const i = argv.indexOf(flag); return i >= 0 ? argv[i + 1] : fallback; };
-  const { ok, lines } = verify();
+  const { ok, lines } = verify({ allowStale: argv.includes("--allow-stale") });
   for (const line of lines) (ok ? console.log : console.error)(line);
   if (!ok || !argv.includes("--remote")) process.exit(ok ? 0 : 1);
   const manifest = lib.readManifest();

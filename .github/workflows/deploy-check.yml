@@ -23,12 +23,12 @@ jobs:
       && !contains(github.event.deployment.environment, 'prayers-audio')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.deployment.sha }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
       - name: Production serves the deployed commit
         run: node scripts/verify-deploy.js https://prayers.dougdevitre.org --attempts 9 --delay 20000
       # Every day's share card, both sizes: proves the card function works in

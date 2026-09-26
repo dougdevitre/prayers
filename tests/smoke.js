@@ -20,7 +20,7 @@ const SITE = "https://prayers.dougdevitre.org";
 // The app is served from the test server, so runtime URLs use its origin.
 const SITE_ORIGIN = "http://localhost:8123";
 const DAY_PAGE_COUNT = Object.values(tracks).reduce((n, t) => n + t.days.length, 0);
-const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".xml": "application/xml", ".txt": "text/plain", ".webmanifest": "application/manifest+json", ".mp3": "audio/mpeg" };
+const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp", ".xml": "application/xml", ".txt": "text/plain", ".webmanifest": "application/manifest+json", ".mp3": "audio/mpeg" };
 
 // Mirrors the redirects in vercel.json, so the suite covers old links too.
 const REDIRECTS = { "/about": "/" };
@@ -726,10 +726,18 @@ const server = http.createServer((req, res) => {
   check("screenshots reserve their space", await page.evaluate(() =>
     [...document.querySelectorAll("#see .shot img")].every(i => i.getAttribute("width") && i.getAttribute("height"))));
   // A light screenshot on a dark page glares, so each has a dark counterpart.
-  check("screenshots have a dark variant", await page.evaluate(() =>
-    [...document.querySelectorAll("#see .shot picture source")]
-      .every(sourceEl => sourceEl.getAttribute("media") === "(prefers-color-scheme: dark)")
-    && document.querySelectorAll("#see .shot picture source").length === 3));
+  // Each picture offers a dark WebP, a dark PNG and a light WebP ahead of the
+  // light PNG in <img>, so a browser takes the smallest file it can show.
+  check("screenshots have a dark variant, and WebP ahead of each PNG", await page.evaluate(() =>
+    [...document.querySelectorAll("#see .shot picture")].every(pic => {
+      const s = [...pic.querySelectorAll("source")].map(el => `${el.getAttribute("type") || "png"} ${el.getAttribute("media") ? "dark" : "light"} ${el.getAttribute("srcset")}`);
+      const light = pic.querySelector("img").getAttribute("src");
+      const dark = light.replace(".png", "-dark.png");
+      return s.length === 3 && s[0] === `image/webp dark ${dark.replace(".png", ".webp")}` && s[1] === `png dark ${dark}`
+        && s[2] === `image/webp light ${light.replace(".png", ".webp")}`;
+    })));
+  check("the browser loads the WebP screenshots", await page.evaluate(() =>
+    [...document.querySelectorAll("#see .shot img")].every(i => i.currentSrc.endsWith(".webp") && i.naturalWidth > 0)));
 
   // Structured data: verified to survive script-src 'self' because ld+json is
   // data, not executable script.

@@ -148,9 +148,35 @@ const INSTALL_ONLY = process.argv.includes("--install");
     await capture(page, `composer${sfx}.png`, "#prayerDialog");
   }
 
+  // The landing pages also get a WebP of each capture, which <picture> offers
+  // ahead of the PNG: a quarter to a half of the bytes at quality 0.9, with
+  // text still sharp. Chromium's own encoder does it, so nothing new is
+  // installed; the PNG stays as the fallback. The install screenshots stay
+  // PNG only, as the manifest lists them.
+  const webps = [];
+  if (!INSTALL_ONLY) {
+    const encoder = await browser.newPage();
+    for (const s of shots) {
+      const png = fs.readFileSync(path.join(OUT, s)).toString("base64");
+      const webp = await encoder.evaluate(async png => {
+        const img = new Image();
+        img.src = "data:image/png;base64," + png;
+        await img.decode();
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        canvas.getContext("2d").drawImage(img, 0, 0);
+        return canvas.toDataURL("image/webp", 0.9).split(",")[1];
+      }, png);
+      const name = s.replace(/\.png$/, ".webp");
+      fs.writeFileSync(path.join(OUT, name), Buffer.from(webp, "base64"));
+      webps.push(name);
+    }
+  }
+
   await browser.close();
   server.close();
-  for (const s of shots) {
+  for (const s of [...shots, ...webps]) {
     const kb = (fs.statSync(path.join(OUT, s)).size / 1024).toFixed(0);
     console.log(`  shots/${s}  ${kb} KB`);
   }

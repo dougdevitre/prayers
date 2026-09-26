@@ -21,7 +21,7 @@ const PORT = Number(process.env.A11Y_PORT || 8193);
 const AXE = fs.readFileSync(require.resolve("axe-core/axe.min.js"), "utf8");
 const cardHandler = require("../api/card.js");
 
-const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".webmanifest": "application/manifest+json", ".woff": "font/woff" };
+const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp", ".webmanifest": "application/manifest+json", ".woff": "font/woff" };
 
 // The same routes as the smoke server: cleanUrls, the /cards rewrite, the
 // site's 404 page, and an empty audio manifest so nothing reaches the audio host.

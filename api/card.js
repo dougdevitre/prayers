@@ -85,6 +85,10 @@ function ogCard(card) {
 let engines = null;
 function setUp() {
   engines = engines || (async () => {
+    // satori shapes text with harfbuzzjs, which loads hb.wasm from its own
+    // folder at run time; naming the file here is what gets it bundled into
+    // the function (Vercel's file tracer cannot see that load by itself).
+    fs.accessSync(require.resolve("harfbuzzjs/hb.wasm"));
     const satori = require("satori").default;
     const resvg = require("@resvg/resvg-wasm");
     await resvg.initWasm(fs.readFileSync(require.resolve("@resvg/resvg-wasm/index_bg.wasm")));

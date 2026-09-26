@@ -6,7 +6,7 @@
     {"source": "/cards/:lang/:track/:file", "destination": "/api/card?lang=:lang&track=:track&file=:file"}
   ],
   "functions": {
-    "api/card.js": {"includeFiles": "{fonts/*.woff,node_modules/harfbuzzjs/hb.wasm,node_modules/@resvg/resvg-wasm/index_bg.wasm}"}
+    "api/card.js": {"includeFiles": "fonts/*.woff"}
   },
   "redirects": [
     {"source": "/about", "destination": "/", "permanent": true}

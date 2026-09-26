@@ -61,7 +61,13 @@ const server = http.createServer((req, res) => {
     });
     res.end(data);
   } catch {
-    res.writeHead(404); res.end("not found");
+    // Mirror Vercel: a path that matches nothing gets the site's 404.html,
+    // with a 404 status, under the same CSP.
+    res.writeHead(404, {
+      "Content-Type": "text/html",
+      "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self'; media-src 'self' blob: https://stand-audio.vercel.app https://audio.prayers.dougdevitre.org; connect-src 'self' https://stand-audio.vercel.app https://audio.prayers.dougdevitre.org; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+    });
+    res.end(fs.readFileSync(path.join(ROOT, "404.html")));
   }
 });
 
@@ -697,7 +703,9 @@ const server = http.createServer((req, res) => {
   const sitemapRes = await page.request.get("http://localhost:8123/sitemap.xml");
   const sitemap = await sitemapRes.text();
   const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
-  check("sitemap lists every generated page", locs.length === DAY_PAGE_COUNT * 2 + 4);
+  // The two landing pages, the two fear indexes, and the privacy policy and
+  // terms in both languages, plus every day page.
+  check("sitemap lists every generated page", locs.length === DAY_PAGE_COUNT * 2 + 8);
   check("sitemap is absolute", locs.every(u => u.startsWith(SITE + "/")));
   check("sitemap covers the landing page", locs.includes(`${SITE}/`));
   check("sitemap omits the redirected /about", !locs.includes(`${SITE}/about`));
@@ -1141,10 +1149,69 @@ const server = http.createServer((req, res) => {
   {
     const sitemapRes = await page.request.get("http://localhost:8123/sitemap.xml");
     const locs = [...(await sitemapRes.text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
-    check("sitemap carries both languages", locs.length === DAY_PAGE_COUNT * 2 + 4);
+    check("sitemap carries both languages", locs.length === DAY_PAGE_COUNT * 2 + 8);
     check("sitemap covers the Spanish landing page", locs.includes(`${SITE}/es`));
     check("sitemap covers the Spanish fear index", locs.includes(`${SITE}/es/fears`));
+    check("sitemap covers the privacy policy and terms in both languages",
+      ["/privacy", "/es/privacy", "/terms", "/es/terms"].every(p => locs.includes(`${SITE}${p}`)));
+    check("sitemap omits the 404 page", !locs.some(u => /\/404(\.html)?$/.test(u)));
   }
+
+  // ---------------------------------------------------------------------
+  // Privacy policy and terms of use. Generated with the other static pages,
+  // so they share the head, nav, footer and dark mode, and pair across the
+  // two languages the same way the day pages do.
+  const LEGAL = [["/privacy", "/es/privacy", "en"], ["/es/privacy", "/privacy", "es"], ["/terms", "/es/terms", "en"], ["/es/terms", "/terms", "es"]];
+  for (const [url, alt, lang] of LEGAL) {
+    const res = await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
+    const other = lang === "en" ? "es" : "en";
+    check(`${url} loads`, res.status() === 200 && (await page.$$("main h1")).length === 1);
+    check(`${url} declares its language`, await page.getAttribute("html", "lang") === lang);
+    check(`${url} is canonical to itself`, await page.getAttribute('link[rel="canonical"]', "href") === `${SITE}${url}`);
+    check(`${url} pairs with ${alt} via hreflang`, (await hreflang(lang)) === `${SITE}${url}`
+      && (await hreflang(other)) === `${SITE}${alt}`
+      && (await hreflang("x-default")) === `${SITE}${lang === "en" ? url : alt}`);
+    check(`${url} carries the social card and its own URL`, await meta2("og:image") === `${SITE}/og-card.png`
+      && await meta2("og:url") === `${SITE}${url}` && await meta2("twitter:card") === "summary_large_image");
+    check(`${url} follows the device's colour scheme`, (await page.getAttribute("html", "class")) === "theme-auto");
+    check(`${url} opens with a plain summary and closes with its date`, (await page.textContent(".landing-hero .landing-lead")).length > 200
+      && /^(Last updated|Última actualización): 26/.test((await page.textContent(".landing-section > .landing-fineprint")).trim()));
+    check(`${url} heading levels do not skip`, !(await headingsSkip()));
+    check(`${url} ships no script`, (await page.$$("script")).length === 0);
+    check(`${url} gives the contact placeholder as a mailto link`,
+      (await page.$$('a[href="mailto:CONTACT_EMAIL_REQUIRED@example.invalid"]')).length === 1);
+    const source = await (await page.request.get("http://localhost:8123" + url)).text();
+    check(`${url} is marked as a draft for attorney review`, source.includes("<!-- Plain-language draft for review by an attorney before publication. -->"));
+    check(`${url} has no horizontal scroll`, !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)));
+  }
+  for (const url of ["/privacy", "/es/privacy"]) {
+    await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
+    check(`${url} links to Vercel's privacy notice`, (await page.$$('main a[href="https://vercel.com/legal/privacy-policy"]')).length === 1);
+    check(`${url} names where the recordings come from`, (await page.textContent("main")).includes("stand-audio.vercel.app"));
+  }
+  for (const url of ["/terms", "/es/terms"]) {
+    await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
+    const text = await page.textContent("main");
+    check(`${url} gives the 988 line`, text.includes("988") && (await page.$$('main a[href="tel:988"]')).length === 1);
+    check(`${url} points outside the US to findahelpline.com`, (await page.$$('main a[href="https://findahelpline.com"]')).length === 1);
+  }
+  await page.goto("http://localhost:8123/es/terms", { waitUntil: "networkidle" });
+  check("the Spanish terms give the Spanish crisis instructions", (await page.textContent("main")).includes("AYUDA")
+    && (await page.textContent("main")).includes("marca 2"));
+
+  // Every static page links to both documents from its footer, in its own
+  // language: two generated shapes and the hand-written landing page, in
+  // English and Spanish, plus the legal pages themselves (each omitting only
+  // itself).
+  for (const [url, prefix] of [["/day/01-stand", ""], ["/fears", ""], ["/", ""], ["/es/day/01-firmeza", "/es"], ["/es/fears", "/es"], ["/es", "/es"]]) {
+    await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
+    check(`${url} footer links to the privacy policy and terms`,
+      (await page.$$(`.landing-footer .footer-links a[href="${prefix}/privacy"]`)).length === 1
+      && (await page.$$(`.landing-footer .footer-links a[href="${prefix}/terms"]`)).length === 1);
+  }
+  await page.goto("http://localhost:8123/privacy", { waitUntil: "networkidle" });
+  check("the privacy footer links to the terms, not to itself", (await page.$$('.footer-links a[href="/terms"]')).length === 1
+    && (await page.$$('.footer-links a[href="/privacy"]')).length === 0);
 
   // ---------------------------------------------------------------------
   // Routing. The root used to be the app, which meant the domain opened a
@@ -1301,7 +1368,7 @@ const server = http.createServer((req, res) => {
   // that sets it exists precisely so options read on the browser's own
   // light popup while the closed select inherits the dark card's colour.
   const KNOWN_CONTRAST_DEBT = [];
-  const sweepContrast = () => page.evaluate(debt => {
+  const sweepContrastOn = p => p.evaluate(debt => {
     const lum = c => {
       const m = c.match(/[\d.]+/g);
       if (!m) return null;
@@ -1333,8 +1400,10 @@ const server = http.createServer((req, res) => {
     }
     return bad;
   }, KNOWN_CONTRAST_DEBT);
+  const sweepContrast = () => sweepContrastOn(page);
 
-  const SWEEP_PAGES = ["/", "/app", "/fears", "/day/01-stand", "/track/furnace/01-the-decree", "/es", "/es/fears", "/es/day/01-firmeza"];
+  const SWEEP_PAGES = ["/", "/app", "/fears", "/day/01-stand", "/track/furnace/01-the-decree", "/es", "/es/fears", "/es/day/01-firmeza",
+    "/privacy", "/terms", "/es/privacy", "/es/terms"];
   for (const url of SWEEP_PAGES) {
     await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
     const bad = await sweepContrast();
@@ -1382,6 +1451,39 @@ const server = http.createServer((req, res) => {
     check(`no contrast failures in dark mode on ${url}`, bad.length === 0);
   }
   await page.emulateMedia({ colorScheme: "light" });
+
+  // ---------------------------------------------------------------------
+  // The 404 page. Vercel serves 404.html for any path that matches nothing,
+  // and the test server now does the same. It has its own tab: the browser
+  // logs a 404 response as a console error, which the page-error check
+  // below would count against the app.
+  {
+    const nf = await browser.newPage();
+    const res = await nf.goto("http://localhost:8123/no-such-page", { waitUntil: "networkidle" });
+    check("an unknown path answers 404", res.status() === 404);
+    check("an unknown path gets the branded page", await nf.isVisible(".app-shell .topbar .brand")
+      && (await nf.textContent("h1")) === "This page isn’t here.");
+    check("the 404 page offers the app and SOS", await nf.isVisible('main a.complete-button[href="/app"]')
+      && await nf.isVisible('main a.complete-button[href="/app?sos=1"]'));
+    check("the 404 page offers both home pages", await nf.isVisible('main a[href="/"]') && await nf.isVisible('main a[href="/es"]'));
+    check("the 404 page says it in Spanish too", (await nf.textContent('main [lang="es"]')).includes("Esta página no está aquí")
+      && await nf.isVisible('main [lang="es"] a[href="/app?sos=1"]'));
+    check("the 404 page is not indexed", await nf.getAttribute('meta[name="robots"]', "content") === "noindex");
+    check("the 404 page claims no URL of its own", (await nf.$$('link[rel="canonical"], link[rel="alternate"]')).length === 0);
+    check("the 404 page ships no script", (await nf.$$("script")).length === 0);
+    check("the 404 page footer links to the privacy policy and terms",
+      (await nf.$$('.footer-links a[href="/privacy"]')).length === 1 && (await nf.$$('.footer-links a[href="/terms"]')).length === 1);
+    const deep = await nf.goto("http://localhost:8123/day/99-not-a-day", { waitUntil: "networkidle" });
+    check("a missing day page gets the same 404", deep.status() === 404 && (await nf.$$('main a[href="/app?sos=1"]')).length === 2);
+    for (const scheme of ["light", "dark"]) {
+      await nf.emulateMedia({ colorScheme: scheme });
+      await nf.goto("http://localhost:8123/no-such-page", { waitUntil: "networkidle" });
+      const bad = await sweepContrastOn(nf);
+      if (bad.length) bad.forEach(b => console.log("       " + b));
+      check(`no contrast failures on the 404 page (${scheme})`, bad.length === 0);
+    }
+    await nf.close();
+  }
 
   check("no page errors (incl. CSP violations)", errors.length === 0);
   if (errors.length) console.log(errors.join("\n"));

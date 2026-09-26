@@ -65,7 +65,7 @@ npx playwright install chromium
 npm test
 ```
 
-Alongside it, `npm run test:unit` runs 220 unit tests with no browser, and `npm run test:a11y` runs the accessibility audit described above. All three run in CI on every push and pull request.
+Alongside it, `npm run test:unit` runs 222 unit tests with no browser, and `npm run test:a11y` runs the accessibility audit described above. All three run in CI on every push and pull request.
 
 | File | Tests | What it covers |
 |---|---|---|
@@ -76,7 +76,7 @@ Alongside it, `npm run test:unit` runs 220 unit tests with no browser, and `npm 
 | `tests/narration.test.js` | 12 | Narration scripts: every scripture reference spoken without a digit left in it, and a prayer's pacing metadata becoming break tags. |
 | `tests/remam.test.js` | 11 | The REMAM lock (`scripts/remam-sync.js`), without a REMAM checkout: an edited prayer failing the check by name and field, overrides that explain a difference until the text moves again or REMAM adopts it, a sync that applies upstream fixes but refuses to overwrite an override, and a rewrite of `prayers.js` that changes only the lines that changed. |
 | `tests/seo.test.js` | 8 | Every internal link and asset reference on every page resolves (a file, or an `id` for an anchor). And every page in the sitemap: a unique title (15–65 characters) and description (70–160, so results pages show it whole), a canonical and `og:url` naming the page itself, a complete share card, the right `html lang`, English/Spanish alternates that point both ways, parseable structured data, and one `h1`. |
-| `tests/review-workbook.test.js` | 6 | The pastoral review workbook: every day, SOS set, composer block and traditional prayer present in both languages, ids unique, a hash that moves with an item's text and nothing else, the masculine reader-voice check, and page data that survives `</script>` and `$&` in the text. |
+| `tests/review-workbook.test.js` | 8 | The pastoral review workbook: every day, SOS set, composer block and traditional prayer present in both languages, ids unique, a hash that moves with an item's text and nothing else, the masculine reader-voice check, neutral wording offered for every flagged line (and a suggestion for changed text failing the build), and page data that survives `</script>` and `$&` in the text. |
 | `tests/cards.test.js` | 10 | Share cards: every day has one, the hash tracks what the card shows, both formats render as PNGs at their sizes, old addresses redirect, and the deploy check names failing cards. |
 | `tests/api.test.js` | 7 | The calendar feed in `api/calendar.js`: query parsing and named errors, the start date and time, weekday and evening options, and a valid feed for every journey in both languages. |
 | `tests/deploy.test.js` | 6 | The deploy check in `scripts/verify-deploy.js`, against local servers serving this checkout, a tampered copy, and one that catches up mid-poll. |
@@ -122,7 +122,7 @@ When a prayer should read differently here and not upstream, `node scripts/remam
 
 Until a pastoral advisor has reviewed it, the app labels its devotional content a draft (`meta.reviewNote` in `prayers.js`). `npm run build:review` writes `.review/stand-review.html`: every day of every journey, the SOS sets, every composer block, the traditional prayers and the fear-finder phrases, with English and Spanish side by side. It is published as a private claude.ai artifact (with the `db` and `user` capabilities), where the reviewer marks each item Approve or Needs change with a note; it is never committed or deployed.
 
-Each item has a stable id (`day.core.01`, `sos.2`, `compose.prayer.body.fear.3`, `trad.memorare`) and a hash of its text. A decision is stored with the hash it was made against, so when text changes the workbook shows that decision as out of date rather than carrying the approval over. Spanish lines that address the reader in the masculine (`estoy confundido`) are marked as questions for the reviewer. A "needs change" note becomes a content PR, and only the audio for the items it touches is re-rendered.
+Each item has a stable id (`day.core.01`, `sos.2`, `compose.prayer.body.fear.3`, `trad.memorare`) and a hash of its text. A decision is stored with the hash it was made against, so when text changes the workbook shows that decision as out of date rather than carrying the approval over. Spanish lines that address the reader in the masculine (`estoy confundido`) are marked as questions for the reviewer, each with neutral wording to choose from (`scripts/review-suggestions.json`); choosing one marks the item Needs change and records the swap in its note. A "needs change" note becomes a content PR, and only the audio for the items it touches is re-rendered.
 
 ## Content note
 

@@ -74,6 +74,14 @@ select.chip{padding-right:10px}
 .f-text.missing{color:var(--warn);font:italic .9rem var(--sans)}
 .flag{margin:8px 16px 0;padding:10px 12px;border-radius:4px;background:var(--flag-bg);color:var(--flag);font-size:.9rem}
 .flag b{font-weight:700}
+.suggest{margin:8px 16px 0;padding:10px 12px;border:1px solid var(--line);border-radius:4px;display:grid;gap:6px;font-size:.9rem}
+.suggest .from{margin:0;color:var(--muted)}
+.suggest .from q{font:italic 400 .98rem var(--serif);color:var(--ink)}
+.opt{display:flex;gap:10px;align-items:center;justify-content:space-between;text-align:left;width:100%;min-height:44px;padding:8px 12px;border-radius:6px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:400 .98rem/1.4 var(--serif);cursor:pointer}
+.opt::after{content:"Use this";flex:none;font:600 .8rem var(--sans);color:var(--gold-text)}
+.opt[aria-pressed="true"]{border-color:var(--warn);background:var(--warn-bg)}
+.opt[aria-pressed="true"]::after{content:"Chosen";color:var(--warn)}
+.opt:disabled{opacity:.5;cursor:not-allowed}
 .decide{display:grid;grid-template-columns:auto auto 1fr;gap:8px 10px;align-items:start;padding:12px 16px 14px;border-top:1px solid var(--line);margin-top:10px}
 .btn{min-height:40px;padding:0 16px;border-radius:6px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:600 .92rem var(--sans);cursor:pointer}
 .btn[aria-pressed="true"].approve{background:var(--ok);border-color:var(--ok);color:var(--surface)}
@@ -221,8 +229,24 @@ textarea{width:100%;min-height:40px;resize:vertical;padding:9px 11px;border:1px 
     for (const fl of it.flags) {
       const d = document.createElement("div"); d.className = "flag";
       const b = document.createElement("b"); b.textContent = "Question for the reviewer: ";
-      d.append(b, document.createTextNode(fl.text + " Keep it, or suggest a form that reads for any reader?"));
+      d.append(b, document.createTextNode(fl.text + (it.suggestions ? " Approve to keep it, or choose a wording below that reads for any reader." : " Keep it, or suggest a form that reads for any reader?")));
       el.append(d);
+    }
+    const opts = [];
+    for (const sg of it.suggestions || []) {
+      const box = document.createElement("div"); box.className = "suggest"; box.lang = "es";
+      const from = document.createElement("p"); from.className = "from"; from.lang = "en";
+      const q = document.createElement("q"); q.lang = "es"; q.textContent = sg.from;
+      from.append(document.createTextNode("Instead of "), q, document.createTextNode(":"));
+      box.append(from);
+      for (const o of sg.options) {
+        const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.textContent = o;
+        b.setAttribute("aria-pressed", "false");
+        b.addEventListener("click", () => choose(it, sg.from, o));
+        b.dataset.line = changeLine(sg.from, o);
+        box.append(b); opts.push(b);
+      }
+      el.append(box);
     }
 
     const decide = document.createElement("div");
@@ -242,7 +266,7 @@ textarea{width:100%;min-height:40px;resize:vertical;padding:9px 11px;border:1px 
     let t = null;
     note.addEventListener("input", () => { clearTimeout(t); t = setTimeout(() => saveNote(it), 900); });
     note.addEventListener("blur", () => { clearTimeout(t); saveNote(it); });
-    cards.set(it.id, { el, pill, approve, change, note, who });
+    cards.set(it.id, { el, pill, approve, change, note, who, opts });
     return el;
   }
   function text(s, lang, scripture) {
@@ -278,6 +302,8 @@ textarea{width:100%;min-height:40px;resize:vertical;padding:9px 11px;border:1px 
       c.approve.setAttribute("aria-pressed", String(st === "approved"));
       c.change.setAttribute("aria-pressed", String(st === "change"));
       if (document.activeElement !== c.note) c.note.value = r.note || "";
+      const lines = (r.note || "").split("\n");
+      for (const b of c.opts) b.setAttribute("aria-pressed", String(st === "change" && lines.includes(b.dataset.line)));
       if (r.by && r.at) {
         const name = ps[r.by] ? (ps[r.by].isMe ? "you" : ps[r.by].name || "a reviewer") : "a reviewer";
         c.who.textContent = `${PILL[r.status] || "Note"} by ${name}, ${new Date(r.at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`;
@@ -356,8 +382,24 @@ textarea{width:100%;min-height:40px;resize:vertical;padding:9px 11px;border:1px 
     const body = { status: r.status && r.hash === it.hash ? r.status : null, note, hash: it.hash, by: myId, at: new Date().toISOString() };
     reviews.set(it.id, body); paint([it.id]); write(it, body);
   }
+  // Choosing a wording marks the item Needs change and records the swap as one
+  // line of the note; choosing again for the same sentence replaces that line,
+  // and choosing the chosen one again takes it back out.
+  function changeLine(from, to) { return `Change “${from}” → “${to}”`; }
+  function choose(it, from, to) {
+    const c = cards.get(it.id), line = changeLine(from, to), prefix = `Change “${from}” → `;
+    const had = c.note.value.split("\n").includes(line);
+    const lines = c.note.value.split("\n").filter(l => l.trim() && !l.startsWith(prefix));
+    if (!had) lines.push(line);
+    c.note.value = lines.join("\n");
+    const note = c.note.value.trim();
+    const r = current(it), was = r.status && r.hash === it.hash ? r.status : null;
+    const status = !had ? "change" : was === "change" && !note ? null : was;
+    const body = { status, note, hash: it.hash, by: myId, at: new Date().toISOString() };
+    reviews.set(it.id, body); paint([it.id]); write(it, body);
+  }
   function lock(msg) {
-    for (const c of cards.values()) { c.approve.disabled = true; c.change.disabled = true; c.note.disabled = true; }
+    for (const c of cards.values()) { c.approve.disabled = true; c.change.disabled = true; c.note.disabled = true; for (const b of c.opts) b.disabled = true; }
     status(msg, true);
   }
 

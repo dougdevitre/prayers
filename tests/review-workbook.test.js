@@ -5,7 +5,7 @@
 //   npm run test:unit
 
 const assert = require("assert");
-const { collect, render, flagsFor } = require("../scripts/build-review-workbook.js");
+const { collect, render, flagsFor, attachSuggestions } = require("../scripts/build-review-workbook.js");
 const c = require("../content.js");
 const e = require("../content.es.js");
 const { prayerCorpus: p } = require("../prayers.js");
@@ -71,6 +71,24 @@ test("masculine reader-voice forms become questions, neutral ones do not", () =>
   assert.strictEqual(f("Me siento tan cansado y estoy asustado."), 2);
   assert.strictEqual(f("Donde tengo miedo, dame valor."), 0);
   assert.strictEqual(f("Estoy aquí, Señor."), 0);
+});
+
+test("every flagged item offers neutral wording, and every suggestion is found in its item", () => {
+  for (const i of wb.items.filter(x => x.flags.length)) assert.ok(i.suggestions && i.suggestions.length, `${i.id} is flagged but offers no wording`);
+  for (const i of wb.items.filter(x => x.suggestions)) {
+    for (const s of i.suggestions) {
+      assert.ok(i.fields.some(f => f.es.includes(s.from)), `${i.id}: "${s.from}"`);
+      for (const o of s.options) assert.strictEqual(flagsFor([{ label: "x", en: "", es: o }]).length, 0, `${i.id}: "${o}" is still masculine`);
+    }
+  }
+});
+
+test("a suggestion for text that has changed fails the build", () => {
+  const items = [{ id: "a", fields: [{ label: "Prayer", en: "e", es: "Estoy aquí." }] }];
+  assert.throws(() => attachSuggestions(items, { a: [{ from: "Estoy cansado.", options: ["Me cansa."] }] }), /no longer says/);
+  assert.throws(() => attachSuggestions(items, { b: [] }), /no item b/);
+  attachSuggestions(items, { a: [{ from: "Estoy aquí.", options: ["Aquí estoy."] }] });
+  assert.strictEqual(items[0].suggestions[0].options[0], "Aquí estoy.");
 });
 
 test("the page carries every item, and text cannot close its script tag", () => {

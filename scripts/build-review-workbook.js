@@ -35,6 +35,22 @@ function flagsFor(fields) {
   return out;
 }
 
+/** Offer the reviewer wording to choose from. A suggestion whose `from` is no
+ *  longer in the item's Spanish text fails the build rather than going stale. */
+function attachSuggestions(items, suggestions) {
+  const byId = new Map(items.map(i => [i.id, i]));
+  for (const [id, list] of Object.entries(suggestions)) {
+    if (id.startsWith("_")) continue;
+    const it = byId.get(id);
+    if (!it) throw new Error(`review-suggestions.json: no item ${id}`);
+    for (const s of list) {
+      if (!it.fields.some(f => (f.es || "").includes(s.from))) throw new Error(`review-suggestions.json: ${id} no longer says "${s.from}"`);
+      if (!Array.isArray(s.options) || !s.options.length) throw new Error(`review-suggestions.json: ${id} has no options for "${s.from}"`);
+    }
+    it.suggestions = list.map(s => ({ from: s.from, options: s.options }));
+  }
+}
+
 /** Every reviewable item, in the order the workbook shows them. */
 function collect(root = ROOT) {
   const c = require(path.join(root, "content.js"));
@@ -129,6 +145,7 @@ function collect(root = ROOT) {
     fields: c.fearIndex.map(([en, track], i) => ({ label: c.tracks[track] ? c.tracks[track].name : track, en, es: (e.esFearIndex[i] || [])[0] || "" }))
   });
 
+  attachSuggestions(items, JSON.parse(fs.readFileSync(path.join(root, "scripts", "review-suggestions.json"), "utf8")));
   return { items, meta: { count: items.length, review: p.meta.review, reviewNote: p.meta.reviewNote } };
 }
 
@@ -149,4 +166,4 @@ if (require.main === module) {
   for (const i of flagged) console.log("  flag", i.id, i.flags.map(f => f.text).join(" | "));
 }
 
-module.exports = { collect, render, flagsFor };
+module.exports = { collect, render, flagsFor, attachSuggestions };

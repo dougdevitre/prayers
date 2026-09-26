@@ -346,6 +346,19 @@ const server = http.createServer((req, res) => {
   await page.click("#repeatButton");
   check("repeat toggles off", (await page.getAttribute("#repeatButton", "aria-pressed")) === "false");
   check("sleep timer present", await page.isVisible("#sleepTimer"));
+  check("the repeat button shows its name, not just an icon", (await page.textContent("#repeatButton")).includes("Repeat"));
+  // On a phone the three controls share one row under the title, rather than
+  // stacking down the side of the card.
+  const playerRows = async () => page.evaluate(() => {
+    const tops = [...document.querySelectorAll(".audio-extras > *")].map(el => Math.round(el.getBoundingClientRect().top));
+    return { rows: new Set(tops).size, card: Math.round(document.querySelector(".audio-card").getBoundingClientRect().height) };
+  });
+  const desk = await playerRows();
+  await page.setViewportSize({ width: 390, height: 844 });
+  const phone = await playerRows();
+  await page.setViewportSize({ width: 1280, height: 720 });
+  check(`the player's controls sit on one row, on a desktop and at 390px (${desk.rows}, ${phone.rows} rows)`, desk.rows === 1 && phone.rows === 1);
+  check(`the player stays compact on a phone (${phone.card}px tall)`, phone.card <= 200);
 
   // static SEO day page
   await page.goto("http://localhost:8123/day/08-fear.html", { waitUntil: "networkidle" });
@@ -962,7 +975,7 @@ const server = http.createServer((req, res) => {
   const strays = await page.evaluate(() => {
     const needles = ["Mark day complete", "About 3 minutes", "Guided prayer", "My reflection",
       "Reflection", "Pray", "Declare", "Practice", "Previous", "Next", "Steady me now",
-      "No timer", "Narration speed", "Journey progress"];
+      "No timer", "Narration speed", "Journey progress", "Repeat"];
     const text = document.querySelector("main").innerText;
     return needles.filter(n => text.includes(n));
   });

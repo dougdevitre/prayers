@@ -538,6 +538,33 @@ const server = http.createServer((req, res) => {
   // A page should not link to itself in its own menu.
   check("day one omits itself from its menu", (await page.$$('.nav-menu a[href="/day/01-stand"]')).length === 0);
   check("day one still offers the other journeys", (await page.$$('.nav-menu a[href="/fears"]')).length === 1);
+
+  // The social card is described fully enough for a scraper to lay it out
+  // before fetching it, and X is told explicitly rather than left to fall
+  // back to og:*.
+  check("day page states the card's size and alt text", await meta("og:image:width") === "1200" && await meta("og:image:height") === "630" && (await meta("og:image:alt") || "").startsWith("Stand"));
+  check("day page carries twitter:image matching og:image", await page.getAttribute('meta[name="twitter:image"]', "content") === await meta("og:image"));
+  check("day page names its locale alternate", await meta("og:locale:alternate") === "es_ES");
+
+  // The share row: four intent links that need no script, plus copy and the
+  // native sheet, which share.js reveals. Headless Chromium has no
+  // navigator.share, so that button stays hidden here.
+  {
+    const hrefs = await page.$$eval(".share-row .share-link", as => as.map(a => a.getAttribute("href")));
+    check("share row offers X, Facebook, WhatsApp and email", hrefs.length === 4
+      && hrefs[0].startsWith("https://twitter.com/intent/tweet?text=") && hrefs[0].endsWith(`&url=${encodeURIComponent(`${SITE}/day/01-stand`)}`)
+      && hrefs[1] === `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${SITE}/day/01-stand`)}`
+      && hrefs[2].startsWith("https://wa.me/?text=") && hrefs[3].startsWith("mailto:?subject="));
+    check("share links open in a new tab without a referrer handle", await page.$$eval(".share-row .share-link", as => as.every(a => a.target === "_blank" && a.rel.includes("noopener"))));
+    check("share links are labelled for a screen reader", await page.$$eval(".share-row .share-link", as => as.every(a => (a.getAttribute("aria-label") || "").startsWith("Share"))));
+    check("copy link is revealed by share.js, native share is not", await page.isVisible(".share-row .share-copy") && !(await page.isVisible(".share-row .share-native")));
+    await page.context().grantPermissions(["clipboard-read", "clipboard-write"], { origin: "http://localhost:8123" });
+    await page.click(".share-row .share-copy");
+    await page.waitForFunction(() => document.querySelector(".share-row .share-copy span").textContent === "Link copied", null, { timeout: 3000 }).catch(() => {});
+    check("copy link puts the canonical page URL on the clipboard and says so", await page.evaluate(() => navigator.clipboard.readText()) === `${SITE}/day/01-stand` && (await page.textContent(".share-row .share-copy span")) === "Link copied");
+    check("the copy label returns to rest", await page.waitForFunction(() => document.querySelector(".share-row .share-copy span").textContent === "Copy link", null, { timeout: 4000 }).then(() => true).catch(() => false));
+    check("share row has no contrast failures", (await contrast(".share-row .share-copy")) >= 4.5 && (await contrast(".share-label")) >= 4.5);
+  }
   const dayNoScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   check("day page has no horizontal scroll", !dayNoScroll);
 
@@ -954,6 +981,11 @@ const server = http.createServer((req, res) => {
   check("Spanish day localizes its headings", (await page.textContent("article")).includes("Reflexión")
     && (await page.textContent("article")).includes("PRÁCTICA DE HOY"));
   check("Spanish day is canonical to itself", await page.getAttribute('link[rel="canonical"]', "href") === `${SITE}/es/day/01-firmeza`);
+  check("Spanish day's share row is in Spanish and points at the Spanish page", (await page.getAttribute(".share-row", "aria-label")) === "Compartir este día"
+    && (await page.getAttribute(".share-row", "data-url")) === `${SITE}/es/day/01-firmeza`
+    && (await page.textContent(".share-row .share-copy span")) === "Copiar enlace"
+    && (await page.$$eval(".share-row .share-link", as => as.every(a => (a.getAttribute("aria-label") || "").startsWith("Compartir")))));
+  check("Spanish day names en_US as its locale alternate", await meta("og:locale:alternate") === "en_US");
   check("Spanish day declares its locale", await meta2("og:locale") === "es_ES");
 
   // hreflang must be reciprocal or search engines treat the pair as
@@ -1049,7 +1081,11 @@ const server = http.createServer((req, res) => {
     const link = article && (article.workTranslation || article.translationOfWork);
     check(`${url} structured data parses in the browser under the CSP`, Boolean(article));
     check(`${url} names its translation`, Boolean(link) && link["@id"] === `${SITE}${altPart}#article` && link.inLanguage === (lang === "en" ? "es" : "en"));
-    check(`${url} ships no executable script`, (await page.$$("script:not([type='application/ld+json'])")).length === 0);
+    // The one script a day page loads is share.js: same origin, deferred, and
+    // only an enhancement (the page works without it). Nothing inline, nothing
+    // from a platform.
+    check(`${url} ships no script beyond the deferred same-origin share.js`, await page.$$eval("script:not([type='application/ld+json'])", ss =>
+      ss.length === 1 && ss[0].getAttribute("src") === "/share.js" && ss[0].defer && !ss[0].textContent.trim()));
   }
 
   await page.goto("http://localhost:8123/app", { waitUntil: "networkidle" });

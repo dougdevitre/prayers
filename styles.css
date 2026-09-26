@@ -118,7 +118,7 @@ main{padding-bottom:78px}
 .welcome-list{margin:18px 0 26px;padding:0;list-style:none}
 .welcome-list li{position:relative;margin:10px 0;padding-left:30px}
 .welcome-list li::before{content:"✦";position:absolute;left:2px;color:var(--gold-text)}
-@media print{.topbar,.progress-wrap,.audio-card,.notes-section,.complete-button,.day-nav,.title-actions,dialog{display:none!important}body{background:#fff}.devotional{margin:0;border:none;box-shadow:none;padding:0}}
+@media print{.topbar,.progress-wrap,.audio-card,.notes-section,.complete-button,.day-nav,.title-actions,.share-row,dialog{display:none!important}body{background:#fff}.devotional{margin:0;border:none;box-shadow:none;padding:0}}
 :is(a,button,select,textarea):focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}.breath-circle{animation:none}}
 
@@ -203,3 +203,14 @@ h2.section-kicker,.landing-section h2.section-kicker{margin:0;font-family:inheri
 .feature-card h3 a{text-decoration:none;border-bottom:1px solid var(--gold)}
 .day-nav a{font-weight:700}
 @media(max-width:600px){.landing-hero{margin:6px 10px 0;padding:30px 20px}.landing-section{margin:26px 10px;padding:24px 20px}.landing-footer{margin:0 18px 36px}}
+/* The share row on the static day pages. Links and buttons share one shape;
+   the copy button carries a label because "copied" has to be readable. */
+.share-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:26px 0 22px}
+.share-label{flex:0 0 100%;margin:0 0 2px;background:var(--surface);color:var(--gold-text);font-size:.75rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.share-row a,.share-row button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:42px;height:42px;padding:0 12px;border:1px solid var(--line);border-radius:99px;background:var(--surface);color:var(--ink);font:inherit;font-size:.85rem;font-weight:700;text-decoration:none;cursor:pointer}
+.share-row a:hover,.share-row button:hover,.share-row a:focus-visible,.share-row button:focus-visible{border-color:var(--gold);background:var(--gold-soft)}
+.share-row svg{width:18px;height:18px;flex:0 0 18px}
+.share-row .share-link{padding:0;width:42px}
+.share-row .is-copied{border-color:var(--gold);background:var(--gold-soft)}
+.share-row .share-url{flex:0 0 100%;padding:10px 12px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:inherit;font-size:.9rem}
+.share-row [hidden]{display:none}

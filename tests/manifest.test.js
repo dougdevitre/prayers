@@ -68,5 +68,21 @@ test("shortcut icons exist", () => {
   for (const sc of manifest.shortcuts) for (const icon of sc.icons) assert.strictEqual(pngSize(icon.src), icon.sizes);
 });
 
+test("landing screenshots exist as PNG and WebP, at the size each page declares", () => {
+  for (const page of ["index.html", "es/index.html"]) {
+    const html = fs.readFileSync(path.join(ROOT, page), "utf8");
+    const imgs = [...html.matchAll(/<img src="\/(shots\/[a-z-]+)\.png" width="(\d+)" height="(\d+)"/g)];
+    assert.strictEqual(imgs.length, 3, `${page}: three screenshots`);
+    for (const [, base, w, h] of imgs) {
+      for (const variant of [base, `${base}-dark`]) {
+        assert.strictEqual(pngSize(`${variant}.png`), `${w}x${h}`, `${variant}.png is not the ${w}x${h} ${page} declares`);
+        const webp = fs.readFileSync(path.join(ROOT, `${variant}.webp`));
+        assert.ok(webp.subarray(0, 4).toString("latin1") === "RIFF" && webp.subarray(8, 12).toString("latin1") === "WEBP", `${variant}.webp is not a WebP`);
+        assert.ok(webp.length < fs.statSync(path.join(ROOT, `${variant}.png`)).size, `${variant}.webp is not smaller than its PNG`);
+      }
+    }
+  }
+});
+
 if (failures) { console.log(`\n${failures} failing`); process.exit(1); }
 console.log("\nAll manifest tests passed.");

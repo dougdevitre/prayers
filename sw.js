@@ -1,4 +1,4 @@
-const CACHE = "stand-v36";
+const CACHE = "stand-v37";
 // The app shell is /app, not "./" — the root is the landing page now, and
 // precaching it here would have served the app shell to anyone opening the
 // site. Paths are absolute so they do not depend on where sw.js is fetched.

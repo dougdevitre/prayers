@@ -957,12 +957,12 @@ const prayerCorpus = {
       "id": "memorare",
       "name": {
         "en": "Memorare",
-        "es": "Memorare (Acordaos)"
+        "es": "Memorare (Acuérdate)"
       },
       "tradition": "roman-catholic",
       "text": {
         "en": "Remember, O most gracious Virgin Mary, that never was it known that anyone who fled to thy protection, implored thy help, or sought thy intercession was left unaided. Inspired by this confidence, I fly unto thee, O Virgin of virgins, my Mother. To thee do I come, before thee I stand, sinful and sorrowful. O Mother of the Word Incarnate, despise not my petitions, but in thy mercy hear and answer me. Amen.",
-        "es": "Acordaos, oh piadosísima Virgen María, que jamás se ha oído decir que ninguno de los que han acudido a tu protección, implorando tu asistencia y reclamando tu socorro, haya sido abandonado de Ti. Animado con esta confianza, a Ti también acudo, oh Madre, Virgen de las vírgenes; y gimiendo bajo el peso de mis pecados, me atrevo a comparecer ante tu presencia soberana. No deseches mis súplicas, oh Madre del Verbo divino, antes bien, escúchalas y acógelas benignamente. Amén."
+        "es": "Acuérdate, oh piadosísima Virgen María, que jamás se ha oído decir que ninguno de los que han acudido a tu protección, implorando tu asistencia y reclamando tu socorro, haya sido abandonado de ti. Animado con esta confianza, a ti también acudo, oh Madre, Virgen de las vírgenes; y gimiendo bajo el peso de mis pecados, me atrevo a comparecer ante tu presencia soberana. No deseches mis súplicas, oh Madre del Verbo divino, antes bien, escúchalas y acógelas benignamente. Amén."
       },
       "audio": {
         "speed": 0.86,
@@ -977,7 +977,7 @@ const prayerCorpus = {
           ],
           "es": [
             {
-              "after": "haya sido abandonado de Ti.",
+              "after": "haya sido abandonado de ti.",
               "seconds": 1
             }
           ]

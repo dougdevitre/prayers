@@ -379,6 +379,45 @@ const server = http.createServer((req, res) => {
     check("and playback streams from the host again", await page.evaluate(() => recordedFor(0) === `${location.origin}/tests/fixtures/silence.mp3?n=0`));
     await page.click("#closeLibrary");
     await page.evaluate(() => { stopAudio(); audioManifest.items = {}; audioManifest.base = ""; go(0); });
+
+    // The SOS recording: named on the lock screen, and it stops when the SOS
+    // screen closes, by the × or by Escape. It used to keep talking. The
+    // fixture is a second long, so it loops while the check runs; otherwise
+    // "it stopped" could pass because it had simply ended.
+    await page.evaluate(() => {
+      audioManifest.base = location.origin;
+      for (let i = 0; i < 4; i++) audioManifest.items[sosItemId("en", i)] = { key: "tests/fixtures/silence.mp3", hash: "0".repeat(64), bytes: 15846, seconds: 1 };
+    });
+    const sosListen = async () => {
+      await page.click("#sosButton");
+      await page.click("#sosStage .checkin-scale button:nth-child(4)");
+      await page.click("#sosStage .complete-button");
+      await page.click('#sosStage button:has-text("Hear this prayed")');
+      await page.waitForFunction(() => sos.audio && !audioEl.paused && navigator.mediaSession.playbackState === "playing", null, { timeout: 5000 }).catch(() => {});
+      await page.evaluate(() => { audioEl.loop = true; });
+    };
+    await sosListen();
+    check("the SOS recording plays and is named on the lock screen", await page.evaluate(() =>
+      sos.audio && !audioEl.paused && audioEl.src === `${location.origin}/tests/fixtures/silence.mp3`
+      && navigator.mediaSession.playbackState === "playing"
+      && /^Steady me now · \S/.test(navigator.mediaSession.metadata && navigator.mediaSession.metadata.title)));
+    check("the SOS recording gets lock-screen position like any recording", await page.evaluate(() => recordingInSession()));
+    await page.click("#closeSos");
+    check("closing SOS stops its recording", await page.evaluate(() => audioEl.paused && !sos.audio && navigator.mediaSession.playbackState === "none"));
+    await page.evaluate(() => { audioEl.loop = false; });
+    await sosListen();
+    await page.keyboard.press("Escape");
+    check("Escape out of SOS stops its recording too", await page.evaluate(() =>
+      !document.getElementById("sosDialog").open && audioEl.paused && !sos.audio));
+    await page.evaluate(() => { audioEl.loop = false; stopAudio(); audioManifest.items = {}; audioManifest.base = ""; go(0); });
+
+    // Device speech names the day on the lock screen, without a scrubber.
+    check("device narration names the day on the lock screen", await page.evaluate(() => {
+      speakDay();
+      const title = navigator.mediaSession.metadata && navigator.mediaSession.metadata.title;
+      stopAudio();
+      return title === document.title;
+    }));
     // The kill switch: ?tts=1 ignores the manifest entirely.
     await page.goto("http://localhost:8123/app?tts=1#1", { waitUntil: "networkidle" });
     check("?tts=1 forces the device voice", await page.evaluate(() => {

@@ -224,8 +224,12 @@ function setMediaPlaybackState(value) {
 // narration from a recording or a traditional prayer's recording. SOS plays
 // through it too but leaves the day player idle and sets no metadata.
 function recordingInSession() {
-  return (player.mode === "rec" && player.status !== "idle") || prayerAudio.recorded;
+  return (player.mode === "rec" && player.status !== "idle") || inPlaceRecording();
 }
+
+// A traditional prayer's recording and the SOS recording play through the
+// shared element while the day player stays idle.
+const inPlaceRecording = () => prayerAudio.recorded || sos.audio;
 
 function updatePositionState() {
   const session = mediaSessionApi();
@@ -259,18 +263,18 @@ function speechMediaSession() {
   for (const action of ["seekbackward", "seekforward", "seekto"]) setMediaAction(action, null);
 }
 
-// A traditional prayer's recording pauses and resumes in place; the day
-// player's button would start the day instead.
+// A prayer's or SOS recording pauses and resumes in place; the day player's
+// button would start the day instead.
 function mediaPlay() {
-  if (prayerAudio.recorded) {
-    audioEl.play().then(() => setMediaPlaybackState("playing")).catch(stopPrayerNarration);
+  if (inPlaceRecording()) {
+    audioEl.play().then(() => setMediaPlaybackState("playing")).catch(() => (sos.audio ? stopAudio() : stopPrayerNarration()));
   } else if (player.status !== "playing") {
     $("playButton").click();
   }
 }
 
 function mediaPause() {
-  if (prayerAudio.recorded) {
+  if (inPlaceRecording()) {
     audioEl.pause();
     setMediaPlaybackState("paused");
   } else if (player.status === "playing") {
@@ -349,6 +353,7 @@ function stopAudio() {
   // The composer shares this one speech synthesiser, so day narration always
   // takes it back cleanly.
   stopPrayerNarration();
+  sos.audio = false;
   // Go idle before cancel(): cancel can fire onend synchronously, and repeat
   // mode must not treat that as a natural end and restart.
   setPlayerStatus("idle");
@@ -358,6 +363,7 @@ function stopAudio() {
 
 function speakDay() {
   player.mode = "tts";
+  setMediaSession(document.title);
   speechMediaSession();
   const script = narrationScript(day);
   const utterance = new SpeechSynthesisUtterance(script);
@@ -447,7 +453,8 @@ $("sleepTimer").onchange = () => {
 const sosSets = () => (state.lang === "es" && typeof esSos !== "undefined" ? esSos : sosSetsEn);
 const sosSet = () => sosSets()[sos.i] || sosSets()[0];
 
-const sos = { i: 0, before: null, recorded: false, timers: [] };
+// recorded: the check-in was saved. audio: the SOS recording is playing.
+const sos = { i: 0, before: null, recorded: false, audio: false, timers: [] };
 
 function sosClearTimers() {
   sos.timers.forEach(clearTimeout);
@@ -570,10 +577,15 @@ function sosAnchor() {
     const src = recordedUrl(sosItemId(state.lang, sos.i));
     if (src) {
       player.mode = "rec";
+      sos.audio = true;
       audioEl.src = src;
       audioEl.playbackRate = 1;
       audioEl.currentTime = 0;
-      audioEl.play().catch(() => { player.mode = "tts"; sosSpeak(); });
+      audioEl.play().then(() => {
+        if (!sos.audio) return;
+        setMediaSession(`${t("sos.button")} · ${sosSet().ref}`);
+        setMediaPlaybackState("playing");
+      }).catch(() => { sos.audio = false; player.mode = "tts"; sosSpeak(); });
       return;
     }
     sosSpeak();
@@ -642,15 +654,23 @@ function openSos() {
   $("sosDialog").showModal();
 }
 
+// The SOS voice, recorded or spoken, ends with the screen. Closing it used to
+// cancel device speech but leave a recording talking, and Escape stopped
+// neither.
+function sosStopVoice() {
+  if (sos.audio) stopAudio();
+  else if (canSpeak) speechSynthesis.cancel();
+}
+
 function closeSos() {
   sosClearTimers();
-  if (canSpeak) speechSynthesis.cancel();
+  sosStopVoice();
   $("sosDialog").close();
 }
 
 $("sosButton").onclick = openSos;
 $("closeSos").onclick = closeSos;
-$("sosDialog").addEventListener("cancel", sosClearTimers);
+$("sosDialog").addEventListener("cancel", () => { sosClearTimers(); sosStopVoice(); });
 $("sosSupport").onclick = () => {
   const resources = $("sosResources");
   resources.hidden = !resources.hidden;

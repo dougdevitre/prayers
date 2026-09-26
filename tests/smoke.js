@@ -745,7 +745,9 @@ const server = http.createServer((req, res) => {
   const meta = name => page.getAttribute(`meta[property="${name}"], meta[name="${name}"]`, "content");
   check("day page is canonical", await page.getAttribute('link[rel="canonical"]', "href") === `${SITE}/day/01-stand`);
   check("day page names its own URL", await meta("og:url") === `${SITE}/day/01-stand`);
-  check("day page carries the social card", await meta("og:image") === `${SITE}/og-card.png`);
+  // Each day previews with its own card (api/card.js), not the brand card.
+  const { cardFor: dayCard, cardPath: dayCardPath } = require("../cards.js");
+  check("day page previews with its own card", await meta("og:image") === `${SITE}${dayCardPath(dayCard("en", "core", 0), "og")}`);
   check("day page asks for a large card", await meta("twitter:card") === "summary_large_image");
   check("day page has the site nav", await page.isVisible('.site-nav a.nav-cta[href="/app"]'));
   check("day page has the footer", await page.isVisible('.landing-footer a.complete-button[href="/app"]'));
@@ -759,7 +761,7 @@ const server = http.createServer((req, res) => {
   // The social card is described fully enough for a scraper to lay it out
   // before fetching it, and X is told explicitly rather than left to fall
   // back to og:*.
-  check("day page states the card's size and alt text", await meta("og:image:width") === "1200" && await meta("og:image:height") === "630" && (await meta("og:image:alt") || "").startsWith("Stand"));
+  check("day page states the card's size and alt text", await meta("og:image:width") === "1200" && await meta("og:image:height") === "630" && (await meta("og:image:alt") || "").startsWith("Day 1: Stand — "));
   check("day page carries twitter:image matching og:image", await page.getAttribute('meta[name="twitter:image"]', "content") === await meta("og:image"));
   check("day page names its locale alternate", await meta("og:locale:alternate") === "es_ES");
 
@@ -790,6 +792,10 @@ const server = http.createServer((req, res) => {
   const ogCard = await page.request.get("http://localhost:8123/og-card.png");
   check("the social card resolves", ogCard.ok());
   check("the social card is a PNG", (await ogCard.body()).slice(1, 4).toString() === "PNG");
+  const dayOg = await page.request.get((await meta("og:image")).replace(SITE, "http://localhost:8123"));
+  const dayOgBody = await dayOg.body();
+  check("the day's own preview card resolves as a 1200x630 PNG", dayOg.ok() && dayOgBody.slice(1, 4).toString() === "PNG"
+    && dayOgBody.readUInt32BE(16) === 1200 && dayOgBody.readUInt32BE(20) === 630);
 
   // The sitemap is the whole point of generating these pages.
   const sitemapRes = await page.request.get("http://localhost:8123/sitemap.xml");
@@ -1348,7 +1354,10 @@ const server = http.createServer((req, res) => {
         const canonical = (html.match(/<link rel="canonical" href="([^"]+)"/) || [])[1];
         const article = ld && ld !== "unparseable" && ld["@graph"].find(n => n["@type"] === "Article");
         const crumbs = ld && ld !== "unparseable" && ld["@graph"].find(n => n["@type"] === "BreadcrumbList");
+        const ogImage = (html.match(/<meta property="og:image" content="([^"]+)"/) || [])[1];
         const ok = article && crumbs
+          && article.image === ogImage && ogImage.startsWith(`${SITE}/cards/${lang}/${id}/${name}.`)
+          && html.includes(`<meta name="twitter:image" content="${ogImage}" />`)
           && article.url === canonical && article.inLanguage === lang && article.position === i + 1
           && article.name === track.days[i][0] && article.citation === track.days[i][1]
           && article.isPartOf.name === track.name && article.isAccessibleForFree === true

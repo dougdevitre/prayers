@@ -31,3 +31,8 @@ jobs:
           node-version: 20
       - name: Production serves the deployed commit
         run: node scripts/verify-deploy.js https://prayers.dougdevitre.org --attempts 9 --delay 20000
+      # Every day's share card, both sizes: proves the card function works in
+      # production (previews sit behind a login) and warms the CDN, so a
+      # social site asking for a link preview never waits on a cold render.
+      - name: Every share card renders
+        run: node scripts/verify-cards.js https://prayers.dougdevitre.org

@@ -13,6 +13,7 @@ const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const sitemap = fs.readFileSync(path.join(ROOT, "sitemap.xml"), "utf8");
 const urls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
+const SITE = new URL(urls[0]).origin;
 
 let failures = 0;
 function test(name, fn) {
@@ -112,6 +113,58 @@ test("structured data parses, and each page has one h1", () => {
     }
     assert.strictEqual((p.html.match(/<h1[\s>]/g) || []).length, 1, `${p.path}: h1 count`);
   }
+});
+
+test("every internal link and asset reference on every page resolves", () => {
+  // Every .html file the site serves, not only the sitemap: the app shell,
+  // 404 and the landing pages link out too.
+  const files = [];
+  (function walk(dir) {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (["node_modules", ".git", "tests", "infra", ".claude"].includes(e.name)) continue;
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (p.endsWith(".html")) files.push(p);
+    }
+  })(ROOT);
+  const resolve = p => {
+    if (p === "/") return path.join(ROOT, "index.html");
+    const f = path.join(ROOT, p);
+    return [f, f + ".html", path.join(f, "index.html")].find(c => fs.existsSync(c) && fs.statSync(c).isFile()) || null;
+  };
+  const ids = new Map();
+  const idsOf = f => {
+    if (!ids.has(f)) ids.set(f, new Set([...fs.readFileSync(f, "utf8").matchAll(/\bid="([^"]+)"/g)].map(m => m[1])));
+    return ids.get(f);
+  };
+  const broken = [];
+  let checked = 0;
+  for (const file of files) {
+    const html = fs.readFileSync(file, "utf8");
+    const where = "/" + path.relative(ROOT, file);
+    for (const m of html.matchAll(/\b(href|src|srcset|content)="([^"]+)"/g)) {
+      let value = m[2];
+      if (value.startsWith(SITE)) value = value.slice(SITE.length) || "/";
+      if (!value.startsWith("/") || value.startsWith("//")) continue;
+      for (const ref of value.split(",").map(s => s.trim().split(" ")[0])) {
+        const [p, hash] = ref.split("#");
+        const target = p.split("?")[0];
+        // Cards, the API and the calendar feed are functions; /app#N is a deep
+        // link the app reads, not an anchor.
+        if (!target || /^\/(cards|api)\//.test(target) || target === "/calendar.ics") continue;
+        checked++;
+        const file2 = resolve(decodeURI(target));
+        if (!file2) broken.push(`${where}: ${ref}`);
+        else if (hash && target !== "/app" && file2.endsWith(".html") && !idsOf(file2).has(hash)) broken.push(`${where}: ${ref} (no such id)`);
+      }
+    }
+    for (const m of html.matchAll(/href="#([^"]+)"/g)) {
+      checked++;
+      if (!idsOf(file).has(m[1])) broken.push(`${where}: #${m[1]} (no such id)`);
+    }
+  }
+  assert.ok(checked > 5000, `only ${checked} references found`);
+  assert.ok(broken.length === 0, `${broken.length} broken: ${broken.slice(0, 5).join("; ")}`);
 });
 
 if (failures) { console.log(`\n${failures} failing`); process.exit(1); }

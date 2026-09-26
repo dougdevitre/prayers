@@ -17,6 +17,8 @@
 .track-chip:hover{border-color:var(--gold)}
 .track-chip.active{border-color:var(--gold);background:var(--gold-soft)}
 .track-chip small{color:var(--muted)}
+/* On the selected chip's gold-soft ground the muted grey falls to 3.9:1; ink keeps it above 4.5:1 in both themes. */
+.track-chip.active small{color:var(--ink)}
 .prayer-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:0 0 16px}
 .prayer-controls label{display:block;margin-bottom:6px;color:var(--muted);font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
 .prayer-controls select,.prayer-petition input{width:100%;padding:11px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:inherit}

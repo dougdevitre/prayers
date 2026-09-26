@@ -129,7 +129,7 @@ main{padding-bottom:78px}
 .welcome-list{margin:18px 0 26px;padding:0;list-style:none}
 .welcome-list li{position:relative;margin:10px 0;padding-left:30px}
 .welcome-list li::before{content:"✦";position:absolute;left:2px;color:var(--gold-text)}
-@media print{.topbar,.progress-wrap,.audio-card,.notes-section,.complete-button,.day-nav,.title-actions,.share-row,dialog{display:none!important}body{background:#fff}.devotional{margin:0;border:none;box-shadow:none;padding:0}}
+@media print{.topbar,.progress-wrap,.audio-card,.notes-section,.complete-button,.day-nav,.title-actions,.share-row,.share-card,dialog{display:none!important}body{background:#fff}.devotional{margin:0;border:none;box-shadow:none;padding:0}}
 :is(a,button,select,textarea):focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}.breath-circle{animation:none}}
 
@@ -219,13 +219,19 @@ h2.section-kicker,.landing-section h2.section-kicker{margin:0;font-family:inheri
    has to be readable. */
 :is(.share-row,.share-sheet){display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:26px 0 22px}
 .share-label{flex:0 0 100%;margin:0 0 2px;background:var(--surface);color:var(--gold-text);font-size:.75rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
-:is(.share-row,.share-sheet) a,:is(.share-row,.share-sheet) button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:42px;height:42px;padding:0 12px;border:1px solid var(--line);border-radius:99px;background:var(--surface);color:var(--ink);font:inherit;font-size:.85rem;font-weight:700;text-decoration:none;cursor:pointer}
-:is(.share-row,.share-sheet) :is(a,button):is(:hover,:focus-visible){border-color:var(--gold);background:var(--gold-soft)}
-:is(.share-row,.share-sheet) svg{width:18px;height:18px;flex:0 0 18px}
+:is(.share-row,.share-sheet,.share-card figcaption) a,:is(.share-row,.share-sheet,.share-card figcaption) button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:42px;height:42px;padding:0 12px;border:1px solid var(--line);border-radius:99px;background:var(--surface);color:var(--ink);font:inherit;font-size:.85rem;font-weight:700;text-decoration:none;cursor:pointer}
+:is(.share-row,.share-sheet,.share-card figcaption) :is(a,button):is(:hover,:focus-visible){border-color:var(--gold);background:var(--gold-soft)}
+:is(.share-row,.share-sheet,.share-card figcaption) svg{width:18px;height:18px;flex:0 0 18px}
 :is(.share-row,.share-sheet) .share-link{padding:0;width:42px}
 :is(.share-row,.share-sheet) .is-copied{border-color:var(--gold);background:var(--gold-soft)}
 :is(.share-row,.share-sheet) .share-url{flex:0 0 100%;padding:10px 12px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:inherit;font-size:.9rem}
-:is(.share-row,.share-sheet) [hidden]{display:none}
+:is(.share-row,.share-sheet,.share-card figcaption) [hidden]{display:none}
+/* The day's share card on a day page: shown small, the whole image one tap away. */
+.share-card{margin:4px 0 28px}
+.share-card .section-kicker{margin-bottom:12px}
+.share-card-image{display:block;width:min(300px,100%);border:1px solid var(--line);box-shadow:var(--shadow);line-height:0}
+.share-card-image img{display:block;width:100%;height:auto}
+.share-card figcaption{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
 .share-sheet{margin:6px 0 0}
 .share-sheet .save-status{flex:0 0 100%;margin:0}
 .share-caption{margin:0 0 14px;font:italic 1.05rem/1.6 Georgia,serif}

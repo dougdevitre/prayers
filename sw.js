@@ -1,4 +1,4 @@
-const CACHE = "stand-v37";
+const CACHE = "stand-v39";
 // The app shell is /app, not "./" — the root is the landing page now, and
 // precaching it here would have served the app shell to anyone opening the
 // site. Paths are absolute so they do not depend on where sw.js is fetched.
@@ -33,6 +33,10 @@ self.addEventListener("fetch", event => {
   // The calendar feed is a function of its query and must never be served
   // from this cache.
   if (url.pathname === "/calendar.ics" || url.pathname.startsWith("/api/")) return;
+  // Share cards carry a year-long HTTP cache under hashed addresses, and the
+  // app's ".latest." address must reach the network to learn the current
+  // one; offline, the app draws its own card instead.
+  if (url.pathname.startsWith("/cards/")) return;
   const isAppNavigation = request.mode === "navigate" && (url.pathname === APP_SHELL || url.pathname === "/app/index.html");
   // Only the app shell is served from cache on navigation; static pages
   // (the landing page at /, the fear index, the crawlable day/ pages) must

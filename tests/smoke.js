@@ -31,6 +31,9 @@ const calendarFeed = require("../api/calendar.js");
 // Error reports: the same handler Vercel runs, logging into this array
 // instead of the console so the suite can read what would be kept.
 const reportHandler = require("../api/report.js");
+// Share cards: the rewrite in vercel.json, /cards/{lang}/{track}/{file} ->
+// /api/card, mirrored here onto the same handler.
+const cardHandler = require("../api/card.js");
 const reports = [];
 reportHandler.log = line => reports.push(JSON.parse(line));
 
@@ -38,6 +41,11 @@ const server = http.createServer((req, res) => {
   let file = req.url.split("#")[0].split("?")[0];
   if (file === "/calendar.ics" || file === "/api/calendar") return calendarFeed(req, res);
   if (file === "/api/report") return reportHandler(req, res);
+  const cardRoute = /^\/cards\/([^/]+)\/([^/]+)\/([^/]+)$/.exec(file);
+  if (cardRoute) {
+    req.url = `/api/card?${new URLSearchParams({ lang: cardRoute[1], track: cardRoute[2], file: cardRoute[3] })}`;
+    return cardHandler(req, res);
+  }
   if (REDIRECTS[file]) {
     res.writeHead(308, { Location: REDIRECTS[file] });
     return res.end();
@@ -289,8 +297,28 @@ const server = http.createServer((req, res) => {
     await page.waitForFunction(() => document.getElementById("shareCopyLabel").textContent === "Link copied", null, { timeout: 3000 }).catch(() => {});
     check("share dialog copies the canonical page URL and says so", await page.evaluate(() => navigator.clipboard.readText()) === pageUrl
       && (await page.textContent("#shareCopyLabel")) === "Link copied");
-    const card = await Promise.all([page.waitForEvent("download"), page.click("#shareSaveCard")]).then(r => r[0]);
-    check("share dialog saves the verse card", card.suggestedFilename() === "stand-day-01.png");
+    // It saves the day's card from the site (verse, reflection and prayer),
+    // asking by the ".latest." address since the app does not know the hash.
+    // (Tapping Share already fetched it; forget that so the request shows.)
+    await page.evaluate(() => { cardFetch = null; });
+    const [card, cardReq] = await Promise.all([page.waitForEvent("download"),
+      page.waitForRequest(r => r.url().endsWith("/cards/en/core/01-stand.latest.post.png"), { timeout: 5000 }).catch(() => null),
+      page.click("#shareSaveCard")]);
+    const saved = fs.readFileSync(await card.path());
+    check("share dialog saves the day's card from the site", card.suggestedFilename() === "stand-day-01.png" && Boolean(cardReq)
+      && saved.readUInt32BE(16) === 1080 && saved.readUInt32BE(20) === 1350);
+    // Offline (or the card failing), it draws the verse card itself. Offline
+    // is a fetch that rejects for /cards/ only, as it would with no network;
+    // a routed abort would log a console error the suite counts.
+    await page.evaluate(() => {
+      cardFetch = null;
+      window.__fetch = window.fetch;
+      window.fetch = (u, o) => String(u).includes("/cards/") ? Promise.reject(new TypeError("Failed to fetch")) : window.__fetch(u, o);
+    });
+    const drawn = await Promise.all([page.waitForEvent("download"), page.click("#shareSaveCard")]).then(r => r[0]);
+    check("without the site's card, the app still saves one it draws", drawn.suggestedFilename() === "stand-day-01.png"
+      && fs.readFileSync(await drawn.path()).readUInt32BE(16) === 1080);
+    await page.evaluate(() => { window.fetch = window.__fetch; cardFetch = null; });
     // The suite's contrast() helper is declared further down; this is the same
     // WCAG 2.1 ratio, local to this block.
     const ratio = sel => page.evaluate(s => {
@@ -737,7 +765,9 @@ const server = http.createServer((req, res) => {
   const meta = name => page.getAttribute(`meta[property="${name}"], meta[name="${name}"]`, "content");
   check("day page is canonical", await page.getAttribute('link[rel="canonical"]', "href") === `${SITE}/day/01-stand`);
   check("day page names its own URL", await meta("og:url") === `${SITE}/day/01-stand`);
-  check("day page carries the social card", await meta("og:image") === `${SITE}/og-card.png`);
+  // Each day previews with its own card (api/card.js), not the brand card.
+  const { cardFor: dayCard, cardPath: dayCardPath } = require("../cards.js");
+  check("day page previews with its own card", await meta("og:image") === `${SITE}${dayCardPath(dayCard("en", "core", 0), "og")}`);
   check("day page asks for a large card", await meta("twitter:card") === "summary_large_image");
   check("day page has the site nav", await page.isVisible('.site-nav a.nav-cta[href="/app"]'));
   check("day page has the footer", await page.isVisible('.landing-footer a.complete-button[href="/app"]'));
@@ -751,7 +781,7 @@ const server = http.createServer((req, res) => {
   // The social card is described fully enough for a scraper to lay it out
   // before fetching it, and X is told explicitly rather than left to fall
   // back to og:*.
-  check("day page states the card's size and alt text", await meta("og:image:width") === "1200" && await meta("og:image:height") === "630" && (await meta("og:image:alt") || "").startsWith("Stand"));
+  check("day page states the card's size and alt text", await meta("og:image:width") === "1200" && await meta("og:image:height") === "630" && (await meta("og:image:alt") || "").startsWith("Day 1: Stand — "));
   check("day page carries twitter:image matching og:image", await page.getAttribute('meta[name="twitter:image"]', "content") === await meta("og:image"));
   check("day page names its locale alternate", await meta("og:locale:alternate") === "es_ES");
 
@@ -774,6 +804,22 @@ const server = http.createServer((req, res) => {
     check("the copy label returns to rest", await page.waitForFunction(() => document.querySelector(".share-row .share-copy span").textContent === "Copy link", null, { timeout: 4000 }).then(() => true).catch(() => false));
     check("share row has no contrast failures", (await contrast(".share-row .share-copy")) >= 4.5 && (await contrast(".share-label")) >= 4.5);
   }
+
+  // The day's share card on the page: the image, a Download link that needs
+  // no script, and Share image, which only a device that can share files gets.
+  {
+    const src = dayCardPath(dayCard("en", "core", 0), "post");
+    const img = await page.$(".share-card img");
+    check("day page shows its share card, sized and described", Boolean(img) && await img.getAttribute("src") === src
+      && await img.getAttribute("width") === "1080" && await img.getAttribute("height") === "1350"
+      && (await img.getAttribute("alt")).startsWith("Share card for Day 1: Stand"));
+    check("the card offers a download with a readable file name", await page.getAttribute(".share-card-download", "href") === src
+      && await page.getAttribute(".share-card-download", "download") === "stand-01-stand.png");
+    check("share image stays hidden where files cannot be shared", !(await page.isVisible(".share-card-native")));
+    await page.locator(".share-card img").scrollIntoViewIfNeeded();
+    check("the card image loads", await page.waitForFunction(() => { const i = document.querySelector(".share-card img"); return i.complete && i.naturalWidth === 1080; }, null, { timeout: 8000 }).then(() => true).catch(() => false));
+    check("the download button meets AA contrast", (await contrast(".share-card-download")) >= 4.5);
+  }
   const dayNoScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   check("day page has no horizontal scroll", !dayNoScroll);
 
@@ -782,6 +828,10 @@ const server = http.createServer((req, res) => {
   const ogCard = await page.request.get("http://localhost:8123/og-card.png");
   check("the social card resolves", ogCard.ok());
   check("the social card is a PNG", (await ogCard.body()).slice(1, 4).toString() === "PNG");
+  const dayOg = await page.request.get((await meta("og:image")).replace(SITE, "http://localhost:8123"));
+  const dayOgBody = await dayOg.body();
+  check("the day's own preview card resolves as a 1200x630 PNG", dayOg.ok() && dayOgBody.slice(1, 4).toString() === "PNG"
+    && dayOgBody.readUInt32BE(16) === 1200 && dayOgBody.readUInt32BE(20) === 630);
 
   // The sitemap is the whole point of generating these pages.
   const sitemapRes = await page.request.get("http://localhost:8123/sitemap.xml");
@@ -1208,6 +1258,11 @@ const server = http.createServer((req, res) => {
     && (await page.textContent(".share-row .share-copy span")) === "Copiar enlace"
     && (await page.$$eval(".share-row .share-link", as => as.every(a => (a.getAttribute("aria-label") || "").startsWith("Compartir")))));
   check("Spanish day names en_US as its locale alternate", await meta("og:locale:alternate") === "en_US");
+  check("Spanish day shows the Spanish share card, labelled in Spanish",
+    (await page.getAttribute(".share-card img", "src")).startsWith("/cards/es/core/01-firmeza.")
+    && (await page.getAttribute(".share-card img", "alt")).startsWith("Tarjeta para compartir del Día 1: Firmeza")
+    && (await page.textContent(".share-card-download span")) === "Descargar imagen"
+    && (await page.textContent(".share-card .section-kicker")) === "COMPARTIR COMO IMAGEN");
   check("Spanish day declares its locale", await meta2("og:locale") === "es_ES");
 
   // hreflang must be reciprocal or search engines treat the pair as
@@ -1340,7 +1395,10 @@ const server = http.createServer((req, res) => {
         const canonical = (html.match(/<link rel="canonical" href="([^"]+)"/) || [])[1];
         const article = ld && ld !== "unparseable" && ld["@graph"].find(n => n["@type"] === "Article");
         const crumbs = ld && ld !== "unparseable" && ld["@graph"].find(n => n["@type"] === "BreadcrumbList");
+        const ogImage = (html.match(/<meta property="og:image" content="([^"]+)"/) || [])[1];
         const ok = article && crumbs
+          && article.image === ogImage && ogImage.startsWith(`${SITE}/cards/${lang}/${id}/${name}.`)
+          && html.includes(`<meta name="twitter:image" content="${ogImage}" />`)
           && article.url === canonical && article.inLanguage === lang && article.position === i + 1
           && article.name === track.days[i][0] && article.citation === track.days[i][1]
           && article.isPartOf.name === track.name && article.isAccessibleForFree === true
@@ -1385,6 +1443,17 @@ const server = http.createServer((req, res) => {
   const manifest = await (await page.request.get("http://localhost:8123/manifest.webmanifest")).json();
   check("manifest starts at the app", manifest.start_url === "/app");
   check("manifest SOS shortcut starts at the app", manifest.shortcuts[0].url === "/app?sos=1");
+
+  // Share cards, through the same /cards route Vercel rewrites to api/card.js.
+  const { cardFor, cardPath } = require("../cards.js");
+  const stand = cardFor("en", "core", 0);
+  const postRes = await page.request.get("http://localhost:8123" + cardPath(stand, "post"));
+  const postBody = await postRes.body();
+  check("a day's share card is served as a 1080x1350 PNG", postRes.status() === 200 && postRes.headers()["content-type"] === "image/png"
+    && postBody.readUInt32BE(16) === 1080 && postBody.readUInt32BE(20) === 1350);
+  const staleRes = await page.request.get("http://localhost:8123/cards/en/core/01-stand.00000000.og.png", { maxRedirects: 0 });
+  check("an out-of-date card address redirects to the current one", staleRes.status() === 308 && staleRes.headers()["location"] === cardPath(stand, "og"));
+  check("a card for a day that does not exist is 404", (await page.request.get("http://localhost:8123/cards/en/core/99-nope.0123abcd.og.png")).status() === 404);
   // The install sheet and the home-screen icon fetch these by URL; a path
   // that 404s just silently drops the image.
   for (const img of [...manifest.icons, ...manifest.screenshots]) {

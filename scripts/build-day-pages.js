@@ -26,6 +26,7 @@ const root = path.join(__dirname, "..");
 // slugify is shared with the app's calendar reminder (logic.js), so the
 // links the app writes and the pages this generates cannot drift.
 const { slugify } = require("../logic.js");
+const { shareLinks } = require("./share-links.js");
 const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const pageName = (track, i) => `${String(i + 1).padStart(2, "0")}-${slugify(track.days[i][0])}`;
 
@@ -60,7 +61,9 @@ const LOCALES = [
     fearsCloseHeading: "None of these quite fit?",
     fearsCloseBody: "Open the app and press \u201cSteady me now\u201d. It takes ninety seconds and asks nothing of you first.",
     sosLabel: "Steady me now",
-    switchLabel: "Español"
+    switchLabel: "Español",
+    imageAlt: "Stand — a prayer companion for fear",
+    share: { label: "Share this day", copy: "Copy link", copied: "Link copied", native: "Share…", x: "Share on X", facebook: "Share on Facebook", whatsapp: "Share on WhatsApp", email: "Share by email", url: "Page link" }
   },
   {
     code: "es", prefix: "/es", tracks: esTracks, fearIndex: esFearIndex, groups: esGroups,
@@ -85,13 +88,15 @@ const LOCALES = [
     fearsCloseHeading: "¿Ninguna encaja del todo?",
     fearsCloseBody: "Abre la app y pulsa \u201cCalma ahora\u201d. Toma noventa segundos y no te pide nada primero.",
     sosLabel: "Calma ahora",
-    switchLabel: "English"
+    switchLabel: "English",
+    imageAlt: "Stand — un compañero de oración para el miedo",
+    share: { label: "Compartir este día", copy: "Copiar enlace", copied: "Enlace copiado", native: "Compartir…", x: "Compartir en X", facebook: "Compartir en Facebook", whatsapp: "Compartir en WhatsApp", email: "Compartir por correo", url: "Enlace de la página" }
   }
 ];
 
 // A <details> disclosure rather than a scripted dropdown: these pages carry
-// no JavaScript, the production CSP allows none inline, and the open state
-// is announced natively. `alt` is the same page in the other language, so a
+// no JavaScript beyond the deferred share.js enhancement, the production CSP
+// allows none inline, and the open state is announced natively. `alt` is the same page in the other language, so a
 // reader who lands on the wrong one can cross over in a tap.
 function siteNav(L, current, alt) {
   const items = L.nav.filter(l => l.href !== current)
@@ -132,14 +137,26 @@ function socialMeta({ L, title, description, type, relPath, altPath }) {
     `  <link rel="alternate" hreflang="es" href="${SITE_URL}${L.code === "es" ? relPath : altPath}" />`,
     `  <link rel="alternate" hreflang="x-default" href="${SITE_URL}${L.code === "en" ? relPath : altPath}" />`
   ].join("\n") + "\n" : "";
+  // Width, height and alt let a scraper lay the card out before it fetches
+  // the image (and give the alt text screen readers announce in a feed);
+  // the twitter:* names are what X reads first, falling back to og:* only
+  // sometimes, so they are stated rather than assumed.
   return `  <meta property="og:title" content="${esc(title)}" />
   <meta property="og:description" content="${esc(description)}" />
   <meta property="og:type" content="${type}" />
   <meta property="og:url" content="${SITE_URL}${relPath}" />
   <meta property="og:image" content="${OG_IMAGE}" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="${esc(L.imageAlt)}" />
   <meta property="og:site_name" content="Stand" />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${esc(title)}" />
+  <meta name="twitter:description" content="${esc(description)}" />
+  <meta name="twitter:image" content="${OG_IMAGE}" />
+  <meta name="twitter:image:alt" content="${esc(L.imageAlt)}" />
   <meta property="og:locale" content="${L.code === "es" ? "es_ES" : "en_US"}" />
+  <meta property="og:locale:alternate" content="${L.code === "es" ? "en_US" : "es_ES"}" />
 ${alternates}  <link rel="canonical" href="${SITE_URL}${relPath}" />`;
 }
 
@@ -180,6 +197,37 @@ function structuredData({ L, track, id, i, title, ref, description, relPath, alt
     ]
   };
   return JSON.stringify({ "@context": "https://schema.org", "@graph": [article, breadcrumb] }, null, 2).replace(/<\//g, "<\\/");
+}
+
+// The share row on every day page: copy the link, the device's share sheet,
+// and four intent links. The links are plain anchors and work with no
+// JavaScript at all; the two buttons start hidden and share.js reveals them,
+// so a reader without scripts never sees a control that does nothing. Icons
+// are inline SVG (the platform marks from Simple Icons, CC0; the rest drawn
+// here) so the page loads nothing from any platform. The caption is the
+// verse and its reference, the same text the app shares.
+const ICON = {
+  link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+  share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>',
+  facebook: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>',
+  whatsapp: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>',
+  email: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="m22 6-10 7L2 6"/></svg>'
+};
+function shareRow({ L, url, title, text }) {
+  const links = shareLinks({ url, title, text });
+  const S = L.share;
+  const platform = (name, label) => `<a class="share-link" href="${esc(links[name])}" target="_blank" rel="noopener noreferrer" aria-label="${esc(label)}" title="${esc(label)}">${ICON[name]}</a>`;
+  return `        <nav class="share-row" aria-label="${esc(S.label)}" data-url="${esc(url)}" data-title="${esc(title)}" data-text="${esc(text)}">
+          <span class="share-label">${esc(S.label)}</span>
+          <button type="button" class="share-copy" data-copied="${esc(S.copied)}" hidden>${ICON.link}<span>${esc(S.copy)}</span></button>
+          <button type="button" class="share-native" hidden>${ICON.share}<span>${esc(S.native)}</span></button>
+          ${platform("x", S.x)}
+          ${platform("facebook", S.facebook)}
+          ${platform("whatsapp", S.whatsapp)}
+          ${platform("email", S.email)}
+          <input class="share-url" type="text" readonly value="${esc(url)}" aria-label="${esc(S.url)}" hidden />
+        </nav>`;
 }
 
 function weekFor(track, i) {
@@ -252,12 +300,14 @@ ${siteNav(L, relPath, altPath)}
         <section class="prayer-panel"><p class="section-kicker">${L.pray}</p><p>${esc(prayer)}</p><p class="amen">${L.amen}</p></section>
         <section class="declaration-panel"><p class="section-kicker">${L.declare}</p><p>${esc(declaration)}</p></section>
         <section class="action-panel" id="practice"><div class="action-icon">→</div><div><p class="section-kicker">${L.practice}</p><p>${esc(action)}</p></div></section>
+${shareRow({ L, url: `${SITE_URL}${relPath}`, title: pageTitle, text: `“${verse}” — ${ref}` })}
         <a class="complete-button" href="${APP}${appQuery}#${i + 1}">${L.openDay(i + 1)}</a>
         <nav class="day-nav" aria-label="${L.code === "es" ? "Navegación de días" : "Day navigation"}">${prev}${next}</nav>
       </article>
     </main>
 ${siteFooter(L, relPath)}
   </div>
+  <script src="/share.js" defer></script>
 </body>
 </html>
 `;

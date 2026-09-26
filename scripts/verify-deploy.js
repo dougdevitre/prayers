@@ -26,7 +26,7 @@ const FILES = [
   ["fears/index.html", "/fears"], ["es/fears/index.html", "/es/fears"],
   ["day/01-stand.html", "/day/01-stand"], ["es/day/01-firmeza.html", "/es/day/01-firmeza"],
   ["track/furnace/01-the-decree.html", "/track/furnace/01-the-decree"],
-  ["sw.js", "/sw.js"], ["app.js", "/app.js"], ["ui.js", "/ui.js"], ["logic.js", "/logic.js"],
+  ["sw.js", "/sw.js"], ["share.js", "/share.js"], ["app.js", "/app.js"], ["ui.js", "/ui.js"], ["logic.js", "/logic.js"],
   ["reminder.js", "/reminder.js"], ["narration.js", "/narration.js"], ["audio-manifest.js", "/audio-manifest.js"], ["compose.js", "/compose.js"], ["prayers.js", "/prayers.js"],
   ["content.js", "/content.js"], ["content.es.js", "/content.es.js"], ["styles.css", "/styles.css"],
   ["manifest.webmanifest", "/manifest.webmanifest"], ["robots.txt", "/robots.txt"], ["sitemap.xml", "/sitemap.xml"]

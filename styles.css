@@ -95,6 +95,9 @@ main{padding-bottom:78px}
 .path-button small{color:var(--muted)}
 .reminder-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);font-size:.9rem}
 .reminder-row label{font-weight:700}
+.offline-row{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);font-size:.9rem}
+.offline-row label{display:flex;align-items:center;gap:8px;font-weight:700;cursor:pointer}
+.offline-row[hidden]{display:none}
 .reminder-options{margin:8px 0 0;font-size:.85rem}
 .reminder-options>summary{color:var(--muted);cursor:pointer}
 .reminder-option{display:flex;align-items:center;gap:10px;margin:8px 0 0}

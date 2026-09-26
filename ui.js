@@ -225,7 +225,13 @@ const appUi = {
     "share.whatsapp": "Share on WhatsApp",
     "share.email": "Share by email",
     "share.url": "Page link",
-    "share.manual": "Copy the link above."
+    "share.manual": "Copy the link above.",
+    "offline.label": "Keep a week of audio on this device",
+    "offline.help": "Saves today’s recording, the next six days and the “Steady me now” sets, about 8 MB, so they play without a connection. Turn it off to free the space.",
+    "offline.saving": "Saving {n} of {total}…",
+    "offline.saved": "{n} recordings saved on this device · {mb} MB",
+    "offline.partial": "{n} of {total} saved; the rest will download the next time you are online.",
+    "offline.off": "Nothing is saved on this device."
   },
   es: {
     "brand.home": "Inicio de Stand",
@@ -440,7 +446,13 @@ const appUi = {
     "share.whatsapp": "Compartir en WhatsApp",
     "share.email": "Compartir por correo",
     "share.url": "Enlace de la página",
-    "share.manual": "Copia el enlace de arriba."
+    "share.manual": "Copia el enlace de arriba.",
+    "offline.label": "Guardar una semana de audio en este dispositivo",
+    "offline.help": "Guarda la grabación de hoy, los seis días siguientes y las series de “Calma ahora”, unos 8 MB, para escucharlas sin conexión. Desactívalo para liberar el espacio.",
+    "offline.saving": "Guardando {n} de {total}…",
+    "offline.saved": "{n} grabaciones guardadas en este dispositivo · {mb} MB",
+    "offline.partial": "{n} de {total} guardadas; el resto se descargará la próxima vez que tengas conexión.",
+    "offline.off": "No hay nada guardado en este dispositivo."
   }
 };
 

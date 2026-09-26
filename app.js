@@ -152,11 +152,19 @@ function go(n) {
 const narrationScript = d => dayScript(activeTrack().days[d], d, state.lang);
 const ttsOnly = new URLSearchParams(location.search).get("tts") === "1";
 
-/** The CDN URL of a recording by manifest id, or null when there is none. */
+// Recordings saved for offline listening, as blob: URLs keyed by their CDN
+// URL. Filled by syncOfflineAudio() (below) only when the reader has turned
+// offline listening on; empty otherwise, so playback streams as it always has.
+const offlineBlobs = new Map();
+
+/** The URL to play a recording from by manifest id: the saved copy when the
+ * device holds one, else the CDN, or null when there is no recording. */
 function recordedUrl(id) {
   if (ttsOnly || !audioManifest.enabled) return null;
   const item = audioManifest.items[id];
-  return item ? `${audioManifest.base}/${item.key}` : null;
+  if (!item) return null;
+  const url = `${audioManifest.base}/${item.key}`;
+  return offlineBlobs.get(url) || url;
 }
 
 const player = { status: "idle", keepAlive: 0, repeat: false, sleepTimer: 0, mode: "tts" };
@@ -827,6 +835,7 @@ document.querySelectorAll(".filter-tab").forEach(tab => {
 const weekLabelFor = d => weekLabel(activeTrack().weeks, d);
 
 function render() {
+  scheduleOfflineSync();
   stopAudio();
   const [title, ref, verse, reflection, prayer, declaration, action] = activeTrack().days[day];
   const done = tdata().completed.includes(day);
@@ -1039,7 +1048,7 @@ $("notes").oninput = event => {
 
 $("prevButton").onclick = () => go(day - 1);
 $("nextButton").onclick = () => go(day + 1);
-$("libraryButton").onclick = () => { renderFearFinder(); renderTrackPicker(); $("libraryDialog").showModal(); };
+$("libraryButton").onclick = () => { renderFearFinder(); renderTrackPicker(); renderOfflineRow(); $("libraryDialog").showModal(); };
 $("closeLibrary").onclick = () => $("libraryDialog").close();
 
 /* ---------- Journal ---------- */
@@ -1133,10 +1142,100 @@ $("restoreInput").onchange = async event => {
   render();
 };
 
-$("eraseButton").onclick = () => {
+$("eraseButton").onclick = async () => {
   if (!confirm(t("erase.confirm"))) return;
-  try { localStorage.removeItem(STORAGE_KEY); } catch { /* nothing to remove */ }
+  try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(OFFLINE_KEY); } catch { /* nothing to remove */ }
+  try { if (typeof caches !== "undefined") await caches.delete(OFFLINE_CACHE); } catch { /* no saved audio */ }
   location.reload();
+};
+
+/* ---------- Offline listening ---------- */
+
+// Opt-in and per device: the preference lives under its own key, outside the
+// backup, because a cache belongs to one phone. When on, the recordings for
+// the week ahead in the reader's journey and language, and the SOS sets, are
+// fetched into the Cache API (offline-audio.js decides which) and played from
+// blob: URLs, so a lost connection changes nothing. Anything not saved still
+// streams. Nothing is fetched when the device asks to save data.
+const OFFLINE_KEY = "stand-offline-audio";
+let offlineRun = 0;
+let offlineTimer = 0;
+
+const offlineSupported = () => typeof caches !== "undefined" && typeof fetch === "function" && !ttsOnly
+  && audioManifest.enabled !== false && Boolean(audioManifest.base);
+function offlineOn() {
+  try { return localStorage.getItem(OFFLINE_KEY) === "1"; } catch { return false; }
+}
+const saveData = () => Boolean(navigator.connection && navigator.connection.saveData);
+
+function renderOfflineRow() {
+  $("offlineRow").hidden = !offlineSupported();
+  $("offlineAudio").checked = offlineOn();
+}
+
+function scheduleOfflineSync() {
+  if (!offlineOn()) return;
+  clearTimeout(offlineTimer);
+  offlineTimer = setTimeout(syncOfflineAudio, 800);
+}
+
+// Forgets a saved copy. Its blob URL is revoked too, unless the player is
+// using it right now (revoking that would cut the recording off mid-prayer).
+function releaseOfflineBlob(url) {
+  const blobUrl = offlineBlobs.get(url);
+  offlineBlobs.delete(url);
+  if (blobUrl && audioEl.src !== blobUrl) URL.revokeObjectURL(blobUrl);
+}
+
+async function syncOfflineAudio() {
+  const run = ++offlineRun;
+  if (!offlineOn() || !offlineSupported()) return;
+  const status = $("offlineStatus");
+  const plan = offlinePlan(audioManifest, offlineIds({
+    lang: state.lang, track: state.track || "core", day, days: DAYS(), sosCount: sosSets().length
+  }));
+  let cache;
+  try { cache = await caches.open(OFFLINE_CACHE); } catch { return; }
+  const wanted = new Set(plan.keep.map(k => k.url));
+  // The window moved (a new day, journey or language): drop what fell out.
+  try {
+    for (const request of await cache.keys()) if (!wanted.has(request.url)) await cache.delete(request);
+  } catch { /* storage refused; keep going */ }
+  for (const url of [...offlineBlobs.keys()]) if (!wanted.has(url)) releaseOfflineBlob(url);
+
+  let saved = 0, bytes = 0;
+  for (const [i, item] of plan.keep.entries()) {
+    if (run !== offlineRun) return; // a newer sync took over
+    let response = null;
+    try { response = await cache.match(item.url); } catch { /* treat as missing */ }
+    if (!response && navigator.onLine !== false && !saveData()) {
+      status.textContent = t("offline.saving", { n: i + 1, total: plan.keep.length });
+      try {
+        const fetched = await fetch(item.url, { mode: "cors", credentials: "omit" });
+        if (fetched.status === 200) { await cache.put(item.url, fetched.clone()); response = fetched; }
+      } catch { /* offline, blocked, or out of space: try again next time */ }
+    }
+    if (!response) continue;
+    saved++;
+    bytes += item.bytes;
+    if (!offlineBlobs.has(item.url)) {
+      try { offlineBlobs.set(item.url, URL.createObjectURL(await response.blob())); } catch { /* unreadable copy */ }
+    }
+  }
+  if (run !== offlineRun) return;
+  status.textContent = saved === plan.keep.length
+    ? t("offline.saved", { n: saved, mb: megabytes(bytes) })
+    : t("offline.partial", { n: saved, total: plan.keep.length });
+}
+
+$("offlineAudio").onchange = async () => {
+  const on = $("offlineAudio").checked;
+  try { if (on) localStorage.setItem(OFFLINE_KEY, "1"); else localStorage.removeItem(OFFLINE_KEY); } catch { /* private mode */ }
+  if (on) { syncOfflineAudio(); return; }
+  offlineRun++;
+  for (const url of [...offlineBlobs.keys()]) releaseOfflineBlob(url);
+  try { await caches.delete(OFFLINE_CACHE); } catch { /* nothing saved */ }
+  $("offlineStatus").textContent = t("offline.off");
 };
 
 addEventListener("keydown", event => {

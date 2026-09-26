@@ -128,6 +128,11 @@
       <button class="filter-tab" data-filter="completed" data-i18n="library.completed">Completed</button>
     </div>
     <div class="day-grid" id="dayGrid"></div>
+    <div class="offline-row" id="offlineRow" hidden>
+      <label for="offlineAudio"><input type="checkbox" id="offlineAudio" /> <span data-i18n="offline.label">Keep a week of audio on this device</span></label>
+      <p class="reminder-help" data-i18n="offline.help">Saves today’s recording, the next six days and the “Steady me now” sets, about 8 MB, so they play without a connection. Turn it off to free the space.</p>
+      <p class="reminder-help" id="offlineStatus" aria-live="polite"></p>
+    </div>
     <div class="reminder-row">
       <label for="reminderTime" data-i18n="reminder.label">Daily reminder</label>
       <input type="time" id="reminderTime" value="07:00" />
@@ -253,6 +258,7 @@
   <script src="/share.js"></script>
   <script src="/narration.js"></script>
   <script src="/audio-manifest.js"></script>
+  <script src="/offline-audio.js"></script>
   <script src="/app.js"></script>
 </body>
 </html>

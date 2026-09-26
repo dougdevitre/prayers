@@ -57,7 +57,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, {
       "Content-Type": MIME[path.extname(full)] || "application/octet-stream",
       // Mirror the production CSP from vercel.json so violations fail the test.
-      "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self'; media-src 'self' https://stand-audio.vercel.app https://audio.prayers.dougdevitre.org; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+      "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self'; media-src 'self' blob: https://stand-audio.vercel.app https://audio.prayers.dougdevitre.org; connect-src 'self' https://stand-audio.vercel.app https://audio.prayers.dougdevitre.org; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
     });
     res.end(data);
   } catch {
@@ -308,7 +308,7 @@ const server = http.createServer((req, res) => {
   // idle, and falls back to the device voice when the file is missing.
   {
     const csp = await page.evaluate(async () => (await fetch("/app")).headers.get("content-security-policy"));
-    check("CSP allows media from the audio origins", /media-src 'self' https:\/\/stand-audio\.vercel\.app https:\/\/audio\.prayers\.dougdevitre\.org;/.test(csp));
+    check("CSP allows media from the audio origins", /media-src 'self' blob: https:\/\/stand-audio\.vercel\.app https:\/\/audio\.prayers\.dougdevitre\.org; connect-src 'self' https:\/\/stand-audio\.vercel\.app https:\/\/audio\.prayers\.dougdevitre\.org;/.test(csp));
     check("the day narration script is the shared one", await page.evaluate(() =>
       narrationScript(0).startsWith("Day one. Stand.\n\nScripture... Ephesians, chapter six, verses ten through thirteen.")));
     check("no recording is offered without a manifest entry", await page.evaluate(() =>
@@ -339,6 +339,45 @@ const server = http.createServer((req, res) => {
     await page.click("#playButton");
     await page.waitForFunction(() => player.mode === "tts", null, { timeout: 5000 }).catch(() => {});
     check("an unplayable recording falls back to the device voice", await page.evaluate(() => player.mode === "tts"));
+    await page.evaluate(() => { stopAudio(); audioManifest.items = {}; audioManifest.base = ""; go(0); });
+
+    // Offline listening. Off by default; turned on, the week ahead and the SOS
+    // sets are saved to the Cache API and played from blob: URLs, so with no
+    // connection the day still plays its recording rather than falling back to
+    // the device voice. Eleven distinct files (the query keeps them apart; the
+    // test server ignores it).
+    await page.evaluate(() => {
+      audioManifest.base = location.origin;
+      const entry = n => ({ key: `tests/fixtures/silence.mp3?n=${n}`, hash: "0".repeat(64), bytes: 15846, seconds: 1 });
+      for (let d = 0; d < 7; d++) audioManifest.items[dayItemId("en", "core", d)] = entry(d);
+      for (let i = 0; i < 4; i++) audioManifest.items[sosItemId("en", i)] = entry(`sos${i}`);
+      go(0);
+    });
+    await page.click("#libraryButton");
+    check("offline listening is offered once recordings exist", await page.isVisible("#offlineRow"));
+    check("offline listening starts off", !(await page.isChecked("#offlineAudio")));
+    await page.check("#offlineAudio");
+    await page.waitForFunction(() => /saved on this device/.test(document.getElementById("offlineStatus").textContent), null, { timeout: 8000 }).catch(() => {});
+    check("turning it on saves the week and the SOS sets and says how much", (await page.textContent("#offlineStatus")) === "11 recordings saved on this device · 0.2 MB");
+    check("the choice is kept on this device, outside the backup", await page.evaluate(() =>
+      localStorage.getItem("stand-offline-audio") === "1" && !JSON.stringify(JSON.parse(localStorage.getItem("stand-state"))).includes("offline")));
+    check("the saved copies are in the offline cache", await page.evaluate(async () => (await (await caches.open(OFFLINE_CACHE)).keys()).length === 11));
+    check("a saved day plays from the device copy", await page.evaluate(() => recordedFor(0).startsWith("blob:") && recordedFor(6).startsWith("blob:")));
+    await page.click("#closeLibrary");
+    await page.context().setOffline(true);
+    await page.click("#playButton");
+    await page.waitForFunction(() => player.status === "playing", null, { timeout: 5000 }).catch(() => {});
+    check("with no connection, the saved recording plays instead of the device voice", await page.evaluate(() => player.mode === "rec" && audioEl.src.startsWith("blob:")));
+    await page.waitForFunction(() => player.status === "idle", null, { timeout: 10000 }).catch(() => {});
+    await page.context().setOffline(false);
+    // Turning it off deletes the copies; playback streams from the host again.
+    await page.click("#libraryButton");
+    await page.uncheck("#offlineAudio");
+    await page.waitForFunction(() => document.getElementById("offlineStatus").textContent === "Nothing is saved on this device.", null, { timeout: 5000 }).catch(() => {});
+    check("turning it off deletes the saved copies and the preference", await page.evaluate(async () =>
+      !(await caches.has(OFFLINE_CACHE)) && localStorage.getItem("stand-offline-audio") === null));
+    check("and playback streams from the host again", await page.evaluate(() => recordedFor(0) === `${location.origin}/tests/fixtures/silence.mp3?n=0`));
+    await page.click("#closeLibrary");
     await page.evaluate(() => { stopAudio(); audioManifest.items = {}; audioManifest.base = ""; go(0); });
     // The kill switch: ?tts=1 ignores the manifest entirely.
     await page.goto("http://localhost:8123/app?tts=1#1", { waitUntil: "networkidle" });

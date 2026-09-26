@@ -65,7 +65,9 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npm install --no-save @aws-sdk/client-s3
-      - run: npm run verify:audio
+      # Stale items are what this run is for; anything else wrong with the
+      # manifest (a malformed entry, an orphan) stops it before any spend.
+      - run: npm run verify:audio -- --allow-stale
 
       - name: Preflight, reporting which settings are present without printing values
         env:
@@ -119,7 +121,10 @@ jobs:
       # The render exits non-zero when any item fails, but every item that did
       # render is already on disk and in the manifest, so the steps below run
       # anyway: nothing paid for is thrown away, and the job still ends red.
-      - run: npm run verify:audio
+      # A dry run renders nothing and a partial run (only, limit) leaves the
+      # rest stale by design, so those list stale items without failing; the
+      # manifest's pull request is still checked strictly by CI.
+      - run: npm run verify:audio -- ${{ (inputs.dry_run || inputs.only != '' || inputs.limit != '') && '--allow-stale' || '' }}
         if: ${{ !cancelled() }}
 
       - name: Publish the recordings to the audio branch

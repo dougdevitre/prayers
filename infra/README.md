@@ -6,7 +6,7 @@ Two ways to host the recordings. The default is the simpler one.
 `audio` branch of this repository; the `prayers-audio` Vercel project is
 bound to that branch and serves it at https://stand-audio.vercel.app with
 the cache and CORS headers in that branch's `vercel.json`. Nothing to deploy
-and no AWS settings; the only secret is `ELEVENLABS_API_KEY`. The cost is
+and no AWS settings; the only secret is the ElevenLabs key, stored as `ELEVENLABS_API` (or `ELEVENLABS_API_KEY`). The cost is
 repository size: the full library is roughly 275 MB of MP3s on that branch.
 
 **AWS (optional).** The stack below gives a private bucket behind CloudFront
@@ -51,7 +51,7 @@ Then:
   distribution's own hostname as `--base` and the app's CSP will need that
   host instead; the committed CSP names the custom domain.
 - **GitHub settings** (Settings → Secrets and variables → Actions). One
-  secret: `ELEVENLABS_API_KEY` (create a key at elevenlabs.io → Developers →
+  secret: `ELEVENLABS_API` or `ELEVENLABS_API_KEY` (create a key at elevenlabs.io → Developers →
   API keys, restricted to text-to-speech, with a credit limit if you like).
   Three variables, none of them secret: `AWS_PUBLISHER_ROLE_ARN` from the
   `PublisherRoleArn` output, `AUDIO_BUCKET` from `BucketName`, and

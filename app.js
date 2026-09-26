@@ -856,6 +856,7 @@ const weekLabelFor = d => weekLabel(activeTrack().weeks, d);
 
 function render() {
   scheduleOfflineSync();
+  scheduleProtect();
   stopAudio();
   const [title, ref, verse, reflection, prayer, declaration, action] = activeTrack().days[day];
   const done = tdata().completed.includes(day);
@@ -1134,8 +1135,7 @@ function restoreFromBackup(raw) {
   });
 }
 
-$("backupButton").onclick = () =>
-  downloadFile("stand-backup.json", JSON.stringify(state, null, 2), "application/json");
+$("backupButton").onclick = () => { saveBackup(); protectData(); };
 
 $("restoreInput").onchange = async event => {
   const file = event.target.files[0];
@@ -1164,9 +1164,87 @@ $("restoreInput").onchange = async event => {
 
 $("eraseButton").onclick = async () => {
   if (!confirm(t("erase.confirm"))) return;
-  try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(OFFLINE_KEY); } catch { /* nothing to remove */ }
+  try { for (const key of [STORAGE_KEY, OFFLINE_KEY, BACKUP_AT_KEY, BACKUP_SNOOZE_KEY]) localStorage.removeItem(key); } catch { /* nothing to remove */ }
   try { if (typeof caches !== "undefined") await caches.delete(OFFLINE_CACHE); } catch { /* no saved audio */ }
   location.reload();
+};
+
+/* ---------- Keeping the reader's data ---------- */
+
+// Everything a reader keeps lives in this browser's storage, and a browser
+// may clear it: Safari deletes a website's storage after about a week
+// without a visit unless the site was added to the Home Screen, and any
+// browser may evict it under storage pressure. Two defences. Once there is
+// something worth keeping, ask the browser to keep this site's storage
+// (granted or refused silently in most browsers; Firefox asks). And when the
+// data is still at risk, offer a backup, gently: at most once a month, never
+// before there are three days done or a note, and never in an installed
+// copy. The two timestamps are this device's, kept outside the backup.
+const BACKUP_AT_KEY = "stand-backup-at";
+const BACKUP_SNOOZE_KEY = "stand-backup-snooze";
+const MONTH_MS = 30 * 24 * 60 * 60 * 1000;
+let persistRequested = false;
+let protectTimer = 0;
+
+const readTime = key => { try { return Number(localStorage.getItem(key)) || 0; } catch { return 0; } };
+const stampTime = key => { try { localStorage.setItem(key, String(Date.now())); } catch { /* private mode */ } };
+const installedCopy = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const onIPhone = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+/** What this device holds that would hurt to lose. */
+function keptData() {
+  const others = Object.values(state.tracks || {}).filter(Boolean);
+  const completed = (state.completed || []).length + others.reduce((n, t) => n + (t.completed || []).length, 0);
+  const notes = [state.notes || {}, ...others.map(t => t.notes || {})].some(n => Object.values(n).some(v => String(v).trim()));
+  return { completed, notes, checkins: (state.checkins || []).length + (state.sos || []).length };
+}
+
+async function storagePersisted() {
+  try { return Boolean(navigator.storage && navigator.storage.persisted && await navigator.storage.persisted()); } catch { return false; }
+}
+
+function saveBackup() {
+  downloadFile("stand-backup.json", JSON.stringify(state, null, 2), "application/json");
+  stampTime(BACKUP_AT_KEY);
+}
+
+function scheduleProtect() {
+  clearTimeout(protectTimer);
+  protectTimer = setTimeout(protectData, 500);
+}
+
+async function protectData() {
+  const kept = keptData();
+  if (!kept.completed && !kept.notes && !kept.checkins) { $("backupNudge").hidden = true; return; }
+  let persisted = await storagePersisted();
+  if (!persisted && !persistRequested && navigator.storage && navigator.storage.persist) {
+    persistRequested = true;
+    try { persisted = Boolean(await navigator.storage.persist()); } catch { /* not offered */ }
+  }
+  const now = Date.now();
+  const due = now - readTime(BACKUP_AT_KEY) > MONTH_MS && now - readTime(BACKUP_SNOOZE_KEY) > MONTH_MS;
+  const enough = kept.completed >= 3 || kept.notes;
+  // An installed copy keeps its storage; elsewhere, iPhone is at risk even
+  // with persistence granted, and other browsers only when it was refused.
+  const atRisk = !installedCopy() && (onIPhone() || !persisted);
+  const show = enough && due && atRisk;
+  if (show) {
+    $("backupNudgeText").textContent = t(onIPhone() ? "backup.nudgeIos" : "backup.nudge");
+    $("backupNudgeActions").hidden = false;
+  }
+  $("backupNudge").hidden = !show;
+}
+
+$("backupNudgeSave").onclick = () => {
+  saveBackup();
+  $("backupNudgeText").textContent = t("backup.nudgeSaved");
+  $("backupNudgeActions").hidden = true;
+  setTimeout(() => { $("backupNudge").hidden = true; }, 6000);
+};
+
+$("backupNudgeLater").onclick = () => {
+  stampTime(BACKUP_SNOOZE_KEY);
+  $("backupNudge").hidden = true;
 };
 
 /* ---------- Offline listening ---------- */

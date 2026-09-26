@@ -210,6 +210,12 @@ function fakeApi({ failFirst = 0, status = 429 } = {}) {
     assert.ok(!stale.ok);
     assert.ok(stale.lines.some(l => l.includes("es/sos/1 is stale")));
     assert.ok(stale.lines.some(l => l.includes("node scripts/build-audio.js --only es/sos/1")));
+    // Before a render, stale items are the work to do, not a failure; an
+    // orphan still fails.
+    const before = verify({ manifest: lib.readManifest(file), items: edited, voices, slugify, allowStale: true });
+    assert.ok(before.ok, before.lines.join("\n"));
+    assert.ok(before.lines.some(l => l.startsWith("• es/sos/1 is stale")));
+    assert.ok(!verify({ manifest: lib.readManifest(file), items: edited.filter(i => i.id !== "es/sos/2"), voices, slugify, allowStale: true }).ok);
     // The settings change under every item of a language.
     const retuned = JSON.parse(JSON.stringify(voices)); retuned.es.sos.speed = 0.95;
     assert.strictEqual(verify({ manifest: lib.readManifest(file), items, voices: retuned, slugify }).report.stale.length, 4);

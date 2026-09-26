@@ -213,7 +213,19 @@ const appUi = {
     "sos.disclaimer": "Stand offers spiritual encouragement. It isn't medical or crisis care, and reaching out for more help is its own act of courage.",
     "share.caption": "“{verse}” — {ref}",
     "share.title": "Day {n}: {title} — Stand",
-    "share.cardDay": "D A Y"
+    "share.cardDay": "D A Y",
+    "share.kicker": "SHARE",
+    "share.heading": "Share this day",
+    "share.close": "Close sharing",
+    "share.copy": "Copy link",
+    "share.copied": "Link copied",
+    "share.saveCard": "Save verse card",
+    "share.x": "Share on X",
+    "share.facebook": "Share on Facebook",
+    "share.whatsapp": "Share on WhatsApp",
+    "share.email": "Share by email",
+    "share.url": "Page link",
+    "share.manual": "Copy the link above."
   },
   es: {
     "brand.home": "Inicio de Stand",
@@ -416,7 +428,19 @@ const appUi = {
     "sos.disclaimer": "Stand ofrece aliento espiritual. No es atención médica ni de crisis, y pedir más ayuda es en sí mismo un acto de valor.",
     "share.caption": "“{verse}” — {ref}",
     "share.title": "Día {n}: {title} — Stand",
-    "share.cardDay": "D Í A"
+    "share.cardDay": "D Í A",
+    "share.kicker": "COMPARTIR",
+    "share.heading": "Compartir este día",
+    "share.close": "Cerrar compartir",
+    "share.copy": "Copiar enlace",
+    "share.copied": "Enlace copiado",
+    "share.saveCard": "Guardar tarjeta del versículo",
+    "share.x": "Compartir en X",
+    "share.facebook": "Compartir en Facebook",
+    "share.whatsapp": "Compartir en WhatsApp",
+    "share.email": "Compartir por correo",
+    "share.url": "Enlace de la página",
+    "share.manual": "Copia el enlace de arriba."
   }
 };
 

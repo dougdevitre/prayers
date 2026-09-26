@@ -842,29 +842,84 @@ function buildVerseCard() {
   return new Promise(resolve => canvas.toBlob(resolve, "image/png"));
 }
 
+// The link a share carries is the day's crawlable page, not the app's hash
+// route: /day/07-the-word previews with that day's title and description,
+// /app#7 only ever previews as the app. dayPagePath (reminder.js) is the same
+// function the calendar reminders use, and the unit tests check every path it
+// builds against the generated pages.
+const sharePageUrl = () => location.origin + dayPagePath(state.track || "core", activeTrack(), day, state.lang);
+const shareCardName = () => `stand-day-${String(day + 1).padStart(2, "0")}.png`;
+
 $("shareButton").onclick = async () => {
   const [title, ref, verse] = activeTrack().days[day];
-  const text = t("share.caption", { verse, ref });
+  const caption = t("share.caption", { verse, ref });
+  const url = sharePageUrl();
+  const heading = t("share.title", { n: day + 1, title });
   try {
-    const blob = await buildVerseCard();
-    const file = blob ? new File([blob], `stand-day-${String(day + 1).padStart(2, "0")}.png`, { type: "image/png" }) : null;
-    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: t("share.title", { n: day + 1, title }), text });
-      return;
-    }
+    // A phone that can share files gets the verse card with the link in the
+    // text; one that can share only links gets the link; everything else
+    // (most desktops) gets the dialog below.
     if (navigator.share) {
-      await navigator.share({ title: t("share.title", { n: day + 1, title }), text, url: location.href });
+      const blob = await buildVerseCard();
+      const file = blob ? new File([blob], shareCardName(), { type: "image/png" }) : null;
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: heading, text: `${caption}\n${url}` });
+      } else {
+        await navigator.share({ title: heading, text: caption, url });
+      }
       return;
     }
-    // Desktop fallback: save the verse card and copy the text.
-    if (file) downloadFile(file.name, blob, "image/png");
-    await navigator.clipboard.writeText(`${text}\n${location.href}`).catch(() => {});
-    $("shareButton").textContent = "✓";
-    setTimeout(() => { $("shareButton").textContent = "↗"; }, 1200);
+  } catch (e) {
+    // AbortError is the reader closing the sheet; anything else falls
+    // through to the dialog so the share still happens.
+    if (e && e.name === "AbortError") return;
+  }
+  openShareDialog({ url, heading, caption });
+};
+
+// The desktop share sheet: copy the link, save the verse card, or hand the
+// page to a platform through its intent URL. No platform scripts, no
+// tracking parameters; the links and icons come from share.js, the same
+// ones every day page carries.
+function openShareDialog({ url, heading, caption }) {
+  const links = shareLinks({ url, title: heading, text: caption });
+  const set = (id, name) => { const a = $(id); a.href = links[name]; a.innerHTML = shareIcons[name]; a.title = t(`share.${name}`); };
+  set("shareX", "x");
+  set("shareFacebook", "facebook");
+  set("shareWhatsapp", "whatsapp");
+  set("shareEmail", "email");
+  $("shareCopyIcon").innerHTML = shareIcons.link;
+  $("shareCopyLabel").textContent = t("share.copy");
+  $("shareCaption").textContent = caption;
+  $("shareUrl").value = url;
+  $("shareUrl").hidden = true;
+  $("shareStatus").textContent = "";
+  $("shareDialog").showModal();
+}
+
+$("shareCopy").onclick = async () => {
+  const url = $("shareUrl").value;
+  try {
+    await navigator.clipboard.writeText(url);
+    $("shareCopyLabel").textContent = t("share.copied");
+    $("shareCopy").classList.add("is-copied");
+    setTimeout(() => { $("shareCopyLabel").textContent = t("share.copy"); $("shareCopy").classList.remove("is-copied"); }, 1600);
   } catch {
-    // The user closed the share sheet, or clipboard access was denied.
+    // No clipboard (older browser, or permission refused): show the link
+    // selected, so one keystroke or a long-press copies it.
+    $("shareUrl").hidden = false;
+    $("shareUrl").focus();
+    $("shareUrl").select();
+    $("shareStatus").textContent = t("share.manual");
   }
 };
+
+$("shareSaveCard").onclick = async () => {
+  const blob = await buildVerseCard();
+  if (blob) downloadFile(shareCardName(), blob, "image/png");
+};
+
+$("closeShare").onclick = () => $("shareDialog").close();
 
 $("favoriteButton").onclick = () => {
   const data = tdata();

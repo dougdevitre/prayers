@@ -175,6 +175,21 @@
     <div class="prayer-card" id="traditionalCard" aria-live="polite" hidden></div>
   </dialog>
 
+  <dialog id="shareDialog" aria-labelledby="shareHeading">
+    <div class="dialog-header"><div><p class="eyebrow" data-i18n="share.kicker">SHARE</p><h2 id="shareHeading" data-i18n="share.heading">Share this day</h2></div><button class="icon-button" id="closeShare" aria-label="Close sharing" data-i18n-aria="share.close">×</button></div>
+    <p class="share-caption" id="shareCaption"></p>
+    <div class="share-sheet" id="shareSheet">
+      <button type="button" class="share-copy" id="shareCopy"><span id="shareCopyIcon"></span><span id="shareCopyLabel" data-i18n="share.copy">Copy link</span></button>
+      <button type="button" id="shareSaveCard" data-i18n="share.saveCard">Save verse card</button>
+      <a class="share-link" id="shareX" target="_blank" rel="noopener noreferrer" aria-label="Share on X" data-i18n-aria="share.x"></a>
+      <a class="share-link" id="shareFacebook" target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook" data-i18n-aria="share.facebook"></a>
+      <a class="share-link" id="shareWhatsapp" target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp" data-i18n-aria="share.whatsapp"></a>
+      <a class="share-link" id="shareEmail" target="_blank" rel="noopener noreferrer" aria-label="Share by email" data-i18n-aria="share.email"></a>
+      <input class="share-url" id="shareUrl" type="text" readonly aria-label="Page link" data-i18n-aria="share.url" hidden />
+      <p class="save-status" id="shareStatus" aria-live="polite"></p>
+    </div>
+  </dialog>
+
   <dialog id="journalDialog">
     <div class="dialog-header"><div><p class="eyebrow" data-i18n="journal.kicker">MY REFLECTIONS</p><h2 data-i18n="journal.title">Journal</h2></div><button class="icon-button" id="closeJournal" aria-label="Close journal" data-i18n-aria="journal.close">×</button></div>
     <div class="ledger" id="ledger"></div>
@@ -235,6 +250,7 @@
   <script src="/compose.js"></script>
   <script src="/logic.js"></script>
   <script src="/reminder.js"></script>
+  <script src="/share.js"></script>
   <script src="/narration.js"></script>
   <script src="/audio-manifest.js"></script>
   <script src="/app.js"></script>

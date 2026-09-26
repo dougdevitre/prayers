@@ -597,7 +597,7 @@ const TERMS = {
   },
   es: {
     title: "Términos de uso — Stand",
-    description: "Los términos de uso de Stand, en palabras sencillas: acompañamiento espiritual y no consejo profesional, dónde buscar ayuda en una crisis y qué puedes compartir.",
+    description: "Los términos de Stand, en palabras sencillas: acompañamiento espiritual y no consejo profesional, dónde buscar ayuda en una crisis y qué puedes compartir.",
     eyebrow: "TÉRMINOS DE USO",
     heading: "Términos de uso",
     summary: "Stand es un compañero gratuito para orar cuando tienes miedo. Ofrece acompañamiento espiritual, no consejo médico, de salud mental, legal ni financiero, y no ocupa el lugar de un profesional con licencia. Si estás en crisis o en peligro, busca ayuda ahora; los números están más abajo. Stand se ofrece gratis y tal como es, y solo te pedimos que lo uses con amabilidad.",

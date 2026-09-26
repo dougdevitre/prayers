@@ -65,7 +65,7 @@ npx playwright install chromium
 npm test
 ```
 
-Alongside it, `npm run test:unit` runs 205 unit tests with no browser, and `npm run test:a11y` runs the accessibility audit described above. All three run in CI on every push and pull request.
+Alongside it, `npm run test:unit` runs 212 unit tests with no browser, and `npm run test:a11y` runs the accessibility audit described above. All three run in CI on every push and pull request.
 
 | File | Tests | What it covers |
 |---|---|---|
@@ -75,6 +75,7 @@ Alongside it, `npm run test:unit` runs 205 unit tests with no browser, and `npm 
 | `tests/audio.test.js` | 19 | The audio build against a local stand-in for ElevenLabs: hash-keyed filing, skipping what is fresh, retrying, a concurrency cap, resuming after a failure, and the verifier catching a stale item (and listing it without failing under `--allow-stale`). |
 | `tests/narration.test.js` | 12 | Narration scripts: every scripture reference spoken without a digit left in it, and a prayer's pacing metadata becoming break tags. |
 | `tests/remam.test.js` | 11 | The REMAM lock (`scripts/remam-sync.js`), without a REMAM checkout: an edited prayer failing the check by name and field, overrides that explain a difference until the text moves again or REMAM adopts it, a sync that applies upstream fixes but refuses to overwrite an override, and a rewrite of `prayers.js` that changes only the lines that changed. |
+| `tests/seo.test.js` | 7 | Every page in the sitemap: a unique title (15–65 characters) and description (70–160, so results pages show it whole), a canonical and `og:url` naming the page itself, a complete share card, the right `html lang`, English/Spanish alternates that point both ways, parseable structured data, and one `h1`. |
 | `tests/cards.test.js` | 10 | Share cards: every day has one, the hash tracks what the card shows, both formats render as PNGs at their sizes, old addresses redirect, and the deploy check names failing cards. |
 | `tests/api.test.js` | 7 | The calendar feed in `api/calendar.js`: query parsing and named errors, the start date and time, weekday and evening options, and a valid feed for every journey in both languages. |
 | `tests/deploy.test.js` | 6 | The deploy check in `scripts/verify-deploy.js`, against local servers serving this checkout, a tampered copy, and one that catches up mid-poll. |

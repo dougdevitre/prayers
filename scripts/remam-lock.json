@@ -2,7 +2,7 @@
   "_comment": "Where prayers.js gets its traditional prayers, and which differences from that source are deliberate. Read and written by scripts/remam-sync.js (see its header); CI runs its check. Hashes, not text: the prayers themselves live in prayers.js and in REMAM.",
   "repo": "dougdevitre/remam",
   "path": "packages/data/content/prayers.json",
-  "commit": "082321cdcbc201a051172d42e0841baa79b12f78",
+  "commit": "1aa954b1bbd12996b2b100d589ad96525ef2ab4b",
   "traditional": {
     "sign-of-the-cross": {
       "name.en": "799ec27250031811",
@@ -22,7 +22,7 @@
       "name.en": "5eecfa5340739f96",
       "name.es": "b70b37e50c9bd83a",
       "text.en": "9dfe00cdb68a93e2",
-      "text.es": "db8f484b8f825294",
+      "text.es": "1a8d2c5001a1c2ed",
       "audio": "09c45436d1a98fe7"
     },
     "glory-be": {
@@ -43,7 +43,7 @@
       "name.en": "0ab9114c88069880",
       "name.es": "1d50c4bf574cbb57",
       "text.en": "1bd5ed02ef1fb9f1",
-      "text.es": "4d92398b9fa8cbb3",
+      "text.es": "62d0a2f699ff129b",
       "audio": "d89f83c629e0ff79"
     },
     "act-of-contrition": {
@@ -57,15 +57,15 @@
       "name.en": "17e49ea3ec646c25",
       "name.es": "19306a1ef179c4cb",
       "text.en": "3bd32a24bf6a52a2",
-      "text.es": "3d66353063e05ec7",
+      "text.es": "ddc5b56143558544",
       "audio": "c36333d6af88c95d"
     },
     "memorare": {
       "name.en": "b11e613d414722bc",
-      "name.es": "d1df607d94bf20eb",
+      "name.es": "25818dc10053f257",
       "text.en": "6a225072202ed799",
-      "text.es": "22447de20eb60001",
-      "audio": "379c2905e5025cbb"
+      "text.es": "dcb43b806ae987f5",
+      "audio": "52fc4646f939a9a9"
     },
     "st-michael": {
       "name.en": "30e63c92ff422af5",

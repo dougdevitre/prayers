@@ -29,10 +29,10 @@ const audioManifest = {
       "seconds": 72
     },
     "en/day/barley/3": {
-      "key": "en/day/barley/04-handfuls-on-purpose.78dac4cd.mp3",
-      "hash": "78dac4cd0f86716d19da573c9c4a6f00137a62aefe0233a28e5eb7a1277ae77e",
-      "bytes": 1154447,
-      "seconds": 72
+      "key": "en/day/barley/04-handfuls-on-purpose.89fcbb7e.mp3",
+      "hash": "89fcbb7eb0ff258c14855d3f24e235c25e2000db5d684ccc2613ab88878183de",
+      "bytes": 1205438,
+      "seconds": 75
     },
     "en/day/basket/0": {
       "key": "en/day/basket/01-three-months-hidden.cc2ce07c.mp3",
@@ -251,10 +251,10 @@ const audioManifest = {
       "seconds": 65
     },
     "en/day/den/2": {
-      "key": "en/day/den/03-shut-mouths.15173d54.mp3",
-      "hash": "15173d542a6b14fc227d8bbd57a82cad64feab9c9c9528bce29bc8a31e0dc06a",
-      "bytes": 1150685,
-      "seconds": 72
+      "key": "en/day/den/03-shut-mouths.97a29598.mp3",
+      "hash": "97a29598b07d5cacf24dd8d28929874a259b8c2aaa7ee29f53ae13f7ac50a253",
+      "bytes": 1224246,
+      "seconds": 77
     },
     "en/day/den/3": {
       "key": "en/day/den/04-no-wound-found.cf080c33.mp3",
@@ -323,10 +323,10 @@ const audioManifest = {
       "seconds": 72
     },
     "en/day/hem/2": {
-      "key": "en/day/hem/03-who-touched-my-clothes.6ab55073.mp3",
-      "hash": "6ab55073c3b1ddcc0bdbcd63020626bd3195d574ee188ca4d82c3c307c0e7f01",
-      "bytes": 1127697,
-      "seconds": 70
+      "key": "en/day/hem/03-who-touched-my-clothes.45e5ade7.mp3",
+      "hash": "45e5ade70dc00a4ab916f55450fc4d0667134036074d2d8aaba4c19ec58e23de",
+      "bytes": 1435733,
+      "seconds": 90
     },
     "en/day/hem/3": {
       "key": "en/day/hem/04-daughter-go-in-peace.e31e38a0.mp3",
@@ -443,9 +443,9 @@ const audioManifest = {
       "seconds": 77
     },
     "en/day/storm/1": {
-      "key": "en/day/storm/02-peace-be-still.6946cc04.mp3",
-      "hash": "6946cc0486259d68ab307f507fa316eabdc0d733b92f59bb3c4d71891d5b49a2",
-      "bytes": 1147759,
+      "key": "en/day/storm/02-peace-be-still.34961fc7.mp3",
+      "hash": "34961fc758299fcd7144f30a2db861ed9d3a1bdc2fe1ffa91cb6976f6189600d",
+      "bytes": 1152775,
       "seconds": 72
     },
     "en/day/storm/2": {
@@ -461,10 +461,10 @@ const audioManifest = {
       "seconds": 69
     },
     "en/day/throne/0": {
-      "key": "en/day/throne/01-for-such-a-time.dce516f0.mp3",
-      "hash": "dce516f0f5f0ad538cecf1df7d67cfc8ef82a13e0677e46f2de050127c8f778a",
-      "bytes": 1240546,
-      "seconds": 78
+      "key": "en/day/throne/01-for-such-a-time.03159994.mp3",
+      "hash": "03159994ede82aba4016457ba6113f7213319a6ef46cf3285461a694b5d46ed0",
+      "bytes": 1128951,
+      "seconds": 71
     },
     "en/day/throne/1": {
       "key": "en/day/throne/02-if-i-perish.66501fd8.mp3",
@@ -779,10 +779,10 @@ const audioManifest = {
       "seconds": 77
     },
     "es/day/barley/3": {
-      "key": "es/day/barley/04-punados-a-proposito.9627ce6f.mp3",
-      "hash": "9627ce6fa1a9c2c03e522eeb758beb196916c9ce8dbf3980bd668d6fb187f4e8",
-      "bytes": 1227172,
-      "seconds": 77
+      "key": "es/day/barley/04-punados-a-proposito.bf94964c.mp3",
+      "hash": "bf94964c77421d8ea1e783d7f21cc2c745d7e09e578dab3525a04815018e69d7",
+      "bytes": 1242636,
+      "seconds": 78
     },
     "es/day/basket/0": {
       "key": "es/day/basket/01-tres-meses-escondido.d51e6bd4.mp3",
@@ -905,10 +905,10 @@ const audioManifest = {
       "seconds": 72
     },
     "es/day/core/23": {
-      "key": "es/day/core/24-justicia-para-todos.9fa52e32.mp3",
-      "hash": "9fa52e32a6be169d513eb2f847e5c5bc57c170a74b41e18f280de5b1aec2e636",
-      "bytes": 1157791,
-      "seconds": 72
+      "key": "es/day/core/24-justicia-para-todos.c97bbfcf.mp3",
+      "hash": "c97bbfcfade9bbaff0fdc6d4af61a78e3491c4f33e4af1994ca425335a1775f6",
+      "bytes": 1141490,
+      "seconds": 71
     },
     "es/day/core/24": {
       "key": "es/day/core/25-misericordia.42007db0.mp3",
@@ -1001,9 +1001,9 @@ const audioManifest = {
       "seconds": 80
     },
     "es/day/den/2": {
-      "key": "es/day/den/03-bocas-cerradas.bd76e4df.mp3",
-      "hash": "bd76e4df3e82f0ab3a4d75edbe27d0b0454d0d99e5ac525146222a94f663a5dc",
-      "bytes": 1284850,
+      "key": "es/day/den/03-bocas-cerradas.ba4f21da.mp3",
+      "hash": "ba4f21da6eeb582bbe3d0119caabe3a4c5287823bc05f01095891d751cacd1a9",
+      "bytes": 1278999,
       "seconds": 80
     },
     "es/day/den/3": {
@@ -1073,10 +1073,10 @@ const audioManifest = {
       "seconds": 74
     },
     "es/day/hem/2": {
-      "key": "es/day/hem/03-le-dijo-toda-la-verdad.f523b869.mp3",
-      "hash": "f523b869668e7e573377db942c93a637634b8821b826e2480e46530c87e12dd4",
-      "bytes": 1388504,
-      "seconds": 87
+      "key": "es/day/hem/03-le-dijo-toda-la-verdad.674380bc.mp3",
+      "hash": "674380bc852b18f1ddf265a229d9c2c2fe765e388b2ddfc4ebe3219b2fc76dd4",
+      "bytes": 1427792,
+      "seconds": 89
     },
     "es/day/hem/3": {
       "key": "es/day/hem/04-hija-ve-en-paz.c70b6db7.mp3",
@@ -1193,9 +1193,9 @@ const audioManifest = {
       "seconds": 77
     },
     "es/day/storm/1": {
-      "key": "es/day/storm/02-calla-enmudece.024b7b9f.mp3",
-      "hash": "024b7b9f64fbacb1e531349a4481fd1c1a02882d4017a4a4043867d22817a183",
-      "bytes": 1316197,
+      "key": "es/day/storm/02-calla-enmudece.a0f25ebd.mp3",
+      "hash": "a0f25ebd096acc8b49ef58b3085fede08bd9eb6b9de77da6167c77de63133533",
+      "bytes": 1308674,
       "seconds": 82
     },
     "es/day/storm/2": {
@@ -1211,10 +1211,10 @@ const audioManifest = {
       "seconds": 73
     },
     "es/day/throne/0": {
-      "key": "es/day/throne/01-para-esta-hora.40645f46.mp3",
-      "hash": "40645f46fdd4cacdc0cab392c72f64809ed9c7e11c369ea23707e087d7cd8e4e",
-      "bytes": 1294045,
-      "seconds": 81
+      "key": "es/day/throne/01-para-esta-hora.5cba5045.mp3",
+      "hash": "5cba5045c83d903fa796e7b213b369459d23a016e833f79ef23cdb3deef2b7a8",
+      "bytes": 1256847,
+      "seconds": 79
     },
     "es/day/throne/1": {
       "key": "es/day/throne/02-si-perezco-que-perezca.f3678122.mp3",
@@ -1265,10 +1265,10 @@ const audioManifest = {
       "seconds": 78
     },
     "es/day/turning/1": {
-      "key": "es/day/turning/02-volvio-su-rostro-a-la-pared.c78cf8f9.mp3",
-      "hash": "c78cf8f9d50d42080d2c71208d6a12339c6aca59e59bdfad040bc46d6fb6178e",
-      "bytes": 1249324,
-      "seconds": 78
+      "key": "es/day/turning/02-volvio-su-rostro-a-la-pared.06fbfcd9.mp3",
+      "hash": "06fbfcd9e4774a82a6c8045fa41e800878809b375982931927d8aef5bc0b6d49",
+      "bytes": 1219648,
+      "seconds": 76
     },
     "es/day/turning/2": {
       "key": "es/day/turning/03-he-visto-tus-lagrimas.3219fb56.mp3",
@@ -1349,10 +1349,10 @@ const audioManifest = {
       "seconds": 78
     },
     "es/day/wall/2": {
-      "key": "es/day/wall/03-no-puedo-ir.a1a30a24.mp3",
-      "hash": "a1a30a24e642664ea84f9b7af705238b5de2b2de3580fce7a0f2b236a623395e",
-      "bytes": 1177853,
-      "seconds": 74
+      "key": "es/day/wall/03-no-puedo-ir.01858dc9.mp3",
+      "hash": "01858dc9315b01bdfda81f6dda9b58cafbf940943f65c616f26237a49fe46e5a",
+      "bytes": 1260608,
+      "seconds": 79
     },
     "es/day/wall/3": {
       "key": "es/day/wall/04-cincuenta-y-dos-dias.42e213ff.mp3",
@@ -1361,10 +1361,10 @@ const audioManifest = {
       "seconds": 79
     },
     "es/day/water/0": {
-      "key": "es/day/water/01-un-fantasma-en-la-cuarta-vigilia.a35562a4.mp3",
-      "hash": "a35562a4f118284c3f46facf46f98470eb58b97b54dff49ae809ae6a835ed13e",
-      "bytes": 1240546,
-      "seconds": 78
+      "key": "es/day/water/01-un-fantasma-en-la-cuarta-vigilia.a9a0831e.mp3",
+      "hash": "a9a0831e12b070139e0b486536f199b4ca10c67f48fc999274558b375ea5dd27",
+      "bytes": 1235113,
+      "seconds": 77
     },
     "es/day/water/1": {
       "key": "es/day/water/02-manda-que-yo-vaya.a4cccbc0.mp3",
@@ -1373,10 +1373,10 @@ const audioManifest = {
       "seconds": 73
     },
     "es/day/water/2": {
-      "key": "es/day/water/03-comenzando-a-hundirse.36d141a4.mp3",
-      "hash": "36d141a448eed328692fa093c7673155fa7c0915deac61920aba15d531139bfa",
-      "bytes": 1221738,
-      "seconds": 76
+      "key": "es/day/water/03-comenzando-a-hundirse.63d84680.mp3",
+      "hash": "63d846805be047ed573048245a45dc6d23e8c30d7cdd907cc1be1777fdb0f698",
+      "bytes": 1203348,
+      "seconds": 75
     },
     "es/day/water/3": {
       "key": "es/day/water/04-enseguida-extendio-la-mano.ee93853b.mp3",
@@ -1415,10 +1415,10 @@ const audioManifest = {
       "seconds": 24
     },
     "es/prayer/angelus": {
-      "key": "es/prayer/angelus.e1aa98eb.mp3",
-      "hash": "e1aa98ebacb4286b4ba06bddb9b53cfde4e6cc493b921729f5320026e46002c1",
-      "bytes": 1727051,
-      "seconds": 108
+      "key": "es/prayer/angelus.9809010f.mp3",
+      "hash": "9809010fa647ed22f7897df346bb692bf379785ffe1e96876682a684e8d07f17",
+      "bytes": 1747949,
+      "seconds": 109
     },
     "es/prayer/apostles-creed": {
       "key": "es/prayer/apostles-creed.c6496b78.mp3",
@@ -1445,21 +1445,21 @@ const audioManifest = {
       "seconds": 13
     },
     "es/prayer/hail-holy-queen": {
-      "key": "es/prayer/hail-holy-queen.6a5c99dd.mp3",
-      "hash": "6a5c99ddc8ada3fdd1eebe9d49e10f6019af1cfc61e32735ec04f01186cccd8f",
-      "bytes": 744011,
+      "key": "es/prayer/hail-holy-queen.f89a4d30.mp3",
+      "hash": "f89a4d308da864b4ddee35dcc0aaac9fc7a9969b81ee0464aef66cfef580c4ed",
+      "bytes": 759893,
       "seconds": 47
     },
     "es/prayer/hail-mary": {
-      "key": "es/prayer/hail-mary.1e082526.mp3",
-      "hash": "1e0825267aaefa9cad373d2c6213d956bcf93c79ad46d8ddca2a470ad33b34ab",
+      "key": "es/prayer/hail-mary.17d3d7b0.mp3",
+      "hash": "17d3d7b09f3323c4067d799f3cc43552f08ee5223ad6667b29930d9285ca9d48",
       "bytes": 379968,
       "seconds": 24
     },
     "es/prayer/memorare": {
-      "key": "es/prayer/memorare.fdc2e09a.mp3",
-      "hash": "fdc2e09a469cd6da6767c7ba4974a27f2b3dce22b5c0a2a8b6f8bc980b7dfd5f",
-      "bytes": 672958,
+      "key": "es/prayer/memorare.2852b4b8.mp3",
+      "hash": "2852b4b8bf14f6f222df95fbc18410af66b0305d6d7af45d8a352ce08001528d",
+      "bytes": 673376,
       "seconds": 42
     },
     "es/prayer/our-father": {

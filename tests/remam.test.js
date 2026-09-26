@@ -121,21 +121,24 @@ test("sync applies an upstream fix, moves the lock, and leaves a clean check", (
 });
 
 test("sync refuses to overwrite an overridden field, and drops the override once REMAM adopts it", () => {
+  // Values derived from the current title, so the test holds whatever the
+  // corpus says today.
   const mine = stand();
   let lock = lockFor(remamFrom(mine));
   const memorare = mine.find(t => t.id === "memorare");
-  memorare.name.es = "Memorare (Acuérdate)";
+  const ours = memorare.name.es + " (Stand)";
+  memorare.name.es = ours;
   lock = recordOverride(mine, lock, "memorare", "name.es", "pending REMAM PR");
 
   const other = remamFrom(stand());
-  other.traditional.items.find(i => i.id === "memorare").name.es = "Memorare";
+  other.traditional.items.find(i => i.id === "memorare").name.es += " (REMAM)";
   const clash = syncFrom(other, "c".repeat(40), mine, lock, { write: true });
   assert.strictEqual(clash.refused, "conflicts");
   assert.deepStrictEqual(clash.report.conflicts.map(c => c.id + " " + c.field), ["memorare name.es"]);
-  assert.strictEqual(memorare.name.es, "Memorare (Acuérdate)");
+  assert.strictEqual(memorare.name.es, ours);
 
   const adopted = remamFrom(stand());
-  adopted.traditional.items.find(i => i.id === "memorare").name.es = "Memorare (Acuérdate)";
+  adopted.traditional.items.find(i => i.id === "memorare").name.es = ours;
   const { report, lock: moved } = syncFrom(adopted, "d".repeat(40), mine, lock, { write: true });
   assert.deepStrictEqual(report.conflicts, []);
   assert.deepStrictEqual(moved.overrides, []);

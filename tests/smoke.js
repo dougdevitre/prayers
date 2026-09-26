@@ -202,6 +202,17 @@ const server = http.createServer((req, res) => {
   await page.click("#sosButton");
   await page.click("#sosSupport");
   check("crisis resources shown", (await page.textContent("#sosResources")).includes("988"));
+  // One tap to call or text in a crisis, and a way to find help outside the US.
+  check("crisis numbers are tappable", await page.evaluate(() => {
+    const hrefs = [...document.querySelectorAll("#sosResources a")].map(a => a.getAttribute("href"));
+    return ["tel:988", "sms:741741", "tel:911", "https://findahelpline.com"].every(h => hrefs.includes(h));
+  }));
+  check("the English text line keyword is HOME", (await page.textContent("#sosResources")).includes("Text HOME to 741741"));
+  check("readers outside the US are pointed to a helpline finder", (await page.textContent("#sosResources")).includes("Outside the US: findahelpline.com"));
+  check("the helpline finder opens safely in a new tab", await page.evaluate(() => {
+    const a = document.querySelector('#sosResources a[href="https://findahelpline.com"]');
+    return a.target === "_blank" && a.rel.includes("noopener");
+  }));
   await page.click("#closeSos");
 
   // calm ledger in journal
@@ -851,6 +862,14 @@ const server = http.createServer((req, res) => {
   check("SOS verses are Reina-Valera", esAnchor.includes("Jehová es mi luz y mi salvación"));
   check("SOS references are Spanish", esAnchor.includes("Salmo 27:1"));
   check("SOS prayers close in Spanish", esAnchor.includes("Amén."));
+  // Spanish readers get the Spanish routes: 988 answers in Spanish on 2 or to
+  // AYUDA by text, and Crisis Text Line answers in Spanish to AYUDA. HOME
+  // would reach an English-speaking counselor.
+  await page.click("#sosSupport");
+  const esResources = await page.textContent("#sosResources");
+  check("Spanish crisis resources give 988's Spanish options", esResources.includes("marca 2 para español") && esResources.includes("AYUDA al 988"));
+  check("Spanish crisis resources text AYUDA, not HOME, to 741741", esResources.includes("Escribe AYUDA al 741741") && !esResources.includes("HOME"));
+  check("Spanish crisis resources point outside the US too", esResources.includes("Fuera de EE. UU.: findahelpline.com"));
   await page.click("#closeSos");
 
   await page.click("#prayerButton");

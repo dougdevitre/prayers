@@ -12,6 +12,13 @@
 // changes rarely. Run it when a captured screen changes, then commit.
 //
 // Set CHROMIUM_PATH to use a preinstalled browser.
+//
+//   node scripts/build-screenshots.js --install
+//
+// renders only the screenshots the web app manifest lists instead: whole
+// screens (not cropped dialogs) at a phone's 2x density, plus one desktop
+// window, which browsers show in their install sheet. English and light,
+// like the manifest itself.
 
 const http = require("http");
 const fs = require("fs");
@@ -44,6 +51,7 @@ const server = http.createServer((req, res) => {
 });
 
 const url = p => `http://localhost:${PORT}${p}`;
+const INSTALL_ONLY = process.argv.includes("--install");
 
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
@@ -55,8 +63,8 @@ const url = p => `http://localhost:${PORT}${p}`;
   // captures: navigating from "/" to "/#1" only changes the hash, so the
   // document never reloads and the dialog opened for the previous shot was
   // still covering the screen.
-  const freshPage = async (scheme, lang) => {
-    const p = await browser.newPage({ viewport: VIEWPORT, deviceScaleFactor: 1.5, colorScheme: scheme });
+  const freshPage = async (scheme, lang, viewport = VIEWPORT, deviceScaleFactor = 1.5) => {
+    const p = await browser.newPage({ viewport, deviceScaleFactor, colorScheme: scheme });
     await p.goto(url("/app"), { waitUntil: "networkidle" });
     // Dismiss the first-run welcome so captures show the app in use.
     if (await p.evaluate(() => Boolean(document.getElementById("welcomeDialog")?.open))) {
@@ -88,7 +96,33 @@ const url = p => `http://localhost:${PORT}${p}`;
   // scheme, so a light-only screenshot would glare out of a dark page. The
   // <picture> element fetches only the matching source, so a visitor still
   // downloads one set.
-  for (const lang of ["en", "es"]) for (const scheme of ["light", "dark"]) {
+  // Install sheet: whole screens, listed in manifest.webmanifest.
+  if (INSTALL_ONLY) {
+    const phone = () => freshPage("light", "en", VIEWPORT, 2);
+    let page = await phone();
+    await page.waitForTimeout(400);
+    await capture(page, "install-day.png");
+
+    page = await phone();
+    await page.click("#sosButton");
+    await page.waitForTimeout(400);
+    await page.click("#sosStage .checkin-scale button:nth-child(4)");
+    await page.waitForTimeout(600);
+    await capture(page, "install-sos.png");
+
+    page = await phone();
+    await page.click("#prayerButton");
+    await page.waitForTimeout(600);
+    await page.locator("#prayerCard").scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    await capture(page, "install-composer.png");
+
+    page = await freshPage("light", "en", { width: 1280, height: 800 }, 1);
+    await page.waitForTimeout(400);
+    await capture(page, "install-wide.png");
+  }
+
+  if (!INSTALL_ONLY) for (const lang of ["en", "es"]) for (const scheme of ["light", "dark"]) {
     const sfx = `${lang === "es" ? "-es" : ""}${scheme === "dark" ? "-dark" : ""}`;
 
     // 1. SOS mid-breath — the rescue the whole page is built around.
@@ -120,5 +154,6 @@ const url = p => `http://localhost:${PORT}${p}`;
     const kb = (fs.statSync(path.join(OUT, s)).size / 1024).toFixed(0);
     console.log(`  shots/${s}  ${kb} KB`);
   }
-  console.log(`Wrote ${shots.length} screenshots from a ${VIEWPORT.width}x${VIEWPORT.height} viewport at 1.5x`);
+  console.log(INSTALL_ONLY ? `Wrote ${shots.length} install screenshots`
+    : `Wrote ${shots.length} screenshots from a ${VIEWPORT.width}x${VIEWPORT.height} viewport at 1.5x`);
 })();

@@ -86,8 +86,11 @@ let engines = null;
 function setUp() {
   engines = engines || (async () => {
     // satori shapes text with harfbuzzjs, which loads hb.wasm from its own
-    // folder at run time; naming the file here is what gets it bundled into
-    // the function (Vercel's file tracer cannot see that load by itself).
+    // folder at run time, and resvg's index_bg.wasm is read below. Neither is
+    // a require(), and Vercel's bundler left both out of the function even
+    // though a local @vercel/nft trace found them (production answered
+    // "Cannot find module .../index_bg.wasm"), so vercel.json names both in
+    // includeFiles. Checking here makes a missing file fail with its name.
     fs.accessSync(require.resolve("harfbuzzjs/hb.wasm"));
     const satori = require("satori").default;
     const resvg = require("@resvg/resvg-wasm");

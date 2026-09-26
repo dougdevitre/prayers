@@ -1,0 +1,1 @@
+Stand narration origin. Files live under hash-keyed paths; see audio-manifest.js on main.

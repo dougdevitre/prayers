@@ -50,7 +50,7 @@ function attachSuggestions(items, suggestions) {
       if (!Array.isArray(s.options) || !s.options.length) throw new Error(`review-suggestions.json: ${id} has no options for "${s.from}"`);
       // A suggestion with a reason is a question for the reviewer in its own
       // right; the masculine-form ones already are one, through flagsFor.
-      if (s.why) it.flags.push({ kind: s.kind || "wording", text: s.why });
+      if (s.why) (it.flags ||= []).push({ kind: s.kind || "wording", text: s.why });
     }
     it.suggestions = list.map(s => ({ from: s.from, options: s.options, lang: s.lang || "es" }));
   }

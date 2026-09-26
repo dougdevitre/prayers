@@ -36,7 +36,8 @@ function flagsFor(fields) {
 }
 
 /** Offer the reviewer wording to choose from. A suggestion whose `from` is no
- *  longer in the item's Spanish text fails the build rather than going stale. */
+ *  longer in the item's text (Spanish unless it says `lang: "en"`) fails the
+ *  build rather than going stale. */
 function attachSuggestions(items, suggestions) {
   const byId = new Map(items.map(i => [i.id, i]));
   for (const [id, list] of Object.entries(suggestions)) {
@@ -44,10 +45,14 @@ function attachSuggestions(items, suggestions) {
     const it = byId.get(id);
     if (!it) throw new Error(`review-suggestions.json: no item ${id}`);
     for (const s of list) {
-      if (!it.fields.some(f => (f.es || "").includes(s.from))) throw new Error(`review-suggestions.json: ${id} no longer says "${s.from}"`);
+      const lang = s.lang || "es";
+      if (!it.fields.some(f => (f[lang] || "").includes(s.from))) throw new Error(`review-suggestions.json: ${id} no longer says "${s.from}"`);
       if (!Array.isArray(s.options) || !s.options.length) throw new Error(`review-suggestions.json: ${id} has no options for "${s.from}"`);
+      // A suggestion with a reason is a question for the reviewer in its own
+      // right; the masculine-form ones already are one, through flagsFor.
+      if (s.why) it.flags.push({ kind: s.kind || "wording", text: s.why });
     }
-    it.suggestions = list.map(s => ({ from: s.from, options: s.options }));
+    it.suggestions = list.map(s => ({ from: s.from, options: s.options, lang: s.lang || "es" }));
   }
 }
 

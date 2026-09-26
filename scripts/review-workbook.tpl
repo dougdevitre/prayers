@@ -229,14 +229,14 @@ textarea{width:100%;min-height:40px;resize:vertical;padding:9px 11px;border:1px 
     for (const fl of it.flags) {
       const d = document.createElement("div"); d.className = "flag";
       const b = document.createElement("b"); b.textContent = "Question for the reviewer: ";
-      d.append(b, document.createTextNode(fl.text + (it.suggestions ? " Approve to keep it, or choose a wording below that reads for any reader." : " Keep it, or suggest a form that reads for any reader?")));
+      d.append(b, document.createTextNode(fl.text + (it.suggestions ? " Approve to keep it as written, or choose a wording below." : " Keep it, or suggest a form that reads for any reader?")));
       el.append(d);
     }
     const opts = [];
     for (const sg of it.suggestions || []) {
-      const box = document.createElement("div"); box.className = "suggest"; box.lang = "es";
+      const box = document.createElement("div"); box.className = "suggest"; box.lang = sg.lang;
       const from = document.createElement("p"); from.className = "from"; from.lang = "en";
-      const q = document.createElement("q"); q.lang = "es"; q.textContent = sg.from;
+      const q = document.createElement("q"); q.lang = sg.lang; q.textContent = sg.from;
       from.append(document.createTextNode("Instead of "), q, document.createTextNode(":"));
       box.append(from);
       for (const o of sg.options) {

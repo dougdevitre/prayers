@@ -1,25 +1,524 @@
 {
-  "_note": "Neutral Spanish wording offered to the pastoral reviewer for lines that address the reader in the masculine. Each `from` must appear word for word in the item's Spanish text (the build fails otherwise). Suggestions are not part of an item's hash: adding or editing them never unsettles a decision.",
+  "_note": "Wording offered to the pastoral reviewer: neutral Spanish for lines that address the reader in the masculine, and fixes from a proofreading pass (grammar, meaning, literal translations; `lang: \"en\"` for the English). Each `from` must appear word for word in the item's text (the build fails otherwise); `why` is shown to the reviewer as the question. Suggestions are not part of an item's hash: adding or editing them never unsettles a decision.",
   "day.core.01": [
-    { "from": "Donde estoy confundido, dame claridad.", "options": ["Donde hay confusión en mí, dame claridad.", "Donde me falta claridad, ilumíname."] },
-    { "from": "Donde estoy agotado, renueva mis fuerzas.", "options": ["Donde me faltan las fuerzas, renuévalas.", "Donde me siento sin fuerzas, renueva mi vigor."] }
+    {
+      "from": "Donde estoy confundido, dame claridad.",
+      "options": [
+        "Donde hay confusión en mí, dame claridad.",
+        "Donde me falta claridad, ilumíname."
+      ]
+    },
+    {
+      "from": "Donde estoy agotado, renueva mis fuerzas.",
+      "options": [
+        "Donde me faltan las fuerzas, renuévalas.",
+        "Donde me siento sin fuerzas, renueva mi vigor."
+      ]
+    },
+    {
+      "from": "Donde estoy airado, dame dominio propio.",
+      "options": [
+        "Donde tengo enojo, dame dominio propio.",
+        "Donde hay ira en mí, dame dominio propio."
+      ],
+      "why": "\"Airado\" is a masculine adjective describing the person praying; the options say the same thing in gender-neutral wording.",
+      "kind": "gender"
+    }
   ],
   "day.core.10": [
-    { "from": "Nombra un resentimiento que estés listo para empezar a soltar.", "options": ["Nombra un resentimiento que ya puedas empezar a soltar.", "Nombra un resentimiento que te sientas con ánimo de empezar a soltar."] }
+    {
+      "from": "Nombra un resentimiento que estés listo para empezar a soltar.",
+      "options": [
+        "Nombra un resentimiento que ya puedas empezar a soltar.",
+        "Nombra un resentimiento que te sientas con ánimo de empezar a soltar."
+      ]
+    }
   ],
   "day.basket.01": [
-    { "from": "Estoy cansado, y me asusta el día en que mi cobertura no alcance.", "options": ["Me pesa el cansancio, y me asusta el día en que mi cobertura no alcance.", "Me falta el aliento, y me asusta el día en que mi cobertura no alcance."] }
+    {
+      "from": "Estoy cansado, y me asusta el día en que mi cobertura no alcance.",
+      "options": [
+        "Me pesa el cansancio, y me asusta el día en que mi cobertura no alcance.",
+        "Me falta el aliento, y me asusta el día en que mi cobertura no alcance."
+      ]
+    }
   ],
   "day.hem.01": [
-    { "from": "Dios, estoy cansado de explicar esto, cansado de volver a intentarlo y cansado de esperar con cautela.", "options": ["Dios, me cansa explicar esto, me cansa volver a intentarlo y me cansa esperar con cautela.", "Dios, ya me agota explicar esto, volver a intentarlo y esperar con cautela."] }
+    {
+      "from": "Dios, estoy cansado de explicar esto, cansado de volver a intentarlo y cansado de esperar con cautela.",
+      "options": [
+        "Dios, me cansa explicar esto, me cansa volver a intentarlo y me cansa esperar con cautela.",
+        "Dios, ya me agota explicar esto, volver a intentarlo y esperar con cautela."
+      ]
+    },
+    {
+      "from": "Estar cansado de esperar no significa que haya fallado en la fe.",
+      "options": [
+        "Cansarme de esperar no significa que haya fallado en la fe.",
+        "El cansancio de esperar no significa que haya fallado en la fe."
+      ],
+      "why": "\"Cansado\" is masculine for the reader (this is the declaration; the prayer line is flagged separately).",
+      "kind": "gender"
+    }
   ],
   "day.shipwreck.01": [
-    { "from": "Perder mis referencias no significa que esté perdido.", "options": ["Perder mis referencias no significa que me haya perdido.", "Perder mis referencias no significa haber perdido el camino."] }
+    {
+      "from": "Perder mis referencias no significa que esté perdido.",
+      "options": [
+        "Perder mis referencias no significa que me haya perdido.",
+        "Perder mis referencias no significa haber perdido el camino."
+      ]
+    }
   ],
   "day.barley.01": [
-    { "from": "Dios, estoy de vuelta en un comienzo que no elegí, y estoy cansado de explicarlo.", "options": ["Dios, estoy de vuelta en un comienzo que no elegí, y me cansa explicarlo.", "Dios, he vuelto a un comienzo que no elegí, y ya me agota explicarlo."] }
+    {
+      "from": "Dios, estoy de vuelta en un comienzo que no elegí, y estoy cansado de explicarlo.",
+      "options": [
+        "Dios, estoy de vuelta en un comienzo que no elegí, y me cansa explicarlo.",
+        "Dios, he vuelto a un comienzo que no elegí, y ya me agota explicarlo."
+      ]
+    }
   ],
   "finder.phrases": [
-    { "from": "Llevo mucho tiempo enfermo y estoy agotado", "options": ["Llevo mucho tiempo con mala salud y sin fuerzas", "Hace mucho que mi salud no está bien y ya no puedo más"] }
+    {
+      "from": "Llevo mucho tiempo enfermo y estoy agotado",
+      "options": [
+        "Llevo mucho tiempo con mala salud y sin fuerzas",
+        "Hace mucho que mi salud no está bien y ya no puedo más"
+      ]
+    },
+    {
+      "from": "Me siento completamente superado en número",
+      "options": [
+        "Siento que son muchos más que yo",
+        "Siento que me superan en número por completo"
+      ],
+      "why": "\"superado\" is masculine and describes the reader, and \"superado en número\" reads like a word-for-word rendering of \"outnumbered\"; the options are neutral and more natural.",
+      "kind": "gender"
+    }
+  ],
+  "day.core.04": [
+    {
+      "from": "Príncipe de Paz, hazme instrumento de paz sin hacerme temeroso del conflicto necesario.",
+      "options": [
+        "Príncipe de Paz, hazme instrumento de paz sin llenarme de temor ante el conflicto necesario.",
+        "Príncipe de Paz, hazme instrumento de paz sin que tenga miedo del conflicto necesario."
+      ],
+      "why": "\"Temeroso\" (afraid) is masculine and refers to the person praying.",
+      "kind": "gender"
+    }
+  ],
+  "day.core.24": [
+    {
+      "from": "Guárdame de exigir a otros criterios que rechazo para mí mismo.",
+      "options": [
+        "Guárdame de exigir a otros criterios que rechazo para mí."
+      ],
+      "why": "\"Mí mismo\" (myself) is masculine; \"para mí\" means the same and is neutral.",
+      "kind": "gender"
+    },
+    {
+      "from": "Aplícate a ti mismo el criterio que aplicas a otro.",
+      "options": [
+        "Aplícate el mismo criterio que aplicas a otro.",
+        "Aplica en tu propia vida el criterio que aplicas a otro."
+      ],
+      "why": "\"Ti mismo\" (yourself) is masculine and addresses the reader.",
+      "kind": "gender"
+    }
+  ],
+  "day.core.29": [
+    {
+      "from": "Lo que he sobrevivido puede volverse luz para otro.",
+      "options": [
+        "Lo que he atravesado puede volverse luz para otro.",
+        "Aquello a lo que he sobrevivido puede volverse luz para otro."
+      ],
+      "why": "In Spanish \"sobrevivir\" takes \"a\" (you survive to something); using it with a direct object copies English and is considered incorrect.",
+      "kind": "grammar"
+    }
+  ],
+  "day.core.30": [
+    {
+      "from": "Quizá sea que el odio no te hizo odioso, ni el engaño deshonesto, ni el miedo cobarde, ni el sufrimiento cruel.",
+      "options": [
+        "Quizá sea que el odio no te llenó de odio, ni el engaño de falsedad, ni el miedo de cobardía, ni el sufrimiento de crueldad."
+      ],
+      "why": "\"Odioso\" and \"deshonesto\" are masculine adjectives describing the reader; the option keeps the same parallel list with neutral nouns.",
+      "kind": "gender"
+    }
+  ],
+  "day.unknown.04": [
+    {
+      "from": "Sea lo que sea que traiga el mañana, no lo cargarás solo.",
+      "options": [
+        "Sea lo que sea que traiga el mañana, no lo cargarás a solas.",
+        "Sea lo que sea que traiga el mañana, no lo cargarás sin compañía."
+      ],
+      "why": "\"Solo\" (alone) is masculine when it describes the reader; \"a solas\" means the same and is neutral.",
+      "kind": "gender"
+    },
+    {
+      "from": "No camino solo hacia lo desconocido.",
+      "options": [
+        "No camino a solas hacia lo desconocido.",
+        "No camino sin compañía hacia lo desconocido."
+      ],
+      "why": "\"Solo\" (alone) is masculine and describes the person praying.",
+      "kind": "gender"
+    }
+  ],
+  "day.unknown.05": [
+    {
+      "from": "Lo que entrego a Dios ya no lo cargo solo.",
+      "options": [
+        "Lo que entrego a Dios ya no lo cargo a solas."
+      ],
+      "why": "\"Solo\" (alone) is masculine and describes the person praying.",
+      "kind": "gender"
+    }
+  ],
+  "day.night.01": [
+    {
+      "from": "Padre, al acostarme renuncio a ser el vigilante de la noche.",
+      "options": [
+        "Padre, al acostarme renuncio a vigilar durante la noche.",
+        "Padre, al acostarme renuncio a hacer la guardia de la noche."
+      ],
+      "why": "\"El vigilante\" (the watchman) is a masculine noun for the person praying; the options describe the same act without gender.",
+      "kind": "gender"
+    }
+  ],
+  "day.furnace.03": [
+    {
+      "from": "Si tengo que atravesar esto, no lo atravesaré solo.",
+      "options": [
+        "Si tengo que atravesar esto, no lo atravesaré a solas."
+      ],
+      "why": "\"Solo\" (alone) is masculine and describes the person praying.",
+      "kind": "gender"
+    },
+    {
+      "from": "Mira atrás a una etapa dura que sobreviviste y escribe una manera concreta en que no estuviste solo.",
+      "options": [
+        "Mira atrás a una etapa dura que atravesaste y escribe una manera concreta en que no estuviste a solas.",
+        "Mira atrás a una etapa dura a la que sobreviviste y escribe una manera concreta en que no estuviste a solas."
+      ],
+      "why": "\"Solo\" (alone) is masculine for the reader, and \"sobrevivir\" needs \"a\" in Spanish.",
+      "kind": "gender"
+    }
+  ],
+  "day.furnace.04": [
+    {
+      "from": "Dios, no quiero salir de esto cargando su humo: amargado, quebradizo, desconfiado de todos.",
+      "options": [
+        "Dios, no quiero salir de esto cargando su humo: con amargura, con fragilidad, desconfiando de todos."
+      ],
+      "why": "\"Amargado,\" \"quebradizo\" and \"desconfiado\" are masculine adjectives describing the person praying; the option uses neutral phrases.",
+      "kind": "gender"
+    }
+  ],
+  "day.night.05": [
+    {
+      "from": "La misericordia de la mañana es nueva; anoche no la factura.",
+      "options": [
+        "La misericordia de la mañana es nueva; la noche anterior no le pasa factura.",
+        "La misericordia de la mañana es nueva; la noche pasada no le cobra nada."
+      ],
+      "why": "The English is \"last night does not bill it\". \"Anoche\" is an adverb and cannot be the subject of \"factura\", so this reads as broken Spanish; \"no le pasa factura\" is the natural idiom.",
+      "kind": "calque"
+    }
+  ],
+  "day.giant.02": [
+    {
+      "from": "Muéstrame lo que ya me has entrenado a hacer, y dame la humildad de usar cosas pequeñas y comprobadas.",
+      "options": [
+        "Muéstrame lo que ya me has enseñado a hacer, y dame la humildad de usar cosas pequeñas y comprobadas.",
+        "Muéstrame lo que ya me has entrenado para hacer, y dame la humildad de usar cosas pequeñas y comprobadas."
+      ],
+      "why": "In Spanish it is \"entrenar para\" (trained for), not \"entrenar a\"; \"enseñar a\" (taught to) is also natural.",
+      "kind": "grammar"
+    }
+  ],
+  "day.den.02": [
+    {
+      "from": "Ni escaló ni se escondió.",
+      "options": [
+        "No avivó el conflicto ni se escondió.",
+        "Ni agravó las cosas ni se escondió."
+      ],
+      "why": "The English is \"He did not escalate\". Without an object, \"escaló\" reads as \"he climbed\"; the sense needs to be said outright.",
+      "kind": "calque"
+    }
+  ],
+  "day.unseen.02": [
+    {
+      "from": "Déjame sentirme superado en número, pero en la dirección correcta.",
+      "options": [
+        "Déjame sentir que me superan en número, pero en la dirección correcta."
+      ],
+      "why": "\"Superado\" is masculine and describes the person praying; \"me superan\" is gender-neutral.",
+      "kind": "gender"
+    }
+  ],
+  "day.throne.01": [
+    {
+      "from": "Ester estaba a salvo, y esa seguridad era el problema: callar habría conservado su posición y costado la de todos los demás.",
+      "options": [
+        "Ester estaba a salvo, y esa seguridad era el problema: callar habría conservado su posición y les habría costado todo a los demás.",
+        "Ester estaba a salvo, y esa seguridad era el problema: callar habría conservado su posición y les habría costado caro a todos los demás."
+      ],
+      "why": "The Spanish says silence would have cost everyone else their \"position\"; the English means it would have cost everyone else dearly (their lives).",
+      "kind": "meaning"
+    }
+  ],
+  "day.wall.02": [
+    {
+      "from": "Tómala, vuelve a la obra y déjala ahí.",
+      "options": [
+        "Tómala, vuelve a la obra y deja el asunto ahí.",
+        "Tómala; después vuelve a la obra y no le des más vueltas."
+      ],
+      "why": "\"Déjala\" most naturally points back to \"la obra\", so it can read as \"return to the work and leave the work there\", the opposite of the intent.",
+      "kind": "meaning"
+    }
+  ],
+  "day.water.01": [
+    {
+      "from": "Dios, llevo asustado el tiempo suficiente para desconfiar de las buenas noticias.",
+      "options": [
+        "Dios, llevo tanto tiempo con miedo que ya desconfío de las buenas noticias.",
+        "Dios, llevo con miedo el tiempo suficiente para desconfiar de las buenas noticias."
+      ],
+      "why": "\"Asustado\" is masculine and describes the person praying; \"con miedo\" is gender-neutral.",
+      "kind": "gender"
+    }
+  ],
+  "day.water.04": [
+    {
+      "from": "Escribe una vez en que te fuiste a fondo y fuiste sostenido: por Dios, por una persona, por una provisión inesperada.",
+      "options": [
+        "Escribe una vez en que te fuiste a fondo y alguien te sostuvo: Dios, una persona, una provisión inesperada.",
+        "Escribe una vez en que te fuiste a fondo y recibiste sostén: de Dios, de una persona, de una provisión inesperada."
+      ],
+      "why": "\"Fuiste sostenido\" is masculine and addresses the reader; the options are gender-neutral.",
+      "kind": "gender"
+    }
+  ],
+  "day.shiloh.02": [
+    {
+      "from": "Señor, prefiero que la gente me lea mal mientras soy honesto contigo, antes que estar compuesto delante de ambos.",
+      "options": [
+        "Señor, prefiero que la gente me malinterprete mientras te hablo con honestidad, antes que aparentar serenidad delante de ambos.",
+        "Señor, prefiero que la gente me lea mal mientras te hablo con honestidad, antes que guardar la compostura delante de ambos."
+      ],
+      "why": "\"Honesto\" and \"compuesto\" are masculine for the person praying, and \"estar compuesto\" is a literal rendering of \"composed\" that in Spanish suggests \"made up of\".",
+      "kind": "gender"
+    }
+  ],
+  "day.turning.02": [
+    {
+      "from": "No tengo que estar compuesto delante de Dios.",
+      "options": [
+        "No tengo que guardar la compostura delante de Dios.",
+        "No tengo que aparentar serenidad delante de Dios."
+      ],
+      "why": "\"Compuesto\" is masculine for the reader and is also a literal rendering of \"composed\" that sounds odd in Spanish.",
+      "kind": "gender"
+    }
+  ],
+  "day.turning.03": [
+    {
+      "from": "Pase lo que pase, déjame estar seguro de que fui oído y de que mis lágrimas fueron vistas.",
+      "options": [
+        "Pase lo que pase, déjame tener la certeza de que me oíste y de que viste mis lágrimas.",
+        "Pase lo que pase, dame la certeza de que me oíste y de que mis lágrimas fueron vistas."
+      ],
+      "why": "\"Seguro\" and \"oído\" are masculine and describe the person praying; the options are gender-neutral.",
+      "kind": "gender"
+    }
+  ],
+  "day.jordan.02": [
+    {
+      "from": "Da el paso que has venido reteniendo hasta sentirte seguro.",
+      "options": [
+        "Da el paso que has venido reteniendo hasta tener certeza.",
+        "Da el paso que has venido reteniendo hasta sentir seguridad."
+      ],
+      "why": "\"Seguro\" is masculine and addresses the reader.",
+      "kind": "gender"
+    }
+  ],
+  "day.torches.01": [
+    {
+      "from": "Escribe tu lista honesta de por qué no eres el indicado.",
+      "options": [
+        "Escribe tu lista honesta de por qué no eres la persona indicada."
+      ],
+      "why": "\"El indicado\" is masculine and addresses the reader; \"la persona indicada\" is neutral.",
+      "kind": "gender"
+    }
+  ],
+  "day.torches.02": [
+    {
+      "from": "Puedo ser llamado algo en lo que aún no me he convertido.",
+      "options": [
+        "Pueden llamarme algo en lo que aún no me he convertido.",
+        "Se me puede llamar algo en lo que aún no me he convertido."
+      ],
+      "why": "\"Llamado\" is masculine and describes the reader; the options keep the sense of being named (as Gideon was) without gender.",
+      "kind": "gender"
+    }
+  ],
+  "day.torches.04": [
+    {
+      "from": "Lo que llevo se ve más claro justo donde estoy roto.",
+      "options": [
+        "Lo que llevo se ve más claro justo donde me he quebrado.",
+        "Lo que llevo se ve más claro justo en mis grietas."
+      ],
+      "why": "\"Roto\" is masculine and describes the reader.",
+      "kind": "gender"
+    }
+  ],
+  "day.shipwreck.02": [
+    {
+      "from": "Señor, hazme el sereno de esta sala.",
+      "options": [
+        "Señor, que yo sea quien mantiene la calma en esta sala.",
+        "Señor, hazme la presencia serena de esta sala."
+      ],
+      "why": "\"El sereno\" is masculine for the reader, and as a noun it also means \"the night watchman\", which confuses the sense of \"the steady one\".",
+      "kind": "gender"
+    }
+  ],
+  "day.shipwreck.04": [
+    {
+      "from": "Dios, quería salir de esto entero y estoy saliendo en pedazos.",
+      "options": [
+        "Dios, quería salir de esto sin romperme y estoy saliendo en pedazos.",
+        "Dios, quería salir de esto en una sola pieza y estoy saliendo en pedazos."
+      ],
+      "why": "\"Entero\" is masculine and describes the person praying.",
+      "kind": "gender"
+    }
+  ],
+  "day.zarephath.02": [
+    {
+      "from": "Muéstrame una manera honesta y proporcionada de abrir hoy la mano: no con imprudencia, pero de verdad.",
+      "options": [
+        "Muéstrame una manera honesta y proporcionada de abrir hoy la mano: no con imprudencia, sino de verdad."
+      ],
+      "why": "After a negation, Spanish requires \"sino\" (not \"pero\") to mean \"not X, but rather Y\".",
+      "kind": "grammar"
+    }
+  ],
+  "day.shipwreck.03": [
+    {
+      "from": "Déjame comer, dormir y seguir a un ritmo que un cuerpo pueda sobrevivir.",
+      "options": [
+        "Déjame comer, dormir y seguir a un ritmo que un cuerpo pueda aguantar.",
+        "Déjame comer, dormir y seguir a un ritmo al que un cuerpo pueda sobrevivir."
+      ],
+      "why": "\"Sobrevivir\" needs the preposition \"a\" (sobrevivir a algo); as written it is ungrammatical.",
+      "kind": "grammar"
+    }
+  ],
+  "day.barley.03": [
+    {
+      "from": "Keep me working the row in front of me and let You handle the coincidences.",
+      "options": [
+        "Keep me working the row in front of me, and You handle the coincidences.",
+        "Keep me working the row in front of me and let me leave the coincidences to You."
+      ],
+      "why": "English: \"let You handle\" is ungrammatical here. The Spanish already reads correctly; this would change only the English (and its recording).",
+      "kind": "english",
+      "lang": "en"
+    }
+  ],
+  "compose.forgiveness.examen.2": [
+    {
+      "from": "Miro mi corazón con verdad: veo la herida, veo también mi parte, y no quiero cargar esto solo.",
+      "options": [
+        "Miro mi corazón con verdad: veo la herida, veo también mi parte, y no quiero cargar esto a solas.",
+        "Miro mi corazón con verdad: veo la herida, veo también mi parte, y no quiero cargar esto sin compañía."
+      ],
+      "why": "\"solo\" is masculine when it describes the person praying; \"a solas\" says the same thing without gender.",
+      "kind": "gender"
+    }
+  ],
+  "compose.forgiveness.examen.3": [
+    {
+      "from": "Tú conoces lo que ni yo mismo sé nombrar; ponlo Tú en tu luz.",
+      "options": [
+        "Tú conoces lo que ni yo sé nombrar; ponlo Tú en tu luz.",
+        "Tú conoces lo que yo ni siquiera sé nombrar; ponlo Tú en tu luz."
+      ],
+      "why": "\"yo mismo\" is masculine for the person praying; dropping \"mismo\" or using \"ni siquiera\" keeps the meaning without gender.",
+      "kind": "gender"
+    }
+  ],
+  "compose.forgiveness.examen.5": [
+    {
+      "from": "Recuérdame cuántas veces he sido perdonado, para que yo también sepa perdonar.",
+      "options": [
+        "Recuérdame cuántas veces me has perdonado, para que yo también sepa perdonar.",
+        "Recuérdame cuántas veces he recibido perdón, para que yo también sepa perdonar."
+      ],
+      "why": "\"perdonado\" is masculine for the person praying; an active phrasing avoids the gendered participle.",
+      "kind": "gender"
+    }
+  ],
+  "sos.4": [
+    {
+      "from": "Dios, cuando mis sentimientos griten en absolutos, recuérdame que este momento no es la historia completa.",
+      "options": [
+        "Dios, cuando mis sentimientos griten en términos absolutos, recuérdame que este momento no es la historia completa."
+      ],
+      "why": "\"griten en absolutos\" copies the English \"shout in absolutes\" word for word and sounds odd in Spanish; the natural phrase is \"en términos absolutos\".",
+      "kind": "calque"
+    }
+  ],
+  "compose.forgiveness.body.community.2": [
+    {
+      "from": "Líbrame de alimentar el rencor con mis palabras, y hazme constructor de puentes donde otros levantan muros.",
+      "options": [
+        "Líbrame de alimentar el rencor con mis palabras, y haz que construya puentes donde otros levantan muros.",
+        "Líbrame de alimentar el rencor con mis palabras, y hazme instrumento para construir puentes donde otros levantan muros."
+      ],
+      "why": "\"constructor\" is a masculine noun describing the person praying; the options say the same thing without marking gender.",
+      "kind": "gender"
+    }
+  ],
+  "compose.forgiveness.contrition.3": [
+    {
+      "from": "Lávame, Señor, y quedaré más blanco que la nieve; crea en mí un corazón puro.",
+      "options": [
+        "Lávame, Señor, y mi alma quedará más blanca que la nieve; crea en mí un corazón puro."
+      ],
+      "why": "\"quedaré más blanco\" describes the person praying in the masculine. It echoes Psalm 51:7, so keeping it is reasonable; the option makes \"my soul\" the subject and keeps the image.",
+      "kind": "gender"
+    }
+  ],
+  "compose.forgiveness.contrition.4": [
+    {
+      "from": "Como el publicano, no me atrevo a levantar los ojos, y solo digo: ten compasión de mí, que soy pecador.",
+      "options": [
+        "Como el publicano, no me atrevo a levantar los ojos, y solo digo: ten compasión de mí, que he pecado."
+      ],
+      "why": "\"soy pecador\" is masculine (a woman would say \"pecadora\"). It echoes the tax collector's prayer in Luke 18:13, so keeping it is reasonable; \"que he pecado\" (\"for I have sinned\") works for anyone.",
+      "kind": "gender"
+    }
+  ],
+  "compose.forgiveness.contrition.5": [
+    {
+      "from": "Concédeme la gracia de perdonar como quiero ser perdonado, setenta veces siete.",
+      "options": [
+        "Concédeme la gracia de perdonar como quiero que me perdonen, setenta veces siete.",
+        "Concédeme la gracia de perdonar como deseo recibir perdón, setenta veces siete."
+      ],
+      "why": "\"ser perdonado\" is masculine and refers to the person praying; the options keep the meaning without marking gender.",
+      "kind": "gender"
+    }
   ]
 }

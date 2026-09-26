@@ -77,7 +77,7 @@ test("every flagged item offers neutral wording, and every suggestion is found i
   for (const i of wb.items.filter(x => x.flags.length)) assert.ok(i.suggestions && i.suggestions.length, `${i.id} is flagged but offers no wording`);
   for (const i of wb.items.filter(x => x.suggestions)) {
     for (const s of i.suggestions) {
-      assert.ok(i.fields.some(f => f.es.includes(s.from)), `${i.id}: "${s.from}"`);
+      assert.ok(i.fields.some(f => f[s.lang].includes(s.from)), `${i.id}: "${s.from}"`);
       for (const o of s.options) assert.strictEqual(flagsFor([{ label: "x", en: "", es: o }]).length, 0, `${i.id}: "${o}" is still masculine`);
     }
   }
@@ -89,6 +89,11 @@ test("a suggestion for text that has changed fails the build", () => {
   assert.throws(() => attachSuggestions(items, { b: [] }), /no item b/);
   attachSuggestions(items, { a: [{ from: "Estoy aquí.", options: ["Aquí estoy."] }] });
   assert.strictEqual(items[0].suggestions[0].options[0], "Aquí estoy.");
+  // A reason makes the item a question for the reviewer; an English fix is checked against the English.
+  const withWhy = [{ id: "b", flags: [], fields: [{ label: "Prayer", en: "Let You go.", es: "Ve." }] }];
+  assert.throws(() => attachSuggestions(withWhy, { b: [{ from: "Let You go.", options: ["Go."] }] }), /no longer says/);
+  attachSuggestions(withWhy, { b: [{ from: "Let You go.", options: ["Go."], lang: "en", why: "Ungrammatical." }] });
+  assert.deepStrictEqual([withWhy[0].suggestions[0].lang, withWhy[0].flags[0].text], ["en", "Ungrammatical."]);
 });
 
 test("the page carries every item, and text cannot close its script tag", () => {

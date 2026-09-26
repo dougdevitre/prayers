@@ -31,6 +31,9 @@ const calendarFeed = require("../api/calendar.js");
 // Error reports: the same handler Vercel runs, logging into this array
 // instead of the console so the suite can read what would be kept.
 const reportHandler = require("../api/report.js");
+// Share cards: the rewrite in vercel.json, /cards/{lang}/{track}/{file} ->
+// /api/card, mirrored here onto the same handler.
+const cardHandler = require("../api/card.js");
 const reports = [];
 reportHandler.log = line => reports.push(JSON.parse(line));
 
@@ -38,6 +41,11 @@ const server = http.createServer((req, res) => {
   let file = req.url.split("#")[0].split("?")[0];
   if (file === "/calendar.ics" || file === "/api/calendar") return calendarFeed(req, res);
   if (file === "/api/report") return reportHandler(req, res);
+  const cardRoute = /^\/cards\/([^/]+)\/([^/]+)\/([^/]+)$/.exec(file);
+  if (cardRoute) {
+    req.url = `/api/card?${new URLSearchParams({ lang: cardRoute[1], track: cardRoute[2], file: cardRoute[3] })}`;
+    return cardHandler(req, res);
+  }
   if (REDIRECTS[file]) {
     res.writeHead(308, { Location: REDIRECTS[file] });
     return res.end();
@@ -1382,6 +1390,17 @@ const server = http.createServer((req, res) => {
   const manifest = await (await page.request.get("http://localhost:8123/manifest.webmanifest")).json();
   check("manifest starts at the app", manifest.start_url === "/app");
   check("manifest SOS shortcut starts at the app", manifest.shortcuts[0].url === "/app?sos=1");
+
+  // Share cards, through the same /cards route Vercel rewrites to api/card.js.
+  const { cardFor, cardPath } = require("../cards.js");
+  const stand = cardFor("en", "core", 0);
+  const postRes = await page.request.get("http://localhost:8123" + cardPath(stand, "post"));
+  const postBody = await postRes.body();
+  check("a day's share card is served as a 1080x1350 PNG", postRes.status() === 200 && postRes.headers()["content-type"] === "image/png"
+    && postBody.readUInt32BE(16) === 1080 && postBody.readUInt32BE(20) === 1350);
+  const staleRes = await page.request.get("http://localhost:8123/cards/en/core/01-stand.00000000.og.png", { maxRedirects: 0 });
+  check("an out-of-date card address redirects to the current one", staleRes.status() === 308 && staleRes.headers()["location"] === cardPath(stand, "og"));
+  check("a card for a day that does not exist is 404", (await page.request.get("http://localhost:8123/cards/en/core/99-nope.0123abcd.og.png")).status() === 404);
   // The install sheet and the home-screen icon fetch these by URL; a path
   // that 404s just silently drops the image.
   for (const img of [...manifest.icons, ...manifest.screenshots]) {

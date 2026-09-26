@@ -28,10 +28,16 @@ const REDIRECTS = { "/about": "/" };
 // The calendar feed is a Vercel function reached through the rewrite in
 // vercel.json; the test server routes the same path to the same handler.
 const calendarFeed = require("../api/calendar.js");
+// Error reports: the same handler Vercel runs, logging into this array
+// instead of the console so the suite can read what would be kept.
+const reportHandler = require("../api/report.js");
+const reports = [];
+reportHandler.log = line => reports.push(JSON.parse(line));
 
 const server = http.createServer((req, res) => {
   let file = req.url.split("#")[0].split("?")[0];
   if (file === "/calendar.ics" || file === "/api/calendar") return calendarFeed(req, res);
+  if (file === "/api/report") return reportHandler(req, res);
   if (REDIRECTS[file]) {
     res.writeHead(308, { Location: REDIRECTS[file] });
     return res.end();
@@ -470,6 +476,39 @@ const server = http.createServer((req, res) => {
       audioManifest.items = {};
       return forced;
     }));
+  }
+
+  // Error reports, in a page of their own so these deliberate errors never
+  // reach the suite's "no page errors" check. An error thrown by one of the
+  // app's own scripts is reported with its type, file and line, and its
+  // quoted text removed; a rejection carrying a reader's words keeps its
+  // shape and loses the words; at most three go per page load; an error from
+  // a script that is not the site's is not reported at all.
+  {
+    const probe = await browser.newPage();
+    await probe.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
+    reports.length = 0;
+    await probe.evaluate(() => { setTimeout(() => dayScript(null, 0, "en"), 0); });
+    await probe.waitForTimeout(400);
+    const thrown = reports[0];
+    check("an error in the app's own script is reported", reports.length === 1 && thrown.event === "client-error"
+      && thrown.file === "/narration.js" && thrown.line > 0 && thrown.page === "/app" && thrown.name === "TypeError");
+    check("the report carries no quoted text", !/'[^…]|"[^…]/.test(thrown.message));
+    await probe.evaluate(() => { Promise.reject(new Error('could not save "my private note about court"')); });
+    await probe.waitForTimeout(400);
+    check("a rejection's message keeps its shape and loses the reader's words", reports.length === 2
+      && reports[1].message === 'could not save "…"' && !JSON.stringify(reports).includes("private note"));
+    await probe.evaluate(() => { for (let i = 0; i < 5; i++) Promise.reject(new Error(`failure ${i}`)); });
+    await probe.waitForTimeout(400);
+    check("no more than three reports leave a page load", reports.length === 3);
+    await probe.close();
+    const quiet = await browser.newPage();
+    await quiet.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
+    reports.length = 0;
+    await quiet.evaluate(() => { dispatchEvent(new ErrorEvent("error", { message: "from an extension", filename: "chrome-extension://abc/content.js", lineno: 1 })); });
+    await quiet.waitForTimeout(400);
+    check("errors from scripts that are not the site's are not reported", !reports.some(r => /extension/.test(r.message)));
+    await quiet.close();
   }
 
   // service worker registered

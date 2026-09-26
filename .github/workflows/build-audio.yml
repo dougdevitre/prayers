@@ -1,12 +1,22 @@
-# Renders narration with ElevenLabs and publishes it to the audio bucket, on
-# demand only. Nothing here runs on push. The result is a branch carrying the
-# updated audio-manifest.js, to be opened as a pull request and reviewed like
-# any other change; the recordings themselves are already in S3 by then, keyed
-# by hash, so merging the manifest is what makes them live.
+# Renders narration with ElevenLabs and publishes it, on demand only. Nothing
+# here runs on push. Two publish targets:
 #
-# The one secret is ELEVENLABS_API_KEY. The AWS role ARN, bucket name and base
-# URL are not secrets and live as repository variables (AWS_PUBLISHER_ROLE_ARN,
-# AUDIO_BUCKET, AUDIO_BASE_URL); a secret of the same name is honoured too.
+#   branch (default)  the MP3s are committed to the `audio` branch of this
+#                     repository, which the prayers-audio Vercel project
+#                     serves at https://stand-audio.vercel.app. Needs no
+#                     AWS settings.
+#   s3                the MP3s go to the bucket from infra/audio-cdn.yaml
+#                     through the OIDC publisher role.
+#
+# Either way the result is a branch carrying the updated audio-manifest.js, to
+# be opened as a pull request and reviewed like any other change; the
+# recordings are already published by then, so merging the manifest is what
+# makes them live.
+#
+# The one secret is ELEVENLABS_API_KEY. AUDIO_BASE_URL is a repository
+# variable (the origin the app loads recordings from); for s3 so are
+# AWS_PUBLISHER_ROLE_ARN and AUDIO_BUCKET. A secret of the same name is
+# honoured too.
 name: Build audio
 
 on:
@@ -20,6 +30,11 @@ on:
         description: "Stop after this many renders (empty for no limit)."
         required: false
         default: ""
+      publish:
+        description: "Where the recordings go."
+        type: choice
+        options: [branch, s3]
+        default: branch
       dry_run:
         description: "List what would be rendered and its character count, without calling ElevenLabs."
         type: boolean
@@ -51,28 +66,35 @@ jobs:
           ROLE: ${{ vars.AWS_PUBLISHER_ROLE_ARN || secrets.AWS_PUBLISHER_ROLE_ARN }}
           BUCKET: ${{ vars.AUDIO_BUCKET || secrets.AUDIO_BUCKET }}
           BASE: ${{ vars.AUDIO_BASE_URL }}
+          PUBLISH: ${{ inputs.publish }}
+          DRY: ${{ inputs.dry_run }}
         run: |
+          echo "publish target:            $PUBLISH"
           echo "ELEVENLABS_API_KEY secret: $([ "$HAS_KEY" = "true" ] && echo set || echo MISSING)"
-          echo "AWS_PUBLISHER_ROLE_ARN:    $([ -n "$ROLE" ] && echo set || echo MISSING)"
-          echo "AUDIO_BUCKET:              ${BUCKET:-MISSING}"
-          echo "AUDIO_BASE_URL:            ${BASE:-MISSING}"
-          if [ "${{ inputs.dry_run }}" != "true" ] && { [ "$HAS_KEY" != "true" ] || [ -z "$ROLE" ] || [ -z "$BUCKET" ]; }; then
-            echo "::error::A real run needs the ElevenLabs key secret, the role ARN and the bucket. Set them, or run with dry_run."
-            exit 1
+          echo "AUDIO_BASE_URL:            ${BASE:-not set (branch default applies)}"
+          if [ "$PUBLISH" = "s3" ]; then
+            echo "AWS_PUBLISHER_ROLE_ARN:    $([ -n "$ROLE" ] && echo set || echo MISSING)"
+            echo "AUDIO_BUCKET:              ${BUCKET:-MISSING}"
+          fi
+          if [ "$DRY" != "true" ]; then
+            if [ "$HAS_KEY" != "true" ]; then echo "::error::A real run needs the ELEVENLABS_API_KEY secret."; exit 1; fi
+            if [ "$PUBLISH" = "s3" ] && { [ -z "$ROLE" ] || [ -z "$BUCKET" ]; }; then
+              echo "::error::Publishing to s3 needs AWS_PUBLISHER_ROLE_ARN and AUDIO_BUCKET."; exit 1
+            fi
           fi
 
       - name: Configure AWS credentials (OIDC, no stored keys)
-        if: ${{ !inputs.dry_run }}
+        if: ${{ !inputs.dry_run && inputs.publish == 's3' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_PUBLISHER_ROLE_ARN || secrets.AWS_PUBLISHER_ROLE_ARN }}
           aws-region: us-east-1
 
-      - name: Render and upload
+      - name: Render
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           AUDIO_BUCKET: ${{ vars.AUDIO_BUCKET || secrets.AUDIO_BUCKET }}
-          AUDIO_BASE_URL: ${{ vars.AUDIO_BASE_URL }}
+          AUDIO_BASE_URL: ${{ vars.AUDIO_BASE_URL || (inputs.publish == 'branch' && 'https://stand-audio.vercel.app') || '' }}
         run: |
           set -euo pipefail
           args=()
@@ -80,11 +102,30 @@ jobs:
           if [ -n "${{ inputs.limit }}" ]; then args+=(--limit "${{ inputs.limit }}"); fi
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             node scripts/build-audio.js --dry-run "${args[@]}"
-          else
+          elif [ "${{ inputs.publish }}" = "s3" ]; then
             node scripts/build-audio.js --upload "${args[@]}"
+          else
+            node scripts/build-audio.js --out .audio-out "${args[@]}"
           fi
 
       - run: npm run verify:audio
+
+      - name: Publish the recordings to the audio branch
+        if: ${{ !inputs.dry_run && inputs.publish == 'branch' }}
+        run: |
+          set -euo pipefail
+          count=$(find .audio-out -name '*.mp3' | wc -l)
+          if [ "$count" = "0" ]; then echo "Nothing new was rendered."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin audio
+          git worktree add ../audio-branch origin/audio
+          cp -r .audio-out/. ../audio-branch/
+          cd ../audio-branch
+          git add -A
+          git commit -m "Add $count recording(s) from build-audio run ${{ github.run_number }}"
+          git push origin HEAD:audio
+          echo "Published $count recording(s) to the audio branch." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Push the manifest as a branch
         if: ${{ !inputs.dry_run }}

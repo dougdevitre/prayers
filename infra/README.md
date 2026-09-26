@@ -1,5 +1,18 @@
 # Narration CDN
 
+Two ways to host the recordings. The default is the simpler one.
+
+**Vercel (default).** The Build audio workflow commits rendered MP3s to the
+`audio` branch of this repository; the `prayers-audio` Vercel project is
+bound to that branch and serves it at https://stand-audio.vercel.app with
+the cache and CORS headers in that branch's `vercel.json`. Nothing to deploy
+and no AWS settings; the only secret is `ELEVENLABS_API_KEY`. The cost is
+repository size: the full library is roughly 275 MB of MP3s on that branch.
+
+**AWS (optional).** The stack below gives a private bucket behind CloudFront
+and keeps the repository small. Run the workflow with `publish: s3` once it
+is deployed and the three variables are set.
+
 `audio-cdn.yaml` is the CloudFormation stack behind `audioManifest.base`: a
 private S3 bucket, a CloudFront distribution that is the only thing allowed to
 read it, and an IAM role the `build-audio` workflow assumes through GitHub's

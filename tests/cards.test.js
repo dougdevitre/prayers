@@ -8,6 +8,7 @@ const fs = require("fs");
 const path = require("path");
 const { FORMATS, TEXT_BUDGET, cardFor, cardForSlug, cardPath, parseCardFile, allCards, firstSentence } = require("../cards.js");
 const handler = require("../api/card.js");
+const { checkCards } = require("../scripts/verify-cards.js");
 
 const ROOT = path.join(__dirname, "..");
 let failures = 0;
@@ -128,6 +129,28 @@ const fileOf = (card, format) => path.basename(cardPath(card, format));
     assert.strictEqual(head.statusCode, 200);
     assert.strictEqual(head.headers["content-type"], "image/png");
     assert.strictEqual(head.body, null);
+  });
+
+  await test("the deploy check fetches every card in both formats and names the ones that fail", async () => {
+    const cards = allCards().slice(0, 3);
+    const seen = [];
+    const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0, 0, 0, 0]);
+    const reply = (status, type, body) => ({ status, headers: { get: () => type }, arrayBuffer: async () => body });
+    const good = async url => { seen.push(url); return reply(200, "image/png", png); };
+    const all = await checkCards("https://site.example/", { cards, fetchImpl: good, delayMs: 0 });
+    assert.deepStrictEqual([all.ok, all.checked, all.failed.length], [true, 6, 0]);
+    assert.ok(seen.every(u => u.startsWith("https://site.example/cards/")));
+    // One card keeps failing: it is retried, then named; a flaky one recovers.
+    const bad = cardPath(cards[1], "og");
+    let flaky = 0;
+    const mixed = async url => {
+      if (url.endsWith(bad)) return reply(500, "", Buffer.alloc(0));
+      if (url.endsWith(cardPath(cards[2], "post")) && flaky++ === 0) throw new Error("socket hang up");
+      return reply(200, "image/png", png);
+    };
+    const some = await checkCards("https://site.example", { cards, fetchImpl: mixed, delayMs: 0 });
+    assert.strictEqual(some.ok, false);
+    assert.deepStrictEqual(some.failed, [{ path: bad, reason: "500 no content-type" }]);
   });
 
   if (failures) { console.log(`\n${failures} failing`); process.exit(1); }

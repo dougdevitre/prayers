@@ -1200,6 +1200,9 @@ const server = http.createServer((req, res) => {
   check("Spanish day localizes its headings", (await page.textContent("article")).includes("Reflexión")
     && (await page.textContent("article")).includes("PRÁCTICA DE HOY"));
   check("Spanish day is canonical to itself", await page.getAttribute('link[rel="canonical"]', "href") === `${SITE}/es/day/01-firmeza`);
+  check("Spanish day names its navigation in Spanish", (await page.getAttribute("nav.site-nav", "aria-label")) === "Principal");
+  check("Spanish day's description quotes the title instead of lowercasing it into a sentence",
+    (await page.getAttribute('meta[name="description"]', "content")).startsWith("«Firmeza»: una oración de Stand"));
   check("Spanish day's share row is in Spanish and points at the Spanish page", (await page.getAttribute(".share-row", "aria-label")) === "Compartir este día"
     && (await page.getAttribute(".share-row", "data-url")) === `${SITE}/es/day/01-firmeza`
     && (await page.textContent(".share-row .share-copy span")) === "Copiar enlace"

@@ -297,8 +297,28 @@ const server = http.createServer((req, res) => {
     await page.waitForFunction(() => document.getElementById("shareCopyLabel").textContent === "Link copied", null, { timeout: 3000 }).catch(() => {});
     check("share dialog copies the canonical page URL and says so", await page.evaluate(() => navigator.clipboard.readText()) === pageUrl
       && (await page.textContent("#shareCopyLabel")) === "Link copied");
-    const card = await Promise.all([page.waitForEvent("download"), page.click("#shareSaveCard")]).then(r => r[0]);
-    check("share dialog saves the verse card", card.suggestedFilename() === "stand-day-01.png");
+    // It saves the day's card from the site (verse, reflection and prayer),
+    // asking by the ".latest." address since the app does not know the hash.
+    // (Tapping Share already fetched it; forget that so the request shows.)
+    await page.evaluate(() => { cardFetch = null; });
+    const [card, cardReq] = await Promise.all([page.waitForEvent("download"),
+      page.waitForRequest(r => r.url().endsWith("/cards/en/core/01-stand.latest.post.png"), { timeout: 5000 }).catch(() => null),
+      page.click("#shareSaveCard")]);
+    const saved = fs.readFileSync(await card.path());
+    check("share dialog saves the day's card from the site", card.suggestedFilename() === "stand-day-01.png" && Boolean(cardReq)
+      && saved.readUInt32BE(16) === 1080 && saved.readUInt32BE(20) === 1350);
+    // Offline (or the card failing), it draws the verse card itself. Offline
+    // is a fetch that rejects for /cards/ only, as it would with no network;
+    // a routed abort would log a console error the suite counts.
+    await page.evaluate(() => {
+      cardFetch = null;
+      window.__fetch = window.fetch;
+      window.fetch = (u, o) => String(u).includes("/cards/") ? Promise.reject(new TypeError("Failed to fetch")) : window.__fetch(u, o);
+    });
+    const drawn = await Promise.all([page.waitForEvent("download"), page.click("#shareSaveCard")]).then(r => r[0]);
+    check("without the site's card, the app still saves one it draws", drawn.suggestedFilename() === "stand-day-01.png"
+      && fs.readFileSync(await drawn.path()).readUInt32BE(16) === 1080);
+    await page.evaluate(() => { window.fetch = window.__fetch; cardFetch = null; });
     // The suite's contrast() helper is declared further down; this is the same
     // WCAG 2.1 ratio, local to this block.
     const ratio = sel => page.evaluate(s => {
@@ -784,6 +804,22 @@ const server = http.createServer((req, res) => {
     check("the copy label returns to rest", await page.waitForFunction(() => document.querySelector(".share-row .share-copy span").textContent === "Copy link", null, { timeout: 4000 }).then(() => true).catch(() => false));
     check("share row has no contrast failures", (await contrast(".share-row .share-copy")) >= 4.5 && (await contrast(".share-label")) >= 4.5);
   }
+
+  // The day's share card on the page: the image, a Download link that needs
+  // no script, and Share image, which only a device that can share files gets.
+  {
+    const src = dayCardPath(dayCard("en", "core", 0), "post");
+    const img = await page.$(".share-card img");
+    check("day page shows its share card, sized and described", Boolean(img) && await img.getAttribute("src") === src
+      && await img.getAttribute("width") === "1080" && await img.getAttribute("height") === "1350"
+      && (await img.getAttribute("alt")).startsWith("Share card for Day 1: Stand"));
+    check("the card offers a download with a readable file name", await page.getAttribute(".share-card-download", "href") === src
+      && await page.getAttribute(".share-card-download", "download") === "stand-01-stand.png");
+    check("share image stays hidden where files cannot be shared", !(await page.isVisible(".share-card-native")));
+    await page.locator(".share-card img").scrollIntoViewIfNeeded();
+    check("the card image loads", await page.waitForFunction(() => { const i = document.querySelector(".share-card img"); return i.complete && i.naturalWidth === 1080; }, null, { timeout: 8000 }).then(() => true).catch(() => false));
+    check("the download button meets AA contrast", (await contrast(".share-card-download")) >= 4.5);
+  }
   const dayNoScroll = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   check("day page has no horizontal scroll", !dayNoScroll);
 
@@ -1222,6 +1258,11 @@ const server = http.createServer((req, res) => {
     && (await page.textContent(".share-row .share-copy span")) === "Copiar enlace"
     && (await page.$$eval(".share-row .share-link", as => as.every(a => (a.getAttribute("aria-label") || "").startsWith("Compartir")))));
   check("Spanish day names en_US as its locale alternate", await meta("og:locale:alternate") === "en_US");
+  check("Spanish day shows the Spanish share card, labelled in Spanish",
+    (await page.getAttribute(".share-card img", "src")).startsWith("/cards/es/core/01-firmeza.")
+    && (await page.getAttribute(".share-card img", "alt")).startsWith("Tarjeta para compartir del Día 1: Firmeza")
+    && (await page.textContent(".share-card-download span")) === "Descargar imagen"
+    && (await page.textContent(".share-card .section-kicker")) === "COMPARTIR COMO IMAGEN");
   check("Spanish day declares its locale", await meta2("og:locale") === "es_ES");
 
   // hreflang must be reciprocal or search engines treat the pair as

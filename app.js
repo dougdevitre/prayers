@@ -978,6 +978,36 @@ function buildVerseCard() {
 const sharePageUrl = () => location.origin + dayPagePath(state.track || "core", activeTrack(), day, state.lang);
 const shareCardName = () => `stand-day-${String(day + 1).padStart(2, "0")}.png`;
 
+// The day's share card from the site (api/card.js): verse, reflection and
+// prayer, the same image the day's page shows. The ".latest." address
+// redirects to the current card, since the app knows the day but not the
+// card's hash. Offline, slow or failing, the verse card is drawn here instead.
+// A share sheet must open soon after the tap, so the fetch starts on
+// pointerdown and the click reuses it.
+let cardFetch = null;
+function shareCardUrl() {
+  const slug = dayPagePath(state.track || "core", activeTrack(), day, state.lang).split("/").pop();
+  return `/cards/${state.lang === "es" ? "es" : "en"}/${state.track || "core"}/${slug}.latest.post.png`;
+}
+function fetchShareCard() {
+  const url = shareCardUrl();
+  if (cardFetch && cardFetch.url === url) return cardFetch.blob;
+  const controller = typeof AbortController === "function" ? new AbortController() : null;
+  const timer = controller && setTimeout(() => controller.abort(), 4000);
+  const blob = fetch(url, controller ? { signal: controller.signal } : {})
+    .then(res => res.ok && (res.headers.get("content-type") || "").startsWith("image/png") ? res.blob() : null)
+    .catch(() => null)
+    .finally(() => timer && clearTimeout(timer));
+  cardFetch = { url, blob };
+  // A failed fetch is not remembered, so the next tap tries again.
+  blob.then(b => { if (!b && cardFetch && cardFetch.url === url) cardFetch = null; });
+  return blob;
+}
+async function shareCardBlob() {
+  return (await fetchShareCard()) || buildVerseCard();
+}
+$("shareButton").addEventListener("pointerdown", () => { fetchShareCard(); });
+
 $("shareButton").onclick = async () => {
   const [title, ref, verse] = activeTrack().days[day];
   const caption = t("share.caption", { verse, ref });
@@ -988,7 +1018,7 @@ $("shareButton").onclick = async () => {
     // text; one that can share only links gets the link; everything else
     // (most desktops) gets the dialog below.
     if (navigator.share) {
-      const blob = await buildVerseCard();
+      const blob = await shareCardBlob();
       const file = blob ? new File([blob], shareCardName(), { type: "image/png" }) : null;
       if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file], title: heading, text: `${caption}\n${url}` });
@@ -1043,7 +1073,7 @@ $("shareCopy").onclick = async () => {
 };
 
 $("shareSaveCard").onclick = async () => {
-  const blob = await buildVerseCard();
+  const blob = await shareCardBlob();
   if (blob) downloadFile(shareCardName(), blob, "image/png");
 };
 

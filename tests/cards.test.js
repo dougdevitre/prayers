@@ -6,7 +6,7 @@
 const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
-const { FORMATS, TEXT_BUDGET, cardFor, cardForSlug, cardPath, parseCardFile, allCards, firstSentence } = require("../cards.js");
+const { FORMATS, TEXT_BUDGET, cardFor, cardForSlug, cardPath, latestCardPath, parseCardFile, allCards, firstSentence } = require("../cards.js");
 const handler = require("../api/card.js");
 const { checkCards } = require("../scripts/verify-cards.js");
 
@@ -110,12 +110,17 @@ const fileOf = (card, format) => path.basename(cardPath(card, format));
     }
   });
 
-  await test("an out-of-date hash redirects to the card's current address", async () => {
+  await test("an out-of-date hash, or \"latest\", redirects to the card's current address", async () => {
     const c = cardFor("en", "core", 0);
     const res = await request("GET", "en", "core", "01-stand.00000000.post.png");
     assert.strictEqual(res.statusCode, 308);
     assert.strictEqual(res.headers.location, cardPath(c, "post"));
     assert.strictEqual(res.body, null);
+    const es = cardFor("es", "wall", 3);
+    const latest = await request("GET", "es", "wall", path.basename(latestCardPath("es", "wall", es.slug, "og")));
+    assert.strictEqual(latest.statusCode, 308);
+    assert.strictEqual(latest.headers.location, cardPath(es, "og"));
+    assert.match(latest.headers["cache-control"], /max-age=300/);
   });
 
   await test("unknown days and malformed addresses are 404, other methods 405, HEAD has no body", async () => {

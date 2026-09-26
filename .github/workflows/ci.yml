@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
   pull_request:
+  # The Build audio workflow opens its manifest PR with the workflow token,
+  # and a PR opened that way starts no workflows on its own; it dispatches
+  # this one on the branch instead, and the run shows on the PR's commit.
+  workflow_dispatch:
 
 jobs:
   test:

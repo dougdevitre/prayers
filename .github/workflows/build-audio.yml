@@ -48,6 +48,8 @@ on:
 permissions:
   id-token: write
   contents: write
+  pull-requests: write
+  actions: write
 
 concurrency:
   group: build-audio
@@ -134,6 +136,12 @@ jobs:
           # so the keys land at the same paths the manifest names.
           mkdir -p ../audio-branch/public
           cp -r .audio-out/. ../audio-branch/public/
+          # Drop takes that neither this manifest nor main's still names. Main's
+          # keys stay until its manifest is replaced, because production plays
+          # them until the manifest PR merges.
+          git fetch origin main
+          git show origin/main:audio-manifest.js > ../main-manifest.js
+          node scripts/prune-audio.js --dir ../audio-branch/public --keep audio-manifest.js --keep ../main-manifest.js
           cd ../audio-branch
           git add -A
           git commit -m "Add $count recording(s) from build-audio run ${{ github.run_number }}"
@@ -169,4 +177,26 @@ jobs:
           git add audio-manifest.js sw.js
           git commit -m "Render narration (build-audio run ${{ github.run_number }})"
           git push -u origin "$branch"
-          echo "Open a pull request from $branch" >> "$GITHUB_STEP_SUMMARY"
+          # Open the PR here. The token's PR starts no workflows by itself, so
+          # CI is dispatched on the branch; its run appears on the PR's commit.
+          summary=$(node -e 'const m=require("./audio-manifest.js").audioManifest;console.log(`${Object.keys(m.items).length} recordings in the manifest, base ${m.base}`)')
+          body=$(printf '%s\n' \
+            "Build audio run ${{ github.run_number }}: the manifest it produced, with the service worker cache name bumped so installed apps pick it up on their next visit." \
+            "" \
+            "- $summary" \
+            "- Every file was checked on the host before this branch was pushed (200, audio/mpeg, byte count as recorded)." \
+            "- Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            "" \
+            "CI was dispatched on this branch by the workflow; its run is on this commit.")
+          if gh pr create --base main --head "$branch" --title "Render narration (build-audio run ${{ github.run_number }})" --body "$body"; then
+            echo "Opened a pull request from $branch." >> "$GITHUB_STEP_SUMMARY"
+          else
+            # Repository setting: Settings -> Actions -> General -> Workflow
+            # permissions -> "Allow GitHub Actions to create and approve pull requests".
+            echo "::warning::Could not open the pull request (is 'Allow GitHub Actions to create and approve pull requests' enabled?). Open one from $branch by hand."
+            echo "Open a pull request from $branch (the workflow was not allowed to)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          gh workflow run ci.yml --ref "$branch"
+          echo "Dispatched CI on $branch." >> "$GITHUB_STEP_SUMMARY"
+        env:
+          GH_TOKEN: ${{ github.token }}

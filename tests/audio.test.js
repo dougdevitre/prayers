@@ -14,6 +14,7 @@ const lib = require("../scripts/audio-lib.js");
 const build = require("../scripts/build-audio.js");
 const { verify, checkRemoteOnce, verifyRemote } = require("../scripts/verify-audio.js");
 const { bump: bumpSw } = require("../scripts/bump-sw.js");
+const pruneAudio = require("../scripts/prune-audio.js");
 const { slugify } = require("../logic.js");
 
 let failures = 0;
@@ -332,6 +333,32 @@ function fakeApi({ failFirst = 0, status = 429 } = {}) {
     assert.ok(source.includes(`const CACHE = "${to}";`) && !source.includes(`const CACHE = "${from}";`));
     assert.strictEqual(source.length, sw.length + (to.length - from.length));
     assert.throws(() => bumpSw("const CACHE = `stand-v1`;"), /no line like/);
+  });
+
+  await test("prune-audio removes only recordings no given manifest names, and nothing else", () => {
+    const dir = tmp();
+    const tree = path.join(dir, "public");
+    const put = (key) => { fs.mkdirSync(path.dirname(path.join(tree, key)), { recursive: true }); fs.writeFileSync(path.join(tree, key), MP3); };
+    put("en/day/core/01-stand.aaaaaaaa.mp3");   // in the new manifest
+    put("en/day/core/01-stand.00000000.mp3");   // superseded, but main still plays it
+    put("en/day/core/02-truth.11111111.mp3");   // in neither: goes
+    put("es/sos/1-salmo.22222222.mp3");         // in neither, alone in its folder: folder goes too
+    fs.writeFileSync(path.join(tree, "index.txt"), "audio\n");
+    const manifest = (keys) => { const f = path.join(dir, `m-${Math.random().toString(36).slice(2)}.js`); fs.writeFileSync(f, `const audioManifest = { version: 1, enabled: true, base: "", items: ${JSON.stringify(Object.fromEntries(keys.map((k, i) => [`id${i}`, { key: k, hash: "0".repeat(64) }])))} };\nif (typeof module !== "undefined" && module.exports) module.exports = { audioManifest };\n`); return f; };
+    const fresh = manifest(["en/day/core/01-stand.aaaaaaaa.mp3"]);
+    const main = manifest(["en/day/core/01-stand.00000000.mp3"]);
+    const dry = pruneAudio.prune({ dir: tree, keep: [fresh, main], dryRun: true });
+    assert.deepStrictEqual(dry.remove, ["en/day/core/02-truth.11111111.mp3", "es/sos/1-salmo.22222222.mp3"]);
+    assert.strictEqual(pruneAudio.listRecordings(tree).length, 4, "a dry run deletes nothing");
+    const real = pruneAudio.prune({ dir: tree, keep: [fresh, main] });
+    assert.deepStrictEqual(real.keep, ["en/day/core/01-stand.00000000.mp3", "en/day/core/01-stand.aaaaaaaa.mp3"]);
+    assert.deepStrictEqual(pruneAudio.listRecordings(tree), real.keep);
+    assert.ok(fs.existsSync(path.join(tree, "index.txt")), "non-mp3 files are untouched");
+    assert.ok(!fs.existsSync(path.join(tree, "es")), "an emptied folder is removed");
+    assert.ok(fs.existsSync(path.join(tree, "en/day/core")));
+    // The committed manifest against the committed tree shape: every key it names is a .mp3 under public/.
+    assert.ok([...pruneAudio.keysOf([path.join(lib.ROOT, "audio-manifest.js")])].every(k => /\.mp3$/.test(k)));
+    fs.rmSync(dir, { recursive: true, force: true });
   });
 
   await test("the committed manifest verifies against the committed content", () => {

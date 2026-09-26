@@ -49,7 +49,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, {
       "Content-Type": MIME[path.extname(full)] || "application/octet-stream",
       // Mirror the production CSP from vercel.json so violations fail the test.
-      "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self'; media-src 'self' https://audio.prayers.dougdevitre.org; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+      "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self'; media-src 'self' https://stand-audio.vercel.app https://audio.prayers.dougdevitre.org; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
     });
     res.end(data);
   } catch {
@@ -268,7 +268,7 @@ const server = http.createServer((req, res) => {
   // idle, and falls back to the device voice when the file is missing.
   {
     const csp = await page.evaluate(async () => (await fetch("/app")).headers.get("content-security-policy"));
-    check("CSP allows media from the audio CDN", /media-src 'self' https:\/\/audio\.prayers\.dougdevitre\.org;/.test(csp));
+    check("CSP allows media from the audio origins", /media-src 'self' https:\/\/stand-audio\.vercel\.app https:\/\/audio\.prayers\.dougdevitre\.org;/.test(csp));
     check("the day narration script is the shared one", await page.evaluate(() =>
       narrationScript(0).startsWith("Day one. Stand.\n\nScripture... Ephesians, chapter six, verses ten through thirteen.")));
     check("no recording is offered until the manifest has one", await page.evaluate(() =>

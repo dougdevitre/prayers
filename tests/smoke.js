@@ -1270,8 +1270,8 @@ const server = http.createServer((req, res) => {
       && /^(Last updated|Última actualización): 26/.test((await page.textContent(".landing-section > .landing-fineprint")).trim()));
     check(`${url} heading levels do not skip`, !(await headingsSkip()));
     check(`${url} ships no script`, (await page.$$("script")).length === 0);
-    check(`${url} gives the contact placeholder as a mailto link`,
-      (await page.$$('a[href="mailto:CONTACT_EMAIL_REQUIRED@example.invalid"]')).length === 1);
+    check(`${url} gives the contact address as a mailto link`,
+      (await page.$$('a[href="mailto:dougdevitre@gmail.com"]')).length === 1 && !(await page.content()).includes("example.invalid"));
     const source = await (await page.request.get("http://localhost:8123" + url)).text();
     check(`${url} is marked as a draft for attorney review`, source.includes("<!-- Plain-language draft for review by an attorney before publication. -->"));
     check(`${url} has no horizontal scroll`, !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)));

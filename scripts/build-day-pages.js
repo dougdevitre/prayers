@@ -39,10 +39,9 @@ const pageName = (track, i) => `${String(i + 1).padStart(2, "0")}-${slugify(trac
 const APP = "/app";
 
 // The one public contact address, used by the privacy policy and the terms.
-// There is no public address yet: this is a deliberate placeholder (the
-// .invalid domain can never deliver mail) and must be replaced before the
-// policies are published. Do not put a personal address here.
-const CONTACT_EMAIL = "CONTACT_EMAIL_REQUIRED@example.invalid";
+// It is published on those pages, so change it here (and rebuild) if a
+// dedicated inbox replaces it.
+const CONTACT_EMAIL = "dougdevitre@gmail.com";
 
 // Both locales. `prefix` is the URL prefix ("" for English, "/es" for Spanish)
 // and is also the directory the pages are written into.

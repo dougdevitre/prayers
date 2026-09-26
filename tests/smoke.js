@@ -126,6 +126,39 @@ const server = http.createServer((req, res) => {
   await page.waitForTimeout(600);
   check("note save status", (await page.textContent("#saveStatus")) === "Saved on this device");
 
+  // Keeping the data. With a note saved, never backed up, and storage the
+  // browser has not promised to keep, the reader is offered a backup. The
+  // storage answers are stubbed so the check does not depend on how this
+  // browser decides. It ends snoozed, so the rest of the suite runs as before.
+  await page.evaluate(() => {
+    navigator.storage.persisted = async () => false;
+    navigator.storage.persist = async () => false;
+    localStorage.removeItem("stand-backup-at");
+    localStorage.removeItem("stand-backup-snooze");
+    return protectData();
+  });
+  check("a reader with notes and no backup is offered one", await page.isVisible("#backupNudge"));
+  check("the offer says the data lives only on this device", (await page.textContent("#backupNudgeText")).includes("saved only on this device"));
+  const nudged = await Promise.all([page.waitForEvent("download"), page.click("#backupNudgeSave")]).then(r => r[0]);
+  check("the offer saves the same backup file", nudged.suggestedFilename() === "stand-backup.json");
+  check("saving records the backup and says where to find Restore", await page.evaluate(() => Number(localStorage.getItem("stand-backup-at")) > 0)
+    && (await page.textContent("#backupNudgeText")).includes("Backup saved") && !(await page.isVisible("#backupNudgeSave")));
+  await page.evaluate(() => protectData());
+  check("after a backup the offer stays away", !(await page.isVisible("#backupNudge")));
+  await page.evaluate(() => { localStorage.removeItem("stand-backup-at"); return protectData(); });
+  check("the offer returns when no backup is on record", await page.isVisible("#backupNudge") && await page.isVisible("#backupNudgeSave"));
+  await page.click("#backupNudgeLater");
+  await page.evaluate(() => protectData());
+  check("Not now puts it away for a month", !(await page.isVisible("#backupNudge"))
+    && await page.evaluate(() => Number(localStorage.getItem("stand-backup-snooze")) > 0));
+  await page.evaluate(() => { localStorage.removeItem("stand-backup-snooze"); navigator.storage.persisted = async () => true; return protectData(); });
+  check("storage the browser has promised to keep (off iPhone) needs no offer", !(await page.isVisible("#backupNudge")));
+  check("the app asks the browser to keep its storage once there is something to keep", await page.evaluate(() => persistRequested));
+  await page.evaluate(() => {
+    navigator.storage.persisted = async () => false;
+    localStorage.setItem("stand-backup-snooze", String(Date.now()));
+  });
+
   // journal
   await page.click("#journalButton");
   check("journal opens", await page.isVisible("#journalList"));
@@ -450,6 +483,7 @@ const server = http.createServer((req, res) => {
   await page.waitForTimeout(300);
   check("erase clears state and reshows welcome", await page.evaluate(() => document.getElementById("welcomeDialog").open));
   check("erase removed storage", await page.evaluate(() => localStorage.getItem("stand-state") === null || !JSON.parse(localStorage.getItem("stand-state")).completed.length));
+  check("erase also forgets the backup reminders", await page.evaluate(() => localStorage.getItem("stand-backup-at") === null && localStorage.getItem("stand-backup-snooze") === null));
 
   // welcome path selection starts the chosen track
   await page.click('.path-button[data-track="night"]');

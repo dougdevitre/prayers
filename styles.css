@@ -100,6 +100,12 @@ main{padding-bottom:78px}
 .offline-row{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);font-size:.9rem}
 .offline-row label{display:flex;align-items:center;gap:8px;font-weight:700;cursor:pointer}
 .offline-row[hidden]{display:none}
+.backup-nudge{margin:0 28px 10px;padding:14px 18px;border:1px solid var(--gold);background:var(--gold-soft);color:var(--ink);font-size:.9rem}
+.backup-nudge p{margin:0 0 8px}
+.backup-nudge-actions{display:flex;flex-wrap:wrap;gap:18px}
+.backup-nudge[hidden],.backup-nudge-actions[hidden]{display:none}
+@media(max-width:600px){.backup-nudge{margin:0 10px 8px}}
+@media print{.backup-nudge{display:none!important}}
 .reminder-options{margin:8px 0 0;font-size:.85rem}
 .reminder-options>summary{color:var(--muted);cursor:pointer}
 .reminder-option{display:flex;align-items:center;gap:10px;margin:8px 0 0}

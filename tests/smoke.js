@@ -1382,6 +1382,12 @@ const server = http.createServer((req, res) => {
   const manifest = await (await page.request.get("http://localhost:8123/manifest.webmanifest")).json();
   check("manifest starts at the app", manifest.start_url === "/app");
   check("manifest SOS shortcut starts at the app", manifest.shortcuts[0].url === "/app?sos=1");
+  // The install sheet and the home-screen icon fetch these by URL; a path
+  // that 404s just silently drops the image.
+  for (const img of [...manifest.icons, ...manifest.screenshots]) {
+    const res = await page.request.get("http://localhost:8123/" + img.src);
+    check(`manifest image ${img.src} is served as ${img.type}`, res.status() === 200 && res.headers()["content-type"] === img.type);
+  }
 
   // The service worker serves its cached shell only for the app. Pointing it
   // at "/" would hand the app shell to everyone opening the site.

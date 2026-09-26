@@ -1,0 +1,25 @@
+{
+  "_note": "Neutral Spanish wording offered to the pastoral reviewer for lines that address the reader in the masculine. Each `from` must appear word for word in the item's Spanish text (the build fails otherwise). Suggestions are not part of an item's hash: adding or editing them never unsettles a decision.",
+  "day.core.01": [
+    { "from": "Donde estoy confundido, dame claridad.", "options": ["Donde hay confusión en mí, dame claridad.", "Donde me falta claridad, ilumíname."] },
+    { "from": "Donde estoy agotado, renueva mis fuerzas.", "options": ["Donde me faltan las fuerzas, renuévalas.", "Donde me siento sin fuerzas, renueva mi vigor."] }
+  ],
+  "day.core.10": [
+    { "from": "Nombra un resentimiento que estés listo para empezar a soltar.", "options": ["Nombra un resentimiento que ya puedas empezar a soltar.", "Nombra un resentimiento que te sientas con ánimo de empezar a soltar."] }
+  ],
+  "day.basket.01": [
+    { "from": "Estoy cansado, y me asusta el día en que mi cobertura no alcance.", "options": ["Me pesa el cansancio, y me asusta el día en que mi cobertura no alcance.", "Me falta el aliento, y me asusta el día en que mi cobertura no alcance."] }
+  ],
+  "day.hem.01": [
+    { "from": "Dios, estoy cansado de explicar esto, cansado de volver a intentarlo y cansado de esperar con cautela.", "options": ["Dios, me cansa explicar esto, me cansa volver a intentarlo y me cansa esperar con cautela.", "Dios, ya me agota explicar esto, volver a intentarlo y esperar con cautela."] }
+  ],
+  "day.shipwreck.01": [
+    { "from": "Perder mis referencias no significa que esté perdido.", "options": ["Perder mis referencias no significa que me haya perdido.", "Perder mis referencias no significa haber perdido el camino."] }
+  ],
+  "day.barley.01": [
+    { "from": "Dios, estoy de vuelta en un comienzo que no elegí, y estoy cansado de explicarlo.", "options": ["Dios, estoy de vuelta en un comienzo que no elegí, y me cansa explicarlo.", "Dios, he vuelto a un comienzo que no elegí, y ya me agota explicarlo."] }
+  ],
+  "finder.phrases": [
+    { "from": "Llevo mucho tiempo enfermo y estoy agotado", "options": ["Llevo mucho tiempo con mala salud y sin fuerzas", "Hace mucho que mi salud no está bien y ya no puedo más"] }
+  ]
+}

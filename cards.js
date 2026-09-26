@@ -83,14 +83,18 @@ function cardForSlug(lang, trackId, slug) {
 
 /** Site-relative address of a card in one format. */
 const cardPath = (card, format) => `/cards/${card.lang}/${card.track}/${card.slug}.${card.hash}.${format}.png`;
+/** The address that always redirects to a day's current card. */
+const latestCardPath = (lang, trackId, slug, format) => `/cards/${lang}/${trackId}/${slug}.latest.${format}.png`;
 
 /**
  * Parse a card address back into its parts, or null when it is not one.
- * Only lower-case slugs, an 8-hex hash and a known format are accepted, so
- * nothing else can reach the renderer.
+ * Only lower-case slugs, an 8-hex hash (or "latest") and a known format are
+ * accepted, so nothing else can reach the renderer. "latest" never matches a
+ * hash, so it always redirects to the current card: the app uses it, since
+ * it has the day but not the hash.
  */
 function parseCardFile(lang, trackId, file) {
-  const m = /^([a-z0-9-]{1,80})\.([0-9a-f]{8})\.(post|og)\.png$/.exec(String(file || ""));
+  const m = /^([a-z0-9-]{1,80})\.([0-9a-f]{8}|latest)\.(post|og)\.png$/.exec(String(file || ""));
   if (!m || !LANGS.includes(lang) || !/^[a-z0-9-]{1,40}$/.test(String(trackId || ""))) return null;
   return { lang, track: trackId, slug: m[1], hash: m[2], format: m[3] };
 }
@@ -105,4 +109,4 @@ function allCards() {
   return out;
 }
 
-module.exports = { TEMPLATE_VERSION, FORMATS, TEXT_BUDGET, SITE_LABEL, cardFor, cardForSlug, cardPath, parseCardFile, allCards, firstSentence };
+module.exports = { TEMPLATE_VERSION, FORMATS, TEXT_BUDGET, SITE_LABEL, cardFor, cardForSlug, cardPath, latestCardPath, parseCardFile, allCards, firstSentence };

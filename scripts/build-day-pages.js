@@ -79,7 +79,9 @@ const LOCALES = [
     switchLabel: "Español",
     imageAlt: "Stand — a prayer companion for fear",
     cardAlt: (n, t) => `Day ${n}: ${t} — the day's reflection and the start of its prayer, from Stand`,
-    share: { label: "Share this day", copy: "Copy link", copied: "Link copied", native: "Share…", x: "Share on X", facebook: "Share on Facebook", whatsapp: "Share on WhatsApp", email: "Share by email", url: "Page link" }
+    share: { label: "Share this day", copy: "Copy link", copied: "Link copied", native: "Share…", x: "Share on X", facebook: "Share on Facebook", whatsapp: "Share on WhatsApp", email: "Share by email", url: "Page link",
+      card: "SHARE AS AN IMAGE", download: "Download image", shareImage: "Share image",
+      cardAlt: (n, t) => `Share card for Day ${n}: ${t}, with the day's verse, reflection and prayer` }
   },
   {
     code: "es", prefix: "/es", tracks: esTracks, fearIndex: esFearIndex, groups: esGroups,
@@ -111,7 +113,9 @@ const LOCALES = [
     switchLabel: "English",
     imageAlt: "Stand — un compañero de oración para el miedo",
     cardAlt: (n, t) => `Día ${n}: ${t} — la reflexión del día y el comienzo de su oración, de Stand`,
-    share: { label: "Compartir este día", copy: "Copiar enlace", copied: "Enlace copiado", native: "Compartir…", x: "Compartir en X", facebook: "Compartir en Facebook", whatsapp: "Compartir en WhatsApp", email: "Compartir por correo", url: "Enlace de la página" }
+    share: { label: "Compartir este día", copy: "Copiar enlace", copied: "Enlace copiado", native: "Compartir…", x: "Compartir en X", facebook: "Compartir en Facebook", whatsapp: "Compartir en WhatsApp", email: "Compartir por correo", url: "Enlace de la página",
+      card: "COMPARTIR COMO IMAGEN", download: "Descargar imagen", shareImage: "Compartir imagen",
+      cardAlt: (n, t) => `Tarjeta para compartir del Día ${n}: ${t}, con el versículo, la reflexión y la oración del día` }
   }
 ];
 
@@ -246,6 +250,23 @@ function shareRow({ L, url, title, text }) {
         </nav>`;
 }
 
+// The day's share card (api/card.js renders it): shown on the page, with a
+// Download link that needs no script, and a Share button that share.js
+// reveals only where the device can share an image file. Site-relative, so
+// it works on previews and in the test server as well as in production.
+function shareCard({ L, card, fileName, n, title }) {
+  const src = cardPath(card, "post");
+  const S = L.share;
+  return `        <figure class="share-card">
+          <p class="section-kicker">${esc(S.card)}</p>
+          <a class="share-card-image" href="${src}"><img src="${src}" width="1080" height="1350" loading="lazy" decoding="async" alt="${esc(S.cardAlt(n, title))}" /></a>
+          <figcaption>
+            <a class="share-card-download" href="${src}" download="${esc(fileName)}">${ICON.download}<span>${esc(S.download)}</span></a>
+            <button type="button" class="share-card-native" data-file="${esc(fileName)}" hidden>${ICON.share}<span>${esc(S.shareImage)}</span></button>
+          </figcaption>
+        </figure>`;
+}
+
 function weekFor(track, i) {
   const w = track.weeks;
   if (w.length < 5) return w[0];
@@ -321,6 +342,7 @@ ${siteNav(L, relPath, altPath)}
         <section class="declaration-panel"><p class="section-kicker">${L.declare}</p><p>${esc(declaration)}</p></section>
         <section class="action-panel" id="practice"><div class="action-icon">→</div><div><p class="section-kicker">${L.practice}</p><p>${esc(action)}</p></div></section>
 ${shareRow({ L, url: `${SITE_URL}${relPath}`, title: pageTitle, text: `“${verse}” — ${ref}` })}
+${shareCard({ L, card, fileName: `stand-${id === "core" ? "" : `${id}-`}${slugs[L.code][id][i]}.png`, n: i + 1, title })}
         <a class="complete-button" href="${APP}${appQuery}#${i + 1}">${L.openDay(i + 1)}</a>
         <nav class="day-nav" aria-label="${L.code === "es" ? "Navegación de días" : "Day navigation"}">${prev}${next}</nav>
       </article>

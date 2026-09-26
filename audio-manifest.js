@@ -10,6 +10,54 @@ const audioManifest = {
   "enabled": true,
   "base": "https://stand-audio.vercel.app",
   "items": {
+    "en/day/barley/0": {
+      "key": "en/day/barley/01-i-went-out-full.e05a7e7b.mp3",
+      "hash": "e05a7e7bd1c1995df778586c1c923ac569860ac73827f621995d882384be42e9",
+      "bytes": 1197497,
+      "seconds": 75
+    },
+    "en/day/barley/1": {
+      "key": "en/day/barley/02-where-you-go.78917e2d.mp3",
+      "hash": "78917e2d2765940af0c2c7d41bb231a7689de303d8a961a6063c484a62b31862",
+      "bytes": 1221738,
+      "seconds": 76
+    },
+    "en/day/barley/2": {
+      "key": "en/day/barley/03-she-happened-upon-the-field.ddd1b83e.mp3",
+      "hash": "ddd1b83e529572759f7fcbd2e6bdf30053acc7204aa836643e96465cc19813ab",
+      "bytes": 1154447,
+      "seconds": 72
+    },
+    "en/day/barley/3": {
+      "key": "en/day/barley/04-handfuls-on-purpose.78dac4cd.mp3",
+      "hash": "78dac4cd0f86716d19da573c9c4a6f00137a62aefe0233a28e5eb7a1277ae77e",
+      "bytes": 1154447,
+      "seconds": 72
+    },
+    "en/day/basket/0": {
+      "key": "en/day/basket/01-three-months-hidden.cc2ce07c.mp3",
+      "hash": "cc2ce07c6bc93c7c7a3fc13b35453c2a2708f8f997acc408d0c315baeb0493b6",
+      "bytes": 1102202,
+      "seconds": 69
+    },
+    "en/day/basket/1": {
+      "key": "en/day/basket/02-she-placed-it-in-the-reeds.ece11845.mp3",
+      "hash": "ece118454498232468db68f07cf5a90b37de238536cd225e5e788efe851759ca",
+      "bytes": 1211289,
+      "seconds": 76
+    },
+    "en/day/basket/2": {
+      "key": "en/day/basket/03-his-sister-stood-at-a-distance.8fc0ce52.mp3",
+      "hash": "8fc0ce52602064d271e8c0da9378697b6a66cd90d6fb18d660e2b662f07e45a0",
+      "bytes": 1146088,
+      "seconds": 72
+    },
+    "en/day/basket/3": {
+      "key": "en/day/basket/04-nurse-him-for-me.b2163d53.mp3",
+      "hash": "b2163d539de98cf0b5d631820b4632caa55af084ed1f82896bd199f2b839a2cd",
+      "bytes": 1217559,
+      "seconds": 76
+    },
     "en/day/core/0": {
       "key": "en/day/core/01-stand.fe6e1c5e.mp3",
       "hash": "fe6e1c5e3f3f5b77fc3e52460f2f5c17edfdef67018d40d73cb705a234a9919d",
@@ -189,6 +237,1278 @@ const audioManifest = {
       "hash": "6b12a019651475ea347880e692b9bd07029fd21f3564d71cce457e0e0136116d",
       "bytes": 938780,
       "seconds": 59
+    },
+    "en/day/den/0": {
+      "key": "en/day/den/01-the-trap.947d609b.mp3",
+      "hash": "947d609bc49cc75397f99e0b4f590e79f1436c969c99887e17f529d3f1bda058",
+      "bytes": 1125190,
+      "seconds": 70
+    },
+    "en/day/den/1": {
+      "key": "en/day/den/02-windows-open.897374c2.mp3",
+      "hash": "897374c2157fe49da0d966cc5fde5dc55f9eb2522ee092a00e9f086949068a4d",
+      "bytes": 1047867,
+      "seconds": 65
+    },
+    "en/day/den/2": {
+      "key": "en/day/den/03-shut-mouths.15173d54.mp3",
+      "hash": "15173d542a6b14fc227d8bbd57a82cad64feab9c9c9528bce29bc8a31e0dc06a",
+      "bytes": 1150685,
+      "seconds": 72
+    },
+    "en/day/den/3": {
+      "key": "en/day/den/04-no-wound-found.cf080c33.mp3",
+      "hash": "cf080c3332f322bac46ae9032a2688349a8f313a65a887e6c4a9e9a20a742a2b",
+      "bytes": 970545,
+      "seconds": 61
+    },
+    "en/day/furnace/0": {
+      "key": "en/day/furnace/01-the-decree.8731e1e2.mp3",
+      "hash": "8731e1e236529046e576f53bcd15a616205cd3687928dbbb86eba94a0e64332b",
+      "bytes": 1088827,
+      "seconds": 68
+    },
+    "en/day/furnace/1": {
+      "key": "en/day/furnace/02-even-if.9f2ed8e9.mp3",
+      "hash": "9f2ed8e93046aab79c2f93cc3dc7a5e96f81c1f03057cce7d99a48f29df5439a",
+      "bytes": 1383906,
+      "seconds": 86
+    },
+    "en/day/furnace/2": {
+      "key": "en/day/furnace/03-the-fourth-man.48ab7517.mp3",
+      "hash": "48ab7517b832d5f7331fef1c109e7d44f9b334e29dcabad256d5fef69e3b0c3c",
+      "bytes": 1281924,
+      "seconds": 80
+    },
+    "en/day/furnace/3": {
+      "key": "en/day/furnace/04-no-smell-of-smoke.96b4d29c.mp3",
+      "hash": "96b4d29cada7b7a97d778728363e3976c5b02dfe1dfb8d1fc80805dc9a80f87e",
+      "bytes": 1111815,
+      "seconds": 69
+    },
+    "en/day/giant/0": {
+      "key": "en/day/giant/01-forty-days-of-shouting.44804903.mp3",
+      "hash": "44804903f129f484246e133c73ff66f7201a4977989a6cfadc9ba996e5f41a27",
+      "bytes": 1238039,
+      "seconds": 77
+    },
+    "en/day/giant/1": {
+      "key": "en/day/giant/02-five-smooth-stones.bb386b55.mp3",
+      "hash": "bb386b555b1ba832148f4afcc4b8c0baa1519d891c2ccbd66a060b26da133e0f",
+      "bytes": 1229262,
+      "seconds": 77
+    },
+    "en/day/giant/2": {
+      "key": "en/day/giant/03-not-by-sword-or-spear.0ca7706e.mp3",
+      "hash": "0ca7706eb443b6606450cdf35aac147e1f5061419eaf967ca453bde69ca4527c",
+      "bytes": 1138564,
+      "seconds": 71
+    },
+    "en/day/giant/3": {
+      "key": "en/day/giant/04-he-ran-toward-it.129cf703.mp3",
+      "hash": "129cf703d842b0e76e522c74b2a1506a81baca1e8627cd131d0e372ad095ef3a",
+      "bytes": 1280671,
+      "seconds": 80
+    },
+    "en/day/hem/0": {
+      "key": "en/day/hem/01-twelve-years-and-worse.8dd24cf3.mp3",
+      "hash": "8dd24cf38ebf067766892f3215a348e80b686390d6716192adbea944d017e0ce",
+      "bytes": 1229262,
+      "seconds": 77
+    },
+    "en/day/hem/1": {
+      "key": "en/day/hem/02-if-i-just-touch-his-clothes.73f5328e.mp3",
+      "hash": "73f5328ede5675c3a5b9570765296bd08845aaf87e2578aef50b68326f552c53",
+      "bytes": 1151103,
+      "seconds": 72
+    },
+    "en/day/hem/2": {
+      "key": "en/day/hem/03-who-touched-my-clothes.6ab55073.mp3",
+      "hash": "6ab55073c3b1ddcc0bdbcd63020626bd3195d574ee188ca4d82c3c307c0e7f01",
+      "bytes": 1127697,
+      "seconds": 70
+    },
+    "en/day/hem/3": {
+      "key": "en/day/hem/04-daughter-go-in-peace.e31e38a0.mp3",
+      "hash": "e31e38a09823158cdea3b27e7721c4b98ed38d8b3a248bd048d6e6f8cd844e45",
+      "bytes": 1120174,
+      "seconds": 70
+    },
+    "en/day/jordan/0": {
+      "key": "en/day/jordan/01-at-flood-stage.94d6512a.mp3",
+      "hash": "94d6512af24346692bf40e72d3e931cccbec01fdc1da94c6551d12d50af6fc84",
+      "bytes": 942542,
+      "seconds": 59
+    },
+    "en/day/jordan/1": {
+      "key": "en/day/jordan/02-feet-in-the-water.c5b055a2.mp3",
+      "hash": "c5b055a2a838738a99eef1695bb564168a6689f5f7c3dd7b19f939e5a7031671",
+      "bytes": 1195825,
+      "seconds": 75
+    },
+    "en/day/jordan/2": {
+      "key": "en/day/jordan/03-standing-in-the-middle.97cea5d3.mp3",
+      "hash": "97cea5d33d188c55c8ab4cbd17c1f57b067f5881e985d0fb5478dc83812550b6",
+      "bytes": 1260608,
+      "seconds": 79
+    },
+    "en/day/jordan/3": {
+      "key": "en/day/jordan/04-twelve-stones.f67f81b4.mp3",
+      "hash": "f67f81b41d4f961e593c931ac79888303ba1a59e1b798cc6bb5cfec7355c0524",
+      "bytes": 1301986,
+      "seconds": 81
+    },
+    "en/day/night/0": {
+      "key": "en/day/night/01-lying-down.cbdecba8.mp3",
+      "hash": "cbdecba8f0d8d74456b20cb49f05edd9b8427887ae4a02cd7a894ed87e065b7b",
+      "bytes": 982666,
+      "seconds": 61
+    },
+    "en/day/night/1": {
+      "key": "en/day/night/02-the-watchman.6de6f6b9.mp3",
+      "hash": "6de6f6b91635c7e600da2776a9bf826dee90bff113cd7c382e0e9b437d7a0095",
+      "bytes": 1022790,
+      "seconds": 64
+    },
+    "en/day/night/2": {
+      "key": "en/day/night/03-thoughts-at-midnight.64d595f9.mp3",
+      "hash": "64d595f9079852cd2fb2e2d26b5ff5e9b660e32ee00341889014922828ec2a3d",
+      "bytes": 967201,
+      "seconds": 60
+    },
+    "en/day/night/3": {
+      "key": "en/day/night/04-darkness-is-not-dark.f6356267.mp3",
+      "hash": "f6356267771dbdc4beeb01fce79f13576b1580af2ff535ff8abf3d0571ccbea2",
+      "bytes": 1090917,
+      "seconds": 68
+    },
+    "en/day/night/4": {
+      "key": "en/day/night/05-new-mercies.99d901c5.mp3",
+      "hash": "99d901c59f98d2a6ea0348559042a42551515ffc925e17aa407766daf3ae91aa",
+      "bytes": 923315,
+      "seconds": 58
+    },
+    "en/day/shiloh/0": {
+      "key": "en/day/shiloh/01-year-after-year.3754ef58.mp3",
+      "hash": "3754ef589ebb0d9059089fd4df129eced2d7d74eecce865a8fce5f96a6579203",
+      "bytes": 1112651,
+      "seconds": 70
+    },
+    "en/day/shiloh/1": {
+      "key": "en/day/shiloh/02-she-spoke-in-her-heart.795306a3.mp3",
+      "hash": "795306a31d9b63867c1a270994b2cfe096878f88876221a8bf7c5058f0d5bdff",
+      "bytes": 1066675,
+      "seconds": 67
+    },
+    "en/day/shiloh/2": {
+      "key": "en/day/shiloh/03-her-face-was-no-longer-sad.6683f080.mp3",
+      "hash": "6683f08052ce4325d4512e64e548b355d7dca8f88a3ad405bbac5f04a7db8304",
+      "bytes": 1193735,
+      "seconds": 75
+    },
+    "en/day/shiloh/3": {
+      "key": "en/day/shiloh/04-lent-to-the-lord.36fe7388.mp3",
+      "hash": "36fe7388881bdca4e86540355388881f0741a3af0cc3e8888d4b1fb9c6408d5e",
+      "bytes": 1221320,
+      "seconds": 76
+    },
+    "en/day/shipwreck/0": {
+      "key": "en/day/shipwreck/01-neither-sun-nor-stars.543015fc.mp3",
+      "hash": "543015fc7ac4031414667ef4a33e9f3b58c57b48f38032e633937dcaaca011fb",
+      "bytes": 1300733,
+      "seconds": 81
+    },
+    "en/day/shipwreck/1": {
+      "key": "en/day/shipwreck/02-i-believe-god.7a7036f6.mp3",
+      "hash": "7a7036f6f64bd2c2f4f47179fe82dd4527b548fec362573b726ea440d75dd425",
+      "bytes": 1157373,
+      "seconds": 72
+    },
+    "en/day/shipwreck/2": {
+      "key": "en/day/shipwreck/03-take-some-food.3ff4fb25.mp3",
+      "hash": "3ff4fb25c7926adab42a969c21b8c8e2ef2f12a0a0cd7a90eade2e7420d910a9",
+      "bytes": 1436569,
+      "seconds": 90
+    },
+    "en/day/shipwreck/3": {
+      "key": "en/day/shipwreck/04-on-broken-pieces.2657ed3a.mp3",
+      "hash": "2657ed3ade62f56c2a91d2986026e29ad46b02f54b4527bc78190be8e3cdfffa",
+      "bytes": 1231351,
+      "seconds": 77
+    },
+    "en/day/storm/0": {
+      "key": "en/day/storm/01-asleep-in-the-stern.faed2fdc.mp3",
+      "hash": "faed2fdcc46415d10cb7eb79826dc7ace9d3aadb6a9e4ebcd1fbd11d7f57c95e",
+      "bytes": 1233023,
+      "seconds": 77
+    },
+    "en/day/storm/1": {
+      "key": "en/day/storm/02-peace-be-still.6946cc04.mp3",
+      "hash": "6946cc0486259d68ab307f507fa316eabdc0d733b92f59bb3c4d71891d5b49a2",
+      "bytes": 1147759,
+      "seconds": 72
+    },
+    "en/day/storm/2": {
+      "key": "en/day/storm/03-why-are-you-afraid.1abd428b.mp3",
+      "hash": "1abd428b403f7a201c448057944a6fe0f219ac9452d81bc34f80e368842552f4",
+      "bytes": 1094679,
+      "seconds": 68
+    },
+    "en/day/storm/3": {
+      "key": "en/day/storm/04-to-the-other-side.cd209f32.mp3",
+      "hash": "cd209f324447ce933870f2365e8a623d892212ec4fc53be5b5260b9da5bad3b0",
+      "bytes": 1111815,
+      "seconds": 69
+    },
+    "en/day/throne/0": {
+      "key": "en/day/throne/01-for-such-a-time.dce516f0.mp3",
+      "hash": "dce516f0f5f0ad538cecf1df7d67cfc8ef82a13e0677e46f2de050127c8f778a",
+      "bytes": 1240546,
+      "seconds": 78
+    },
+    "en/day/throne/1": {
+      "key": "en/day/throne/02-if-i-perish.66501fd8.mp3",
+      "hash": "66501fd845a74a600543fc24bb50b64559f12c4739b54a119818bd36346001b5",
+      "bytes": 1080886,
+      "seconds": 68
+    },
+    "en/day/throne/2": {
+      "key": "en/day/throne/03-the-golden-scepter.95512302.mp3",
+      "hash": "955123025adc7ed20b2da90c215eafe2ff6f7466d5bd471de9d0a979ba09dfef",
+      "bytes": 1164478,
+      "seconds": 73
+    },
+    "en/day/throne/3": {
+      "key": "en/day/throne/04-the-banquet-first.31b86a95.mp3",
+      "hash": "31b86a95ef93d8504586dead68a83a4049f3df98a909f2531f1fb11e1a6fa8dd",
+      "bytes": 1086737,
+      "seconds": 68
+    },
+    "en/day/torches/0": {
+      "key": "en/day/torches/01-the-least-in-my-father-s-house.20abb827.mp3",
+      "hash": "20abb827de4a57802bc823c2f7b31248afd78f6bcaf808305ad8bf8b996c3bb6",
+      "bytes": 1247234,
+      "seconds": 78
+    },
+    "en/day/torches/1": {
+      "key": "en/day/torches/02-called-in-the-winepress.a1419a2f.mp3",
+      "hash": "a1419a2f3102760c523446690176b16892c04251f4329c1925480ab3fa650a79",
+      "bytes": 1304494,
+      "seconds": 82
+    },
+    "en/day/torches/2": {
+      "key": "en/day/torches/03-too-many.2ec1fe03.mp3",
+      "hash": "2ec1fe033343a32a12e5dde0f84efea725010e9cb594c3ae2e92db10fb94ad96",
+      "bytes": 1198751,
+      "seconds": 75
+    },
+    "en/day/torches/3": {
+      "key": "en/day/torches/04-torches-inside-jars.d0ddb240.mp3",
+      "hash": "d0ddb2408877cc8334a23afd89b1f579bdaf3cc4abbadafe3fae7b5465693123",
+      "bytes": 1269386,
+      "seconds": 79
+    },
+    "en/day/turning/0": {
+      "key": "en/day/turning/01-set-your-house-in-order.04336ce5.mp3",
+      "hash": "04336ce5d417ea94a4febce94b7f6e98d4e471d2514e0de259da1d70d342d1cd",
+      "bytes": 1119338,
+      "seconds": 70
+    },
+    "en/day/turning/1": {
+      "key": "en/day/turning/02-he-turned-his-face-to-the-wall.08a04288.mp3",
+      "hash": "08a042883d537bc34bf1ff1771ca5f1f62e64b45807f51c5c0e897247a7a0ac3",
+      "bytes": 1106799,
+      "seconds": 69
+    },
+    "en/day/turning/2": {
+      "key": "en/day/turning/03-i-have-seen-your-tears.a9ce78c1.mp3",
+      "hash": "a9ce78c1ad6816672cbb98177fd216a3e6719d173a358f3b5dd2bc032812880b",
+      "bytes": 1365934,
+      "seconds": 85
+    },
+    "en/day/turning/3": {
+      "key": "en/day/turning/04-the-living-shall-praise-you.6880e033.mp3",
+      "hash": "6880e033d0b3153ea9509e089b458fee14e6a573f280a9ef51b186a82b419a6f",
+      "bytes": 1111815,
+      "seconds": 69
+    },
+    "en/day/unknown/0": {
+      "key": "en/day/unknown/01-the-unwritten-page.0ea907c0.mp3",
+      "hash": "0ea907c03e4e074f42578082fe1510bdf8857d37c2f45e2cf66faf58db02451f",
+      "bytes": 1280671,
+      "seconds": 80
+    },
+    "en/day/unknown/1": {
+      "key": "en/day/unknown/02-daily-bread.d103a495.mp3",
+      "hash": "d103a495ad7f9a3a005c8ec8d64569340f1b13420d9678a79837397ddd93541b",
+      "bytes": 958842,
+      "seconds": 60
+    },
+    "en/day/unknown/2": {
+      "key": "en/day/unknown/03-light-for-the-next-step.f97d916f.mp3",
+      "hash": "f97d916f2961f6f6c15cb2a4cadebb75237f7e48bd6a506e42bfb77b55a701a9",
+      "bytes": 1054137,
+      "seconds": 66
+    },
+    "en/day/unknown/3": {
+      "key": "en/day/unknown/04-held.4f538df8.mp3",
+      "hash": "4f538df867b596c302f11de3b4dc17a76b8f2d69b03563cf403dfa52ec0a6efc",
+      "bytes": 905343,
+      "seconds": 57
+    },
+    "en/day/unknown/4": {
+      "key": "en/day/unknown/05-open-hands.baf06372.mp3",
+      "hash": "baf06372ad347f3df57464916837fac9f33d0355dd30a0dea48b63fd5863a67d",
+      "bytes": 1186212,
+      "seconds": 74
+    },
+    "en/day/unseen/0": {
+      "key": "en/day/unseen/01-surrounded-by-morning.71b2ff98.mp3",
+      "hash": "71b2ff980dea853fc90b7612396ba8a74c35474b809de7f82eadfb58cbec0da8",
+      "bytes": 1169075,
+      "seconds": 73
+    },
+    "en/day/unseen/1": {
+      "key": "en/day/unseen/02-more-with-us.1a84b63a.mp3",
+      "hash": "1a84b63a229ce07c247fd122a16c59f882757e5c4513d4bd99f05e09a5550196",
+      "bytes": 1187884,
+      "seconds": 74
+    },
+    "en/day/unseen/2": {
+      "key": "en/day/unseen/03-open-his-eyes.ac653087.mp3",
+      "hash": "ac6530878903a72133ad16f4d3b64c1cb170d48f69e92b9f9e5f95e8bca1ecef",
+      "bytes": 1022790,
+      "seconds": 64
+    },
+    "en/day/unseen/3": {
+      "key": "en/day/unseen/04-bread-for-the-enemy.847d7fe0.mp3",
+      "hash": "847d7fe0f5aa1eaaab50b88eb50b17c9492dc0a59aef0c52570769a54ebe0938",
+      "bytes": 1107635,
+      "seconds": 69
+    },
+    "en/day/wall/0": {
+      "key": "en/day/wall/01-they-laughed-at-the-work.09f5647b.mp3",
+      "hash": "09f5647b2de072e12ed761b629db4a379b9f79c28ed04f38c643d92c13373f8e",
+      "bytes": 985591,
+      "seconds": 62
+    },
+    "en/day/wall/1": {
+      "key": "en/day/wall/02-a-trowel-and-a-sword.963fd00d.mp3",
+      "hash": "963fd00d0fe6007485dbb44e0e31989a3a43da00a8ba3704f8921c9a8c0c0a3f",
+      "bytes": 1030313,
+      "seconds": 64
+    },
+    "en/day/wall/2": {
+      "key": "en/day/wall/03-i-cannot-come-down.3a5b570c.mp3",
+      "hash": "3a5b570c96f6f990afec644df6661089298b3cf291ca4df279645d2380d48ec0",
+      "bytes": 1194989,
+      "seconds": 75
+    },
+    "en/day/wall/3": {
+      "key": "en/day/wall/04-fifty-two-days.baf007b2.mp3",
+      "hash": "baf007b24b4ce8cb8d4efbc545bd9fd1f07a11714d566b96093612ee784c8409",
+      "bytes": 1444928,
+      "seconds": 90
+    },
+    "en/day/water/0": {
+      "key": "en/day/water/01-a-ghost-in-the-fourth-watch.ab711dca.mp3",
+      "hash": "ab711dca1fc161a8a63788b25e6c36e96f3f4aa4ad3dba0ad302c8511a2c8b8d",
+      "bytes": 1226336,
+      "seconds": 77
+    },
+    "en/day/water/1": {
+      "key": "en/day/water/02-tell-me-to-come.73f9032e.mp3",
+      "hash": "73f9032e8f1221698f402ff09c33480cb5d8d16c375ea513325ebb9ecb698e2a",
+      "bytes": 1261444,
+      "seconds": 79
+    },
+    "en/day/water/2": {
+      "key": "en/day/water/03-beginning-to-sink.e4abda31.mp3",
+      "hash": "e4abda3189f8aabb40da94d7d1e973f4fd175a6d877ccddc4de000bff30914e6",
+      "bytes": 1074199,
+      "seconds": 67
+    },
+    "en/day/water/3": {
+      "key": "en/day/water/04-immediately-he-reached-out.26dd41f6.mp3",
+      "hash": "26dd41f673f05e093325baa8efc51dc2034dc0b6c6f557ee370786a5f61b6ea6",
+      "bytes": 1040762,
+      "seconds": 65
+    },
+    "en/day/zarephath/0": {
+      "key": "en/day/zarephath/01-a-handful-of-meal.801b5810.mp3",
+      "hash": "801b58108c477e0376f508040a102f804ee581d934bdc3273720706d8eca6457",
+      "bytes": 1403133,
+      "seconds": 88
+    },
+    "en/day/zarephath/1": {
+      "key": "en/day/zarephath/02-make-me-a-little-cake-first.189c1fa5.mp3",
+      "hash": "189c1fa5b26ad906e63130d01d3c92372916092d6718889e0fa9d34e80f03790",
+      "bytes": 1342946,
+      "seconds": 84
+    },
+    "en/day/zarephath/2": {
+      "key": "en/day/zarephath/03-the-jar-did-not-empty.cb38dadc.mp3",
+      "hash": "cb38dadc321c95ddbca6bedaa0195b4aeb76c806f6746c05f8baa229a3b6adf6",
+      "bytes": 1260608,
+      "seconds": 79
+    },
+    "en/day/zarephath/3": {
+      "key": "en/day/zarephath/04-many-days.334af6c3.mp3",
+      "hash": "334af6c3fb807a6e6217b4464e973b6ba60c0a8545e2c7185abf8b74aeb5c5a5",
+      "bytes": 1100112,
+      "seconds": 69
+    },
+    "en/prayer/act-of-contrition": {
+      "key": "en/prayer/act-of-contrition.5bfd23a8.mp3",
+      "hash": "5bfd23a85ae9ba99f2a36f5a3ed0f962ee2cc9e5134a3f546becc17ced7d1ed9",
+      "bytes": 382894,
+      "seconds": 24
+    },
+    "en/prayer/angelus": {
+      "key": "en/prayer/angelus.f19d7256.mp3",
+      "hash": "f19d7256c5f8906a32814a9dd04eee039705e4fadf696b8255174ec44e56c87a",
+      "bytes": 1577004,
+      "seconds": 99
+    },
+    "en/prayer/apostles-creed": {
+      "key": "en/prayer/apostles-creed.e7d4c614.mp3",
+      "hash": "e7d4c614dc614c368b1f6cd2dd72c2a4cd153f31dadb5032075787106d38a9b7",
+      "bytes": 909941,
+      "seconds": 57
+    },
+    "en/prayer/come-holy-spirit": {
+      "key": "en/prayer/come-holy-spirit.e20a8417.mp3",
+      "hash": "e20a8417aaa7cc30bb419a17faa0aea51a7842761866cc04979c42bab6834054",
+      "bytes": 475263,
+      "seconds": 30
+    },
+    "en/prayer/glory-be": {
+      "key": "en/prayer/glory-be.a738f202.mp3",
+      "hash": "a738f202aac61f09929baacce6d47c3e85a8f853b1a05f91d56e0f8216790fc4",
+      "bytes": 153435,
+      "seconds": 10
+    },
+    "en/prayer/grace-before-meals": {
+      "key": "en/prayer/grace-before-meals.bdfde870.mp3",
+      "hash": "bdfde870649668fb619baceea6c19e37fc2f44725cc88c560c398831d45c691b",
+      "bytes": 171407,
+      "seconds": 11
+    },
+    "en/prayer/hail-holy-queen": {
+      "key": "en/prayer/hail-holy-queen.d8f587cf.mp3",
+      "hash": "d8f587cf6b2f2f3bf1ed2242c2b01a9ace42cd70dddd4c4920dadfd2eafc8b4b",
+      "bytes": 646208,
+      "seconds": 40
+    },
+    "en/prayer/hail-mary": {
+      "key": "en/prayer/hail-mary.ed2ddd86.mp3",
+      "hash": "ed2ddd8628df7e5cbee77ee1b3c7fdb20910682376802b0ac2bcea07f43e91c7",
+      "bytes": 263358,
+      "seconds": 16
+    },
+    "en/prayer/memorare": {
+      "key": "en/prayer/memorare.440755fe.mp3",
+      "hash": "440755fe3e132ed827df6dcc1b3120ce94525997bff0bd915be003a13e6b10fc",
+      "bytes": 570140,
+      "seconds": 36
+    },
+    "en/prayer/our-father": {
+      "key": "en/prayer/our-father.cf8b1585.mp3",
+      "hash": "cf8b158544fd9a9f1574e6e32315a40eb810dc30b18e0811256c6f1d07c978f2",
+      "bytes": 382894,
+      "seconds": 24
+    },
+    "en/prayer/prayer-of-st-francis": {
+      "key": "en/prayer/prayer-of-st-francis.db7ea464.mp3",
+      "hash": "db7ea4648f4d841ca5790c624a7dad9d543a7f3d8c6c876f5de26f30a06e8c8f",
+      "bytes": 463978,
+      "seconds": 29
+    },
+    "en/prayer/sign-of-the-cross": {
+      "key": "en/prayer/sign-of-the-cross.fc5e1361.mp3",
+      "hash": "fc5e1361102c97783ed055410d2b037bfc83b7cb8b16ca21e8142cb282e74d0a",
+      "bytes": 88651,
+      "seconds": 6
+    },
+    "en/prayer/st-michael": {
+      "key": "en/prayer/st-michael.e9c81eb4.mp3",
+      "hash": "e9c81eb41ac73a7e1c447a21fbb2a37462bd2acac4d903f58fd3079e7126a810",
+      "bytes": 429706,
+      "seconds": 27
+    },
+    "en/sos/0": {
+      "key": "en/sos/1-psalm-27-1.6db8206f.mp3",
+      "hash": "6db8206fd3191d1e8b496de31650cd5a4b2080ad45c391939287974da0a6fcc7",
+      "bytes": 351965,
+      "seconds": 22
+    },
+    "en/sos/1": {
+      "key": "en/sos/2-joshua-1-9.45d630c5.mp3",
+      "hash": "45d630c5207ee16e6163e00769ad2e45a3f4367dadfa39ef0de45af4716f0ad6",
+      "bytes": 379968,
+      "seconds": 24
+    },
+    "en/sos/2": {
+      "key": "en/sos/3-matthew-6-34.ac74c47c.mp3",
+      "hash": "ac74c47cf0fec0980f90c15b9dd01c01ea76997f4d84e68df4fd73b8dc49aab3",
+      "bytes": 379968,
+      "seconds": 24
+    },
+    "en/sos/3": {
+      "key": "en/sos/4-psalm-42-11.4195e045.mp3",
+      "hash": "4195e045124fb42c2772829ee46ddc18357e532a75248edf4800407c815164b0",
+      "bytes": 330231,
+      "seconds": 21
+    },
+    "es/day/barley/0": {
+      "key": "es/day/barley/01-llena-me-fui.e8602ef0.mp3",
+      "hash": "e8602ef08bf1957061d97f3809969fee86a250b0c8f02b2bbe53ae378ba708c6",
+      "bytes": 1077124,
+      "seconds": 67
+    },
+    "es/day/barley/1": {
+      "key": "es/day/barley/02-donde-tu-fueres.15699470.mp3",
+      "hash": "1569947094a8b7efbd0fe2dd7e09875030c351388d35c48c477e8563f592032d",
+      "bytes": 1268550,
+      "seconds": 79
+    },
+    "es/day/barley/2": {
+      "key": "es/day/barley/03-fue-a-dar-al-campo.f523c170.mp3",
+      "hash": "f523c170d25a157764800afc39c5779a4381567ca82287bd4e08a771408bb7c8",
+      "bytes": 1234695,
+      "seconds": 77
+    },
+    "es/day/barley/3": {
+      "key": "es/day/barley/04-punados-a-proposito.9627ce6f.mp3",
+      "hash": "9627ce6fa1a9c2c03e522eeb758beb196916c9ce8dbf3980bd668d6fb187f4e8",
+      "bytes": 1227172,
+      "seconds": 77
+    },
+    "es/day/basket/0": {
+      "key": "es/day/basket/01-tres-meses-escondido.d51e6bd4.mp3",
+      "hash": "d51e6bd4bad943aa176c5ff705d1b5d813c3f049ed04e6a46538a37dd875ea8e",
+      "bytes": 1275237,
+      "seconds": 80
+    },
+    "es/day/basket/1": {
+      "key": "es/day/basket/02-lo-puso-entre-los-juncos.a6a710f9.mp3",
+      "hash": "a6a710f9081e1db12f2a17cb9ba7c58f7fca3042f9afa67b294ece6b5aaaf552",
+      "bytes": 1340021,
+      "seconds": 84
+    },
+    "es/day/basket/2": {
+      "key": "es/day/basket/03-su-hermana-se-puso-a-lo-lejos.9a8d662d.mp3",
+      "hash": "9a8d662d2cdf8755064ea8efab2445e87969a15dda34b45448dc470fc2f9d87e",
+      "bytes": 1232187,
+      "seconds": 77
+    },
+    "es/day/basket/3": {
+      "key": "es/day/basket/04-criamelo.b43c101d.mp3",
+      "hash": "b43c101d546bf4b61a532b491146861107e3ee416841f36a93965f6ffd40cbad",
+      "bytes": 1259773,
+      "seconds": 79
+    },
+    "es/day/core/0": {
+      "key": "es/day/core/01-firmeza.432bb463.mp3",
+      "hash": "432bb46336a31e04f9e58d4ed6b9474c9105a24ce7ac152d4fb86ca50b3b4b26",
+      "bytes": 1398535,
+      "seconds": 87
+    },
+    "es/day/core/1": {
+      "key": "es/day/core/02-verdad.b661e39e.mp3",
+      "hash": "b661e39e82318bf7f82688291afd7f232fdc01ff445ebbad3baf68d0ded65991",
+      "bytes": 1280671,
+      "seconds": 80
+    },
+    "es/day/core/10": {
+      "key": "es/day/core/11-orgullo.335da403.mp3",
+      "hash": "335da4031a0afec43014a9f6ea42bcad3328615b66f1bb153124f5eb18efa9c2",
+      "bytes": 1076288,
+      "seconds": 67
+    },
+    "es/day/core/11": {
+      "key": "es/day/core/12-tentacion.c0193010.mp3",
+      "hash": "c0193010f065ba6c132980ad7cac20bb0d3951278ce7e754583dd16e64c49bc9",
+      "bytes": 1097604,
+      "seconds": 69
+    },
+    "es/day/core/12": {
+      "key": "es/day/core/13-desesperanza.5bfaffa3.mp3",
+      "hash": "5bfaffa386fbf21b76a0745880405c0da607bcc1cd9da16bd97767ec0a2ce0fe",
+      "bytes": 1169911,
+      "seconds": 73
+    },
+    "es/day/core/13": {
+      "key": "es/day/core/14-descanso.9678237c.mp3",
+      "hash": "9678237cec041a5832040b801d38534cde63e388f28f0c25e983de70bc8153aa",
+      "bytes": 1157373,
+      "seconds": 72
+    },
+    "es/day/core/14": {
+      "key": "es/day/core/15-guarda-tus-palabras.45845c1c.mp3",
+      "hash": "45845c1cf86102a1bf48fe6bb1b6a83716126509855fec09374d5a997a4c3480",
+      "bytes": 1129787,
+      "seconds": 71
+    },
+    "es/day/core/15": {
+      "key": "es/day/core/16-discernimiento.205d2ebc.mp3",
+      "hash": "205d2ebc97f4fd112a52912d6755c39b2e9de4d6d60a8d3319fb9b279637153d",
+      "bytes": 1044942,
+      "seconds": 65
+    },
+    "es/day/core/16": {
+      "key": "es/day/core/17-limites.97df4e6b.mp3",
+      "hash": "97df4e6b50d8d4a527f70e431285371e3068975c274a936e52c2ea4814d4c6cd",
+      "bytes": 1143998,
+      "seconds": 71
+    },
+    "es/day/core/17": {
+      "key": "es/day/core/18-acusaciones-falsas.c9e1e390.mp3",
+      "hash": "c9e1e3906dd1d88e21fee55ec345302e9fc6688cc28201251c6de6116dbc90ba",
+      "bytes": 1222574,
+      "seconds": 76
+    },
+    "es/day/core/18": {
+      "key": "es/day/core/19-perdon.2803e151.mp3",
+      "hash": "2803e151185875802ee26d3356bef77a55d0493c3d3558926b0f1d1ee43791ee",
+      "bytes": 1138564,
+      "seconds": 71
+    },
+    "es/day/core/19": {
+      "key": "es/day/core/20-ama-a-tu-enemigo.e8af04ac.mp3",
+      "hash": "e8af04ac81620a2353b9c01878f49e0e68f7eca1d3d7a0c2c839f0612a702601",
+      "bytes": 1104292,
+      "seconds": 69
+    },
+    "es/day/core/2": {
+      "key": "es/day/core/03-justicia.5430d8bd.mp3",
+      "hash": "5430d8bd6ec3f8a859f8ca112ed316fb4f1c4f32eef1fd2ad154e053883a59b5",
+      "bytes": 1239711,
+      "seconds": 77
+    },
+    "es/day/core/20": {
+      "key": "es/day/core/21-protege-al-vulnerable.1f4a89d6.mp3",
+      "hash": "1f4a89d6053a34dd0db12e9f3847caaeda94dc307576e694c4a03938d1bf95c6",
+      "bytes": 1181614,
+      "seconds": 74
+    },
+    "es/day/core/21": {
+      "key": "es/day/core/22-valor.fa7adf1e.mp3",
+      "hash": "fa7adf1ee744cbe87619eea5b5b48183c785397170f8d0bece1deca8f8547c08",
+      "bytes": 1019028,
+      "seconds": 64
+    },
+    "es/day/core/22": {
+      "key": "es/day/core/23-sabiduria.b5543b35.mp3",
+      "hash": "b5543b35e521f1df29868369dfe1351e75b701eb38e8343eff9f5f2970a21daf",
+      "bytes": 1148177,
+      "seconds": 72
+    },
+    "es/day/core/23": {
+      "key": "es/day/core/24-justicia-para-todos.9fa52e32.mp3",
+      "hash": "9fa52e32a6be169d513eb2f847e5c5bc57c170a74b41e18f280de5b1aec2e636",
+      "bytes": 1157791,
+      "seconds": 72
+    },
+    "es/day/core/24": {
+      "key": "es/day/core/25-misericordia.42007db0.mp3",
+      "hash": "42007db0711c52356427ef8ea6c36ec56127ca0cd2885054c917ae9f3ab276db",
+      "bytes": 1115577,
+      "seconds": 70
+    },
+    "es/day/core/25": {
+      "key": "es/day/core/26-humildad.f3eb7aea.mp3",
+      "hash": "f3eb7aeaa0d89e81b70dbea6bc12b6498e5d47e4246d90e148eb2d5b00aaaa91",
+      "bytes": 1087991,
+      "seconds": 68
+    },
+    "es/day/core/26": {
+      "key": "es/day/core/27-perseverancia.2d239eca.mp3",
+      "hash": "2d239eca6fa2913721cde3fed24edf09e794aa48bc07799a41a35c0abe8890c3",
+      "bytes": 1072527,
+      "seconds": 67
+    },
+    "es/day/core/27": {
+      "key": "es/day/core/28-entrega.c40cd2e6.mp3",
+      "hash": "c40cd2e6047fbb90b85ecb38b4ad2015f3a6f9912873524f43e04faf55aa4b0c",
+      "bytes": 1083812,
+      "seconds": 68
+    },
+    "es/day/core/28": {
+      "key": "es/day/core/29-se-la-luz.c7e90608.mp3",
+      "hash": "c7e9060814af09f2e006a98c70d3a2cef8763276199c325bbb5a7338b8aebb4e",
+      "bytes": 1037418,
+      "seconds": 65
+    },
+    "es/day/core/29": {
+      "key": "es/day/core/30-caracter.ad9fd1a1.mp3",
+      "hash": "ad9fd1a1bd6ba55336be1b4d0db9d89b300893d71afeff0bb0504f30f1c9b904",
+      "bytes": 1273147,
+      "seconds": 80
+    },
+    "es/day/core/3": {
+      "key": "es/day/core/04-paz.f06321c5.mp3",
+      "hash": "f06321c51b0a1e15a531c8ca9bce7ad3fd6c7bfc40d84e7edb94a6ee76a7a053",
+      "bytes": 1154447,
+      "seconds": 72
+    },
+    "es/day/core/4": {
+      "key": "es/day/core/05-fe.2b996abc.mp3",
+      "hash": "2b996abc3c01ad4ca0838b211087775cc387878e03b7bc92515e4f7e962db008",
+      "bytes": 1244308,
+      "seconds": 78
+    },
+    "es/day/core/5": {
+      "key": "es/day/core/06-guarda-la-mente.70696ebb.mp3",
+      "hash": "70696ebbb7493cda6bf2b63f1f3e55e804b6dcb5899a9bdf7667590065161412",
+      "bytes": 1264788,
+      "seconds": 79
+    },
+    "es/day/core/6": {
+      "key": "es/day/core/07-la-palabra.4f9f3790.mp3",
+      "hash": "4f9f3790edcf57a489f4177b18fe949bf62c580dc45d4d2fd6211daaed94ebe2",
+      "bytes": 1145252,
+      "seconds": 72
+    },
+    "es/day/core/7": {
+      "key": "es/day/core/08-miedo.39bb300d.mp3",
+      "hash": "39bb300d39758e8242179f6ee9bf1aabfadca74f23c0111c326d5cfb0ad3601e",
+      "bytes": 1061242,
+      "seconds": 66
+    },
+    "es/day/core/8": {
+      "key": "es/day/core/09-ira.3fbd80f1.mp3",
+      "hash": "3fbd80f1039856d387a98282bc0b3d0a6188dafb741ed6a73d8cd97b6e385d4c",
+      "bytes": 1100112,
+      "seconds": 69
+    },
+    "es/day/core/9": {
+      "key": "es/day/core/10-resentimiento.5370b58a.mp3",
+      "hash": "5370b58acdfe3c3278bf15e46557dc42e1dcd597f0bb0bc516412c9b00570902",
+      "bytes": 1110561,
+      "seconds": 69
+    },
+    "es/day/den/0": {
+      "key": "es/day/den/01-la-trampa.bb26edb9.mp3",
+      "hash": "bb26edb9f7bf2595f9d5851760baae92929d3e30cd54312b7e5452eecfb5fc15",
+      "bytes": 1241800,
+      "seconds": 78
+    },
+    "es/day/den/1": {
+      "key": "es/day/den/02-las-ventanas-abiertas.70266c74.mp3",
+      "hash": "70266c744424469efde5b633b357028f874060ccd8a8a8698d85c0c476a8df31",
+      "bytes": 1287358,
+      "seconds": 80
+    },
+    "es/day/den/2": {
+      "key": "es/day/den/03-bocas-cerradas.bd76e4df.mp3",
+      "hash": "bd76e4df3e82f0ab3a4d75edbe27d0b0454d0d99e5ac525146222a94f663a5dc",
+      "bytes": 1284850,
+      "seconds": 80
+    },
+    "es/day/den/3": {
+      "key": "es/day/den/04-ninguna-lesion.7295688f.mp3",
+      "hash": "7295688f6325ad456f8abe8b9e2bfdd4fb86f85c654f1b81ede74f169a5617f3",
+      "bytes": 1184540,
+      "seconds": 74
+    },
+    "es/day/furnace/0": {
+      "key": "es/day/furnace/01-el-decreto.036c64ba.mp3",
+      "hash": "036c64ba520150876080bcd8d405b366afeceaed80144a3cf62cdb34882b577b",
+      "bytes": 1245562,
+      "seconds": 78
+    },
+    "es/day/furnace/1": {
+      "key": "es/day/furnace/02-y-si-no.157654ad.mp3",
+      "hash": "157654ad23b373907a0f7f327febdd76e72d4d61287b5ba41ea872eff4f97d4c",
+      "bytes": 1323720,
+      "seconds": 83
+    },
+    "es/day/furnace/2": {
+      "key": "es/day/furnace/03-el-cuarto-varon.f0622442.mp3",
+      "hash": "f0622442510df4b059171a5ea1530284603124776c56f42373189beb7a972edc",
+      "bytes": 1289448,
+      "seconds": 81
+    },
+    "es/day/furnace/3": {
+      "key": "es/day/furnace/04-ni-olor-de-fuego.0438a699.mp3",
+      "hash": "0438a6992385a1864bb1f3a44a7c37009b3ea8b369d1c3435ad71c06e2bb4858",
+      "bytes": 1396445,
+      "seconds": 87
+    },
+    "es/day/giant/0": {
+      "key": "es/day/giant/01-cuarenta-dias-de-gritos.3bf1bcb0.mp3",
+      "hash": "3bf1bcb036b76a1da519996b0045fa971b81bc6d233f2096588498ed80f5ee05",
+      "bytes": 1437405,
+      "seconds": 90
+    },
+    "es/day/giant/1": {
+      "key": "es/day/giant/02-cinco-piedras-lisas.fc02a986.mp3",
+      "hash": "fc02a9868932e81a37c13270042fb72619fce40c2b5adb3a1fcf93ad88e4f002",
+      "bytes": 1322048,
+      "seconds": 83
+    },
+    "es/day/giant/2": {
+      "key": "es/day/giant/03-no-con-espada-ni-lanza.9bf02d03.mp3",
+      "hash": "9bf02d033bb65e8dc68048919c1645acea8634f3b78ea5b5376180b30dfacc48",
+      "bytes": 1210035,
+      "seconds": 76
+    },
+    "es/day/giant/3": {
+      "key": "es/day/giant/04-corrio-hacia-el-combate.fe2f248f.mp3",
+      "hash": "fe2f248fbc320e25e3b25e6db7832356078e24b822384a9ed1353e52e75d07c4",
+      "bytes": 1248488,
+      "seconds": 78
+    },
+    "es/day/hem/0": {
+      "key": "es/day/hem/01-doce-anos-y-peor.abf08466.mp3",
+      "hash": "abf08466ab520d384f4e48b6ada37b865534588528ae98b80ff4ea90edd65660",
+      "bytes": 1357993,
+      "seconds": 85
+    },
+    "es/day/hem/1": {
+      "key": "es/day/hem/02-si-tocare-su-vestido.4cb275bd.mp3",
+      "hash": "4cb275bdb6f5dbfd1c08101f40b94de3d08c8380468d99e9c55adf088897e59c",
+      "bytes": 1181196,
+      "seconds": 74
+    },
+    "es/day/hem/2": {
+      "key": "es/day/hem/03-le-dijo-toda-la-verdad.f523b869.mp3",
+      "hash": "f523b869668e7e573377db942c93a637634b8821b826e2480e46530c87e12dd4",
+      "bytes": 1388504,
+      "seconds": 87
+    },
+    "es/day/hem/3": {
+      "key": "es/day/hem/04-hija-ve-en-paz.c70b6db7.mp3",
+      "hash": "c70b6db7fc6ccfb48593795eabcafdbc08b91f895df92ffc2ffc3f6163a1743b",
+      "bytes": 1283596,
+      "seconds": 80
+    },
+    "es/day/jordan/0": {
+      "key": "es/day/jordan/01-en-tiempo-de-crecida.6732e2e2.mp3",
+      "hash": "6732e2e2f446a85406e3c7ba27066297890895e75a4f8a97ce028381fcf10824",
+      "bytes": 1271057,
+      "seconds": 79
+    },
+    "es/day/jordan/1": {
+      "key": "es/day/jordan/02-los-pies-en-el-agua.490904d1.mp3",
+      "hash": "490904d10242c6bf4c853c00872a47d187e960f91ee733d6159239881b1082fc",
+      "bytes": 1123100,
+      "seconds": 70
+    },
+    "es/day/jordan/2": {
+      "key": "es/day/jordan/03-de-pie-en-medio.41db9a0d.mp3",
+      "hash": "41db9a0d813097570e550fcbbd1c32498d0e039e2345f2a0676bdccb3baaa96b",
+      "bytes": 1245562,
+      "seconds": 78
+    },
+    "es/day/jordan/3": {
+      "key": "es/day/jordan/04-doce-piedras.0ca7d913.mp3",
+      "hash": "0ca7d913f642087802f1270b04b1c7525f61523926d53048f4ef0a05f6151ae0",
+      "bytes": 1181196,
+      "seconds": 74
+    },
+    "es/day/night/0": {
+      "key": "es/day/night/01-al-acostarte.64947c23.mp3",
+      "hash": "64947c2359cd8b3adcc269f13844d4f8256dfe7fa4be1385090beaa568dafdae",
+      "bytes": 1226336,
+      "seconds": 77
+    },
+    "es/day/night/1": {
+      "key": "es/day/night/02-el-que-vela.fdc00b87.mp3",
+      "hash": "fdc00b875973b37f2c8bf89ae9d47311ce263e525caed37a249fc0842ef43d2d",
+      "bytes": 1289448,
+      "seconds": 81
+    },
+    "es/day/night/2": {
+      "key": "es/day/night/03-pensamientos-de-medianoche.7e2a7897.mp3",
+      "hash": "7e2a78973cb756499e3cc2467dec82d92f400aa0bd37c38a3c2b7e11505fab00",
+      "bytes": 1271057,
+      "seconds": 79
+    },
+    "es/day/night/3": {
+      "key": "es/day/night/04-la-oscuridad-no-es-oscura.62bfcc5d.mp3",
+      "hash": "62bfcc5df6a302dc367bc38f5822ba46ba3185573e8ba1616598f0678f83f59a",
+      "bytes": 1181614,
+      "seconds": 74
+    },
+    "es/day/night/4": {
+      "key": "es/day/night/05-misericordias-nuevas.68ae3485.mp3",
+      "hash": "68ae3485004bb9845d1542709a0b2f9de34f380c76af4082832792288c26f3e0",
+      "bytes": 1235949,
+      "seconds": 77
+    },
+    "es/day/shiloh/0": {
+      "key": "es/day/shiloh/01-ano-tras-ano.60971938.mp3",
+      "hash": "6097193879e6a10a33f89015e3e3ef7f7d95590069e8c2f86f2a842596e00bbe",
+      "bytes": 1288194,
+      "seconds": 81
+    },
+    "es/day/shiloh/1": {
+      "key": "es/day/shiloh/02-hablaba-en-su-corazon.30804bd8.mp3",
+      "hash": "30804bd8da6ab8d2d8130c9205cd56709fc490f7ee0f00dd76b3d7745b10a516",
+      "bytes": 1269386,
+      "seconds": 79
+    },
+    "es/day/shiloh/2": {
+      "key": "es/day/shiloh/03-su-rostro-ya-no-fue-triste.1212e73d.mp3",
+      "hash": "1212e73dc69b3842b7cf0b7d672862b8bb5ad8576c2b11cd6dc342a9a1867d36",
+      "bytes": 1259773,
+      "seconds": 79
+    },
+    "es/day/shiloh/3": {
+      "key": "es/day/shiloh/04-prestado-a-jehova.342a5686.mp3",
+      "hash": "342a5686bdf8c0d89de9251715ade931badd96e2e4e60c0f1c11320a0408e553",
+      "bytes": 1379309,
+      "seconds": 86
+    },
+    "es/day/shipwreck/0": {
+      "key": "es/day/shipwreck/01-ni-sol-ni-estrellas.5ebcd11f.mp3",
+      "hash": "5ebcd11fc3d1e41fd05042dafee0f7b2d31f06465760f47734ee2db770705a0f",
+      "bytes": 1253921,
+      "seconds": 78
+    },
+    "es/day/shipwreck/1": {
+      "key": "es/day/shipwreck/02-yo-confio-en-dios.9872f4ff.mp3",
+      "hash": "9872f4ff4bb5cc52426d8c4e3fb145b6daea6fcc64bd967225d9cb8fb4e1c25a",
+      "bytes": 1290284,
+      "seconds": 81
+    },
+    "es/day/shipwreck/2": {
+      "key": "es/day/shipwreck/03-tomad-alimento.846ede08.mp3",
+      "hash": "846ede08dc407597c70ab5ebbec77a3b721566dd2bcae4cfa2c816bb49692d3e",
+      "bytes": 1304494,
+      "seconds": 82
+    },
+    "es/day/shipwreck/3": {
+      "key": "es/day/shipwreck/04-sobre-tablas-rotas.b8a25fc0.mp3",
+      "hash": "b8a25fc0cdcd47eb83473d1172a2759f5e2452940efb15473ca36be36583b951",
+      "bytes": 1259773,
+      "seconds": 79
+    },
+    "es/day/storm/0": {
+      "key": "es/day/storm/01-dormido-en-la-popa.1ae3cf7b.mp3",
+      "hash": "1ae3cf7badac7f3e0fa99f5b3e296f48bd8db3faad55f956a54e5facbb8347ad",
+      "bytes": 1231351,
+      "seconds": 77
+    },
+    "es/day/storm/1": {
+      "key": "es/day/storm/02-calla-enmudece.024b7b9f.mp3",
+      "hash": "024b7b9f64fbacb1e531349a4481fd1c1a02882d4017a4a4043867d22817a183",
+      "bytes": 1316197,
+      "seconds": 82
+    },
+    "es/day/storm/2": {
+      "key": "es/day/storm/03-por-que-estais-amedrentados.6795be73.mp3",
+      "hash": "6795be73bd825db86c815fe07962ffe6c6987b95047e1307aaf569aae3b2a3c0",
+      "bytes": 1254757,
+      "seconds": 78
+    },
+    "es/day/storm/3": {
+      "key": "es/day/storm/04-a-la-otra-orilla.fe43e35c.mp3",
+      "hash": "fe43e35c4656c19544d822b592a49d0d299900c0b251c40e0f3e8bf0592f3871",
+      "bytes": 1160298,
+      "seconds": 73
+    },
+    "es/day/throne/0": {
+      "key": "es/day/throne/01-para-esta-hora.40645f46.mp3",
+      "hash": "40645f46fdd4cacdc0cab392c72f64809ed9c7e11c369ea23707e087d7cd8e4e",
+      "bytes": 1294045,
+      "seconds": 81
+    },
+    "es/day/throne/1": {
+      "key": "es/day/throne/02-si-perezco-que-perezca.f3678122.mp3",
+      "hash": "f3678122f77b586c18cea44a9107ebe3c86ed2f360c5e367adf2b9d2c0761616",
+      "bytes": 1250159,
+      "seconds": 78
+    },
+    "es/day/throne/2": {
+      "key": "es/day/throne/03-el-cetro-de-oro.3205df52.mp3",
+      "hash": "3205df5238fca2b5243b0a2ab33a0bccaab3291e4b434e927201d367c9ed2545",
+      "bytes": 1214633,
+      "seconds": 76
+    },
+    "es/day/throne/3": {
+      "key": "es/day/throne/04-primero-el-banquete.7a3cedc1.mp3",
+      "hash": "7a3cedc1fd36a67c0a5626e87d210e5148290f1bffacc0490119fc8feab6fd0e",
+      "bytes": 1282760,
+      "seconds": 80
+    },
+    "es/day/torches/0": {
+      "key": "es/day/torches/01-el-menor-en-la-casa-de-mi-padre.0b468ace.mp3",
+      "hash": "0b468ace786048acd301e5fed9b0ab02da9917dee88c94b1d90355cf0f7f7c20",
+      "bytes": 1317869,
+      "seconds": 82
+    },
+    "es/day/torches/1": {
+      "key": "es/day/torches/02-llamado-en-el-lagar.8d478869.mp3",
+      "hash": "8d478869f15c0722ebe024d3f7e1dea49804ffc1b49d5f42cf405a30ba7d5fb2",
+      "bytes": 1199586,
+      "seconds": 75
+    },
+    "es/day/torches/2": {
+      "key": "es/day/torches/03-son-demasiados.2fa80720.mp3",
+      "hash": "2fa807203ddd6ea0ebea114582dfbf0ff6fbab1214552bfc2db6a8984f072791",
+      "bytes": 1189137,
+      "seconds": 74
+    },
+    "es/day/torches/3": {
+      "key": "es/day/torches/04-antorchas-dentro-de-cantaros.36d860ad.mp3",
+      "hash": "36d860adbe19f8df55cf1cf502433518db6ed457e37040e0c3222fe8fb3aa4d3",
+      "bytes": 1206274,
+      "seconds": 75
+    },
+    "es/day/turning/0": {
+      "key": "es/day/turning/01-ordena-tu-casa.e552a78d.mp3",
+      "hash": "e552a78d3270450832267bbc569a289bf1603dde9c04a62674493ff3178d8180",
+      "bytes": 1253085,
+      "seconds": 78
+    },
+    "es/day/turning/1": {
+      "key": "es/day/turning/02-volvio-su-rostro-a-la-pared.c78cf8f9.mp3",
+      "hash": "c78cf8f9d50d42080d2c71208d6a12339c6aca59e59bdfad040bc46d6fb6178e",
+      "bytes": 1249324,
+      "seconds": 78
+    },
+    "es/day/turning/2": {
+      "key": "es/day/turning/03-he-visto-tus-lagrimas.3219fb56.mp3",
+      "hash": "3219fb565e9bbf5b188588cf77f9a1aa5a6c265881073d008a047d56258ce027",
+      "bytes": 1505115,
+      "seconds": 94
+    },
+    "es/day/turning/3": {
+      "key": "es/day/turning/04-el-que-vive-te-alabara.c240bdbe.mp3",
+      "hash": "c240bdbef0cae411f2602a2f8dfd2901c35f5f11892437693b3011a5a23de5c9",
+      "bytes": 1247234,
+      "seconds": 78
+    },
+    "es/day/unknown/0": {
+      "key": "es/day/unknown/01-la-pagina-en-blanco.8bac2352.mp3",
+      "hash": "8bac2352d6d8f9f3b2d0e4c1b3e4059c3443218939b3134f86e6c7e752aa2f63",
+      "bytes": 1309510,
+      "seconds": 82
+    },
+    "es/day/unknown/1": {
+      "key": "es/day/unknown/02-el-pan-de-cada-dia.091b7f33.mp3",
+      "hash": "091b7f33d766699db682ad27c1d3892528dcb24cd6bda38bcfef8e527f0530de",
+      "bytes": 1110979,
+      "seconds": 69
+    },
+    "es/day/unknown/2": {
+      "key": "es/day/unknown/03-luz-para-el-siguiente-paso.33d76e76.mp3",
+      "hash": "33d76e768c41bec6e80ffe98f964f049831a068c201805eb698e7a5acc2d73c8",
+      "bytes": 1131877,
+      "seconds": 71
+    },
+    "es/day/unknown/3": {
+      "key": "es/day/unknown/04-sostenido.096661d8.mp3",
+      "hash": "096661d88c124c24105f2f63ec09c0e999a2b763f92b359e63b6dab122118813",
+      "bytes": 1087991,
+      "seconds": 68
+    },
+    "es/day/unknown/4": {
+      "key": "es/day/unknown/05-manos-abiertas.f3a59185.mp3",
+      "hash": "f3a59185785b58ccee1708c39773161fee66393af49c71099baff44e8e2011f1",
+      "bytes": 1276909,
+      "seconds": 80
+    },
+    "es/day/unseen/0": {
+      "key": "es/day/unseen/01-rodeado-al-amanecer.a053bae5.mp3",
+      "hash": "a053bae5f4b2e12a52182228870dd8192f80f97b70aba9fc739e3d149efd9704",
+      "bytes": 1261862,
+      "seconds": 79
+    },
+    "es/day/unseen/1": {
+      "key": "es/day/unseen/02-mas-son-los-que-estan-con-nosotros.24f1830d.mp3",
+      "hash": "24f1830dfaacdd9b44b283058ee9b1936d8a4e0af843aadbeb9477ac35816e35",
+      "bytes": 1338349,
+      "seconds": 84
+    },
+    "es/day/unseen/2": {
+      "key": "es/day/unseen/03-abre-sus-ojos.c66df06f.mp3",
+      "hash": "c66df06f418ae2a85feb01de3f63a6594c6ffedc0ed5c299109136c01568691b",
+      "bytes": 1212961,
+      "seconds": 76
+    },
+    "es/day/unseen/3": {
+      "key": "es/day/unseen/04-pan-para-el-enemigo.aa7b46e3.mp3",
+      "hash": "aa7b46e3cae9a8ed8d6d8b6130e1e1b3ddb8308539e213ebda71a470c5c4302d",
+      "bytes": 1371786,
+      "seconds": 86
+    },
+    "es/day/wall/0": {
+      "key": "es/day/wall/01-se-rieron-de-la-obra.79d5fd49.mp3",
+      "hash": "79d5fd49fcc6d82cd6cdedb19c7df6011bf2251bc7c42c175933795779ddb015",
+      "bytes": 1284432,
+      "seconds": 80
+    },
+    "es/day/wall/1": {
+      "key": "es/day/wall/02-la-llana-y-la-espada.4553dc17.mp3",
+      "hash": "4553dc173f642b02d5903650f03aa3830c7f0edf99ba782d12efda16fdda7dd2",
+      "bytes": 1244726,
+      "seconds": 78
+    },
+    "es/day/wall/2": {
+      "key": "es/day/wall/03-no-puedo-ir.a1a30a24.mp3",
+      "hash": "a1a30a24e642664ea84f9b7af705238b5de2b2de3580fce7a0f2b236a623395e",
+      "bytes": 1177853,
+      "seconds": 74
+    },
+    "es/day/wall/3": {
+      "key": "es/day/wall/04-cincuenta-y-dos-dias.42e213ff.mp3",
+      "hash": "42e213ff1d88b4904f3f0daef59b229451be29cd49b9e4d4b1a6d6869bd0c2e4",
+      "bytes": 1261862,
+      "seconds": 79
+    },
+    "es/day/water/0": {
+      "key": "es/day/water/01-un-fantasma-en-la-cuarta-vigilia.a35562a4.mp3",
+      "hash": "a35562a4f118284c3f46facf46f98470eb58b97b54dff49ae809ae6a835ed13e",
+      "bytes": 1240546,
+      "seconds": 78
+    },
+    "es/day/water/1": {
+      "key": "es/day/water/02-manda-que-yo-vaya.a4cccbc0.mp3",
+      "hash": "a4cccbc0af4de614e1048edcbb70181c30b0c6050f4267f5307af6051f824d93",
+      "bytes": 1166150,
+      "seconds": 73
+    },
+    "es/day/water/2": {
+      "key": "es/day/water/03-comenzando-a-hundirse.36d141a4.mp3",
+      "hash": "36d141a448eed328692fa093c7673155fa7c0915deac61920aba15d531139bfa",
+      "bytes": 1221738,
+      "seconds": 76
+    },
+    "es/day/water/3": {
+      "key": "es/day/water/04-enseguida-extendio-la-mano.ee93853b.mp3",
+      "hash": "ee93853b8e696d22c149e1af71da40c416ae682f5321104c3a340095c98c7f79",
+      "bytes": 1256847,
+      "seconds": 79
+    },
+    "es/day/zarephath/0": {
+      "key": "es/day/zarephath/01-un-punado-de-harina.978d0f27.mp3",
+      "hash": "978d0f277f7a89813d8daae128bbe82a58a557fb03f4746ffc9f7e80ed3a08fc",
+      "bytes": 1257683,
+      "seconds": 79
+    },
+    "es/day/zarephath/1": {
+      "key": "es/day/zarephath/02-hazme-primero-una-torta.13dcc5b6.mp3",
+      "hash": "13dcc5b635e92b76f1e696b20b481c2803680611b42e9ebdb5b7644d32718680",
+      "bytes": 1390594,
+      "seconds": 87
+    },
+    "es/day/zarephath/2": {
+      "key": "es/day/zarephath/03-la-tinaja-no-escaseo.d2e0be15.mp3",
+      "hash": "d2e0be15fb7a492e36ea855e8aa942d63484e6d66e09b916d64569caf20a0abd",
+      "bytes": 1351306,
+      "seconds": 84
+    },
+    "es/day/zarephath/3": {
+      "key": "es/day/zarephath/04-muchos-dias.8d4a8504.mp3",
+      "hash": "8d4a85042df5a52730f6e99df047ee740d95b6e2145651da1b2aa827ab7208b1",
+      "bytes": 1208364,
+      "seconds": 76
+    },
+    "es/prayer/act-of-contrition": {
+      "key": "es/prayer/act-of-contrition.c280a981.mp3",
+      "hash": "c280a9810e8e65aedb990c98c21daa1fa9fa671fec2125e9b02e2b4eab302118",
+      "bytes": 379968,
+      "seconds": 24
+    },
+    "es/prayer/angelus": {
+      "key": "es/prayer/angelus.e1aa98eb.mp3",
+      "hash": "e1aa98ebacb4286b4ba06bddb9b53cfde4e6cc493b921729f5320026e46002c1",
+      "bytes": 1727051,
+      "seconds": 108
+    },
+    "es/prayer/apostles-creed": {
+      "key": "es/prayer/apostles-creed.c6496b78.mp3",
+      "hash": "c6496b78a4f1d9afd56145f023584519660f192b61c49e0d261bf1e9d4c290c3",
+      "bytes": 894058,
+      "seconds": 56
+    },
+    "es/prayer/come-holy-spirit": {
+      "key": "es/prayer/come-holy-spirit.1febac63.mp3",
+      "hash": "1febac632ab034cd0d8442911f7b812c526c15ff6f29df3e41244a231a7f797f",
+      "bytes": 595635,
+      "seconds": 37
+    },
+    "es/prayer/glory-be": {
+      "key": "es/prayer/glory-be.42424e10.mp3",
+      "hash": "42424e10513a3e02a9444e04da373166e7d9348150f94ec7310e446eefbc3ae5",
+      "bytes": 222398,
+      "seconds": 14
+    },
+    "es/prayer/grace-before-meals": {
+      "key": "es/prayer/grace-before-meals.46113d13.mp3",
+      "hash": "46113d1327943e288c80b1f3ecdace1ddc7837dc83e434a501158de78f5647be",
+      "bytes": 206933,
+      "seconds": 13
+    },
+    "es/prayer/hail-holy-queen": {
+      "key": "es/prayer/hail-holy-queen.6a5c99dd.mp3",
+      "hash": "6a5c99ddc8ada3fdd1eebe9d49e10f6019af1cfc61e32735ec04f01186cccd8f",
+      "bytes": 744011,
+      "seconds": 47
+    },
+    "es/prayer/hail-mary": {
+      "key": "es/prayer/hail-mary.1e082526.mp3",
+      "hash": "1e0825267aaefa9cad373d2c6213d956bcf93c79ad46d8ddca2a470ad33b34ab",
+      "bytes": 379968,
+      "seconds": 24
+    },
+    "es/prayer/memorare": {
+      "key": "es/prayer/memorare.fdc2e09a.mp3",
+      "hash": "fdc2e09a469cd6da6767c7ba4974a27f2b3dce22b5c0a2a8b6f8bc980b7dfd5f",
+      "bytes": 672958,
+      "seconds": 42
+    },
+    "es/prayer/our-father": {
+      "key": "es/prayer/our-father.f3215752.mp3",
+      "hash": "f3215752ad33858e7fc1bb47e823029445d816b30265eba434f650cbe3867f5b",
+      "bytes": 442244,
+      "seconds": 28
+    },
+    "es/prayer/prayer-of-st-francis": {
+      "key": "es/prayer/prayer-of-st-francis.a8f21ded.mp3",
+      "hash": "a8f21ded8acc0ce84add4d8110d26e71e5ff0d1e8ec085aca2f956315fb230a4",
+      "bytes": 435139,
+      "seconds": 27
+    },
+    "es/prayer/sign-of-the-cross": {
+      "key": "es/prayer/sign-of-the-cross.8834a24f.mp3",
+      "hash": "8834a24f1996dde505abfe4250f492bc65424450ef03baf09f216cbfa3da5b2c",
+      "bytes": 99100,
+      "seconds": 6
+    },
+    "es/prayer/st-michael": {
+      "key": "es/prayer/st-michael.66fa2efe.mp3",
+      "hash": "66fa2efed463740e53f7124ed594f98ad8274c4fc86bf212331bc0d1058f53f0",
+      "bytes": 464814,
+      "seconds": 29
+    },
+    "es/sos/0": {
+      "key": "es/sos/1-salmo-27-1.eaac6be1.mp3",
+      "hash": "eaac6be12b1661c96f931e0de1cc9f26aa164e34fa9520b9e5680515ed34a37d",
+      "bytes": 384566,
+      "seconds": 24
+    },
+    "es/sos/1": {
+      "key": "es/sos/2-josue-1-9.945775ca.mp3",
+      "hash": "945775ca14fa3e66dd7a5da805b3aecac11cee448f3a4a9bffa4a6576f67e3ea",
+      "bytes": 379968,
+      "seconds": 24
+    },
+    "es/sos/2": {
+      "key": "es/sos/3-mateo-6-34.365b744c.mp3",
+      "hash": "365b744cd81f69d49d771bb8f84e0b169be9007da36c257452b3a86172cb3f16",
+      "bytes": 431377,
+      "seconds": 27
+    },
+    "es/sos/3": {
+      "key": "es/sos/4-salmo-42-11.5e2ed5f0.mp3",
+      "hash": "5e2ed5f0a3e3a62c66bb0d0c18f7e13bcf9f172f551d84beeee419b1f13a992a",
+      "bytes": 400031,
+      "seconds": 25
     }
   }
 };

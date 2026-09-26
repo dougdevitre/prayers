@@ -2,8 +2,12 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    {"source": "/calendar.ics", "destination": "/api/calendar"}
+    {"source": "/calendar.ics", "destination": "/api/calendar"},
+    {"source": "/cards/:lang/:track/:file", "destination": "/api/card?lang=:lang&track=:track&file=:file"}
   ],
+  "functions": {
+    "api/card.js": {"includeFiles": "fonts/*.woff"}
+  },
   "redirects": [
     {"source": "/about", "destination": "/", "permanent": true}
   ],

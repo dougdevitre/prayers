@@ -11,7 +11,16 @@ on:
 
 jobs:
   verify:
-    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production'
+    # Vercel names the environment "Production" while one Vercel project is
+    # connected to the repository, and "Production – <project>" once a second
+    # one is. The audio host (the prayers-audio project) joined on 26 Sep 2026,
+    # and from then every run matched nothing and was skipped, silently. So:
+    # any production environment except the audio host's, whose deployments
+    # are recordings, not this site.
+    if: >-
+      github.event.deployment_status.state == 'success'
+      && startsWith(github.event.deployment.environment, 'Production')
+      && !contains(github.event.deployment.environment, 'prayers-audio')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

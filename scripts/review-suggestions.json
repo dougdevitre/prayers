@@ -1,5 +1,5 @@
 {
-  "_note": "Wording offered to the pastoral reviewer: neutral Spanish for lines that address the reader in the masculine, and fixes from a proofreading pass (grammar, meaning, literal translations; `lang: \"en\"` for the English). Each `from` must appear word for word in the item's text (the build fails otherwise); `why` is shown to the reviewer as the question. Suggestions are not part of an item's hash: adding or editing them never unsettles a decision.",
+  "_note": "Wording offered to the pastoral reviewer: neutral Spanish for lines that address the reader in the masculine, and fixes from proofreading passes over both languages (grammar, meaning, literal translations, unclear English; `lang: \"en\"` for the English). Each `from` must appear word for word in the item's text (the build fails otherwise); `why` is shown to the reviewer as the question. Suggestions are not part of an item's hash: adding or editing them never unsettles a decision.",
   "day.core.01": [
     {
       "from": "Donde estoy confundido, dame claridad.",
@@ -68,6 +68,25 @@
         "Perder mis referencias no significa que me haya perdido.",
         "Perder mis referencias no significa haber perdido el camino."
       ]
+    },
+    {
+      "from": "You are building the sky you cannot see.",
+      "options": [
+        "You are charting your course while the stars are hidden.",
+        "You are building your own landmarks while the sky is hidden."
+      ],
+      "why": "English: \"building the sky\" doesn't land; the image is keeping your own log when there are no stars to steer by (Acts 27:20). The Spanish has the same image and a matching suggestion; choose the two together.",
+      "kind": "clarity",
+      "lang": "en"
+    },
+    {
+      "from": "Estás construyendo el cielo que no puedes ver.",
+      "options": [
+        "Estás trazando tu rumbo mientras las estrellas no se ven.",
+        "Estás marcando tus propias referencias mientras el cielo está cubierto."
+      ],
+      "why": "Same image as the English line above (\"building the sky you cannot see\"), which does not land in either language; these match the English options in order.",
+      "kind": "calque"
     }
   ],
   "day.barley.01": [
@@ -227,6 +246,16 @@
       ],
       "why": "The English is \"last night does not bill it\". \"Anoche\" is an adverb and cannot be the subject of \"factura\", so this reads as broken Spanish; \"no le pasa factura\" is the natural idiom.",
       "kind": "calque"
+    },
+    {
+      "from": "Morning mercy is new — last night does not bill it.",
+      "options": [
+        "Morning mercy is new — it does not bill you for last night.",
+        "Morning mercy is new — last night is not held against it."
+      ],
+      "why": "English: \"last night does not bill it\" is hard to parse. The Spanish of this line is flagged too; choose the two together.",
+      "kind": "clarity",
+      "lang": "en"
     }
   ],
   "day.giant.02": [
@@ -281,6 +310,16 @@
       ],
       "why": "\"Déjala\" most naturally points back to \"la obra\", so it can read as \"return to the work and leave the work there\", the opposite of the intent.",
       "kind": "meaning"
+    },
+    {
+      "from": "Take it — then return to the work and leave it there.",
+      "options": [
+        "Take it — then return to the work and leave the worry there.",
+        "Take it — then return to the work, and leave the threat where it is."
+      ],
+      "why": "English: \"leave it there\" could mean the work, the precaution or the threat. The Spanish of this line is flagged too; choose the two together.",
+      "kind": "clarity",
+      "lang": "en"
     }
   ],
   "day.water.01": [
@@ -347,6 +386,16 @@
       ],
       "why": "\"Seguro\" is masculine and addresses the reader.",
       "kind": "gender"
+    },
+    {
+      "from": "Take the step you have been holding until you felt sure.",
+      "options": [
+        "Take the step you have been holding back until you felt sure.",
+        "Take the step you have been putting off until you feel sure."
+      ],
+      "why": "English: \"holding\" needs \"back\" or \"off\" to mean delaying. The Spanish of this line is flagged too.",
+      "kind": "english",
+      "lang": "en"
     }
   ],
   "day.torches.01": [
@@ -519,6 +568,110 @@
       ],
       "why": "\"ser perdonado\" is masculine and refers to the person praying; the options keep the meaning without marking gender.",
       "kind": "gender"
+    }
+  ],
+  "day.core.03": [
+    {
+      "from": "May the right thing remain right even when nobody sees it.",
+      "options": [
+        "May I keep doing the right thing even when nobody sees it.",
+        "Let me do the right thing even when nobody sees it."
+      ],
+      "why": "English: as written it prays that right stays right, which it always does; the likely request is that the reader keeps doing right unseen.",
+      "kind": "clarity",
+      "lang": "en"
+    }
+  ],
+  "day.core.17": [
+    {
+      "from": "A healthy boundary protects peace and responsibility; punishment tries to control another person's pain.",
+      "options": [
+        "A healthy boundary protects peace and responsibility; punishment tries to control another person through pain.",
+        "A healthy boundary protects peace and responsibility; punishment tries to make another person pay."
+      ],
+      "why": "English: \"control another person's pain\" does not say what punishment does and can even read as caring for their pain.",
+      "kind": "clarity",
+      "lang": "en"
+    }
+  ],
+  "day.unknown.03": [
+    {
+      "from": "A lamp for feet lights steps, not horizons.",
+      "options": [
+        "A lamp for your feet lights steps, not horizons.",
+        "A lamp to the feet lights steps, not horizons."
+      ],
+      "why": "English: a word is missing before \"feet\", so the allusion to Psalm 119:105 reads as garbled.",
+      "kind": "english",
+      "lang": "en"
+    }
+  ],
+  "day.furnace.01": [
+    {
+      "from": "Fear grows loudest where the pressure is legitimate — real authority, real consequence, no exit that keeps everything intact.",
+      "options": [
+        "Fear grows loudest where the pressure is real — real authority, real consequence, no exit that keeps everything intact."
+      ],
+      "why": "English: \"legitimate\" can read as \"rightful\", as if the pressure to bow were justified; the sentence means the pressure is real.",
+      "kind": "clarity",
+      "lang": "en"
+    }
+  ],
+  "day.hem.02": [
+    {
+      "from": "Lord, I have stopped asking directly because of how often the asking has gone.",
+      "options": [
+        "Lord, I have stopped asking directly because of how the asking has gone so many times.",
+        "Lord, I have stopped asking directly because of how often the asking has gone nowhere."
+      ],
+      "why": "English: the sentence is missing a word after \"has gone\". The Spanish reads \"because of how the asking has gone so many times\".",
+      "kind": "english",
+      "lang": "en"
+    }
+  ],
+  "day.water.02": [
+    {
+      "from": "Name the thing you would attempt if you were sure you would be caught.",
+      "options": [
+        "Name the thing you would attempt if you were sure someone would catch you.",
+        "Name the thing you would attempt if you were sure you would be held."
+      ],
+      "why": "English: \"be caught\" reads as being found out, the opposite of Peter being held up; the Spanish (\"te van a sostener\") already says \"held\".",
+      "kind": "clarity",
+      "lang": "en"
+    }
+  ],
+  "day.hem.04": [
+    {
+      "from": "After twelve years of being a case, a cost, and a condition, the first word she is given is a family word — and that naming is the part of the healing nobody could have handed her.",
+      "options": [
+        "After twelve years of being a case, a cost, and a condition, the first word she is given is a family word — and that naming is the part of the healing nobody else could have handed her."
+      ],
+      "why": "English: \"nobody could have handed her\" literally says no one could give it, though Jesus just did; \"nobody else\" is what is meant.",
+      "kind": "clarity",
+      "lang": "en"
+    }
+  ],
+  "day.throne.02": [
+    {
+      "from": "The decision was made before the reception was known, which is the only place courage can be decided.",
+      "options": [
+        "The decision was made before she knew how she would be received, which is the only point at which courage can be decided."
+      ],
+      "why": "English: \"reception\" is vague (the king's response) and \"place\" does not fit a moment in time, so the sentence is hard to follow.",
+      "kind": "clarity",
+      "lang": "en"
+    }
+  ],
+  "compose.prayer.closing.6": [
+    {
+      "from": "Virgin of Guadalupe, patroness of our America, cover us with your mantle.",
+      "options": [
+        "Virgin of Guadalupe, patroness of the Americas, cover us with your mantle."
+      ],
+      "why": "English: \"our America\" carries over the Spanish \"nuestra América\"; the usual English title is \"Patroness of the Americas\", and English readers may take \"our America\" to mean the United States.",
+      "kind": "english",
+      "lang": "en"
     }
   ]
 }

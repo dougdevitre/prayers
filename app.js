@@ -174,6 +174,7 @@ audioEl.addEventListener("timeupdate", () => {
   if (player.mode === "rec" && audioEl.duration) {
     $("audioProgress").style.width = `${Math.min(100, (audioEl.currentTime / audioEl.duration) * 100)}%`;
   }
+  updatePositionState();
 });
 
 audioEl.addEventListener("ended", () => {
@@ -185,17 +186,111 @@ audioEl.addEventListener("ended", () => {
   }
 });
 
+// Lock-screen and notification controls. Every call is feature-detected and
+// guarded: a browser without the Media Session API, without setPositionState,
+// or without a given action simply keeps its default controls.
+for (const event of ["loadedmetadata", "ratechange", "seeked"]) {
+  audioEl.addEventListener(event, updatePositionState);
+}
+
+const SEEK_STEP_SECONDS = 10;
+
+function mediaSessionApi() {
+  return typeof navigator !== "undefined" && "mediaSession" in navigator ? navigator.mediaSession : null;
+}
+
+function setMediaAction(action, handler) {
+  const session = mediaSessionApi();
+  if (!session) return;
+  try { session.setActionHandler(action, handler); } catch { /* action not supported */ }
+}
+
+/** "playing", "paused" or "none" on the lock screen. */
+function setMediaPlaybackState(value) {
+  const session = mediaSessionApi();
+  if (!session) return;
+  try { session.playbackState = value; } catch { /* older browsers */ }
+}
+
+// The shared audio element is what the lock screen shows while it plays day
+// narration from a recording or a traditional prayer's recording. SOS plays
+// through it too but leaves the day player idle and sets no metadata.
+function recordingInSession() {
+  return (player.mode === "rec" && player.status !== "idle") || prayerAudio.recorded;
+}
+
+function updatePositionState() {
+  const session = mediaSessionApi();
+  if (!session || typeof session.setPositionState !== "function" || !recordingInSession()) return;
+  const duration = audioEl.duration;
+  if (!Number.isFinite(duration) || duration <= 0) return;
+  try {
+    session.setPositionState({
+      duration,
+      playbackRate: audioEl.playbackRate || 1,
+      position: Math.min(Math.max(0, audioEl.currentTime), duration)
+    });
+  } catch { /* older browsers */ }
+}
+
+function clearPositionState() {
+  const session = mediaSessionApi();
+  if (!session || typeof session.setPositionState !== "function") return;
+  try { session.setPositionState(); } catch { /* older browsers */ }
+}
+
+function seekRecording(seconds) {
+  if (!recordingInSession() || !Number.isFinite(audioEl.duration) || !Number.isFinite(seconds)) return;
+  audioEl.currentTime = Math.min(Math.max(0, seconds), audioEl.duration);
+  updatePositionState();
+}
+
+// Device speech has no position to report, so it gets no scrubber.
+function speechMediaSession() {
+  clearPositionState();
+  for (const action of ["seekbackward", "seekforward", "seekto"]) setMediaAction(action, null);
+}
+
+// A traditional prayer's recording pauses and resumes in place; the day
+// player's button would start the day instead.
+function mediaPlay() {
+  if (prayerAudio.recorded) {
+    audioEl.play().then(() => setMediaPlaybackState("playing")).catch(stopPrayerNarration);
+  } else if (player.status !== "playing") {
+    $("playButton").click();
+  }
+}
+
+function mediaPause() {
+  if (prayerAudio.recorded) {
+    audioEl.pause();
+    setMediaPlaybackState("paused");
+  } else if (player.status === "playing") {
+    $("playButton").click();
+  }
+}
+
+// Called once a recording is playing: title, artwork, and the transport and
+// seek controls a recording can honour.
 function setMediaSession(title) {
-  if (!("mediaSession" in navigator)) return;
+  if (!mediaSessionApi()) return;
   try {
     navigator.mediaSession.metadata = new MediaMetadata({
       title,
       artist: "Stand",
-      artwork: [{ src: "icon-512.png", sizes: "512x512", type: "image/png" }]
+      artwork: [
+        { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
+        { src: "/icon-192.png", sizes: "192x192", type: "image/png" }
+      ]
     });
-    navigator.mediaSession.setActionHandler("play", () => $("playButton").click());
-    navigator.mediaSession.setActionHandler("pause", () => $("playButton").click());
   } catch { /* older browsers */ }
+  setMediaAction("play", mediaPlay);
+  setMediaAction("pause", mediaPause);
+  setMediaAction("stop", stopAudio);
+  setMediaAction("seekbackward", () => seekRecording(audioEl.currentTime - SEEK_STEP_SECONDS));
+  setMediaAction("seekforward", () => seekRecording(audioEl.currentTime + SEEK_STEP_SECONDS));
+  setMediaAction("seekto", details => seekRecording(details && details.seekTime));
+  updatePositionState();
 }
 
 function playRecorded(src) {
@@ -236,6 +331,8 @@ function setPlayerStatus(status) {
   $("playButton").setAttribute("aria-label",
     t(status === "playing" ? "audio.pause" : status === "paused" ? "audio.resume" : "audio.play"));
   if (status === "idle") $("audioProgress").style.width = "0";
+  setMediaPlaybackState(status === "playing" ? "playing" : status === "paused" ? "paused" : "none");
+  if (status === "idle") clearPositionState();
 }
 
 function stopAudio() {
@@ -253,6 +350,7 @@ function stopAudio() {
 
 function speakDay() {
   player.mode = "tts";
+  speechMediaSession();
   const script = narrationScript(day);
   const utterance = new SpeechSynthesisUtterance(script);
   utterance.rate = Number($("voiceRate").value);
@@ -1476,7 +1574,7 @@ function showTraditional(item) {
   // generator run would insert a break.
   listen.onclick = () => {
     const src = recordedUrl(prayerItemId(state.lang, item.id));
-    if (src) playPrayerRecording(src, listen, () => speakPrayer(narrationSegments(item.text[state.lang], item.audio, state.lang), listen));
+    if (src) playPrayerRecording(src, listen, () => speakPrayer(narrationSegments(item.text[state.lang], item.audio, state.lang), listen), item.name[state.lang]);
     else speakPrayer(narrationSegments(item.text[state.lang], item.audio, state.lang), listen);
   };
   card.append(listen);
@@ -1489,16 +1587,22 @@ function updatePrayerButton(button, playing) {
 function stopPrayerNarration() {
   clearTimeout(prayerAudio.timer);
   if (prayerAudio.playing && canSpeak) speechSynthesis.cancel();
-  if (prayerAudio.recorded) { prayerAudio.recorded = false; audioEl.pause(); }
+  if (prayerAudio.recorded) {
+    prayerAudio.recorded = false;
+    audioEl.pause();
+    setMediaPlaybackState("none");
+    clearPositionState();
+  }
   prayerAudio.playing = false;
   for (const id of ["prayerListen", "traditionalListen"]) updatePrayerButton($(id), false);
 }
 
 // Plays a prayer's recording through the shared audio element. The day
-// player's own state is left idle, so its progress bar and Media Session stay
-// out of it; the element's "ended" handler stops everything, which resets
-// the button. A file that will not play falls back to the device voice.
-function playPrayerRecording(src, button, fallback) {
+// player's own state is left idle, so its progress bar stays out of it; the
+// Media Session shows the prayer's title with its own position and controls.
+// The element's "ended" handler stops everything, which resets the button.
+// A file that will not play falls back to the device voice.
+function playPrayerRecording(src, button, fallback, title) {
   if (prayerAudio.playing) { stopPrayerNarration(); return; }
   stopAudio();
   prayerAudio.playing = true;
@@ -1507,7 +1611,11 @@ function playPrayerRecording(src, button, fallback) {
   audioEl.src = src;
   audioEl.playbackRate = Number($("voiceRate").value);
   audioEl.currentTime = 0;
-  audioEl.play().catch(() => {
+  audioEl.play().then(() => {
+    if (!prayerAudio.recorded) return;
+    setMediaSession(title || document.title);
+    setMediaPlaybackState("playing");
+  }).catch(() => {
     if (!prayerAudio.recorded) return;
     prayerAudio.recorded = false;
     prayerAudio.playing = false;

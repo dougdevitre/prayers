@@ -323,8 +323,16 @@ const server = http.createServer((req, res) => {
     await page.waitForFunction(() => player.status === "playing", null, { timeout: 5000 }).catch(() => {});
     check("play takes the recording from the manifest", await page.evaluate(() =>
       player.mode === "rec" && player.status === "playing" && audioEl.src === `${location.origin}/tests/fixtures/silence.mp3`));
+    check("a playing recording sets the Media Session playback state", await page.evaluate(() =>
+      navigator.mediaSession.playbackState === "playing"));
+    // The metadata is set once play() resolves, a moment after the status flips.
+    await page.waitForFunction(() => navigator.mediaSession.metadata !== null, null, { timeout: 5000 }).catch(() => {});
+    check("the Media Session artwork is an absolute path", await page.evaluate(() =>
+      navigator.mediaSession.metadata.artwork[0].src.endsWith("/icon-512.png")));
     await page.waitForFunction(() => player.status === "idle", null, { timeout: 10000 }).catch(() => {});
     check("a recording ends back at idle", await page.evaluate(() => player.status === "idle"));
+    check("an ended recording clears the Media Session playback state", await page.evaluate(() =>
+      navigator.mediaSession.playbackState === "none"));
     // A file that is not audio (a 404 would log a console error and trip the
     // page-error check below; an undecodable body rejects play() the same way).
     await page.evaluate(() => { audioManifest.items[dayItemId("en", "core", 0)].key = "robots.txt"; });

@@ -246,4 +246,6 @@ h2.section-kicker,.landing-section h2.section-kicker{margin:0;font-family:inheri
 /* The policy pages nest content sections inside a card, whose own padding
    already spaces them from its edges. */
 .landing-section>.content-section:first-child{margin-top:0}.landing-section>.content-section:last-child{margin-bottom:0}
-@media(max-width:600px){.checkin-section{padding:20px}.checkin-scale{gap:6px}.checkin-scale button{flex:0 1 48px;min-width:38px;width:auto;height:auto;aspect-ratio:1}.share-sheet>button{flex:1 1 100%}}
+@media(max-width:600px){.track-picker{grid-template-columns:1fr 1fr;gap:8px}.track-chip{padding:12px}.checkin-section{padding:20px}.checkin-scale{gap:6px}.checkin-scale button{flex:0 1 48px;min-width:38px;width:auto;height:auto;aspect-ratio:1}.share-sheet>button{flex:1 1 100%}}
+/* The crisis link wraps to two lines in Spanish; keep it aligned like the rest of the step. */
+.sos-footer .text-button{text-align:left}

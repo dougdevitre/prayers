@@ -109,10 +109,14 @@ jobs:
             node scripts/build-audio.js --out .audio-out "${args[@]}"
           fi
 
+      # The render exits non-zero when any item fails, but every item that did
+      # render is already on disk and in the manifest, so the steps below run
+      # anyway: nothing paid for is thrown away, and the job still ends red.
       - run: npm run verify:audio
+        if: ${{ !cancelled() }}
 
       - name: Publish the recordings to the audio branch
-        if: ${{ !inputs.dry_run && inputs.publish == 'branch' }}
+        if: ${{ !cancelled() && !inputs.dry_run && inputs.publish == 'branch' }}
         run: |
           set -euo pipefail
           count=$(find .audio-out -name '*.mp3' | wc -l)
@@ -132,7 +136,7 @@ jobs:
           echo "Published $count recording(s) to the audio branch." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Push the manifest as a branch
-        if: ${{ !inputs.dry_run }}
+        if: ${{ !cancelled() && !inputs.dry_run }}
         run: |
           set -euo pipefail
           if git diff --quiet -- audio-manifest.js; then

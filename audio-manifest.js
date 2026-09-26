@@ -8,8 +8,189 @@
 const audioManifest = {
   "version": 1,
   "enabled": true,
-  "base": "",
-  "items": {}
+  "base": "https://stand-audio.vercel.app",
+  "items": {
+    "en/day/core/0": {
+      "key": "en/day/core/01-stand.fe6e1c5e.mp3",
+      "hash": "fe6e1c5e3f3f5b77fc3e52460f2f5c17edfdef67018d40d73cb705a234a9919d",
+      "bytes": 1188302,
+      "seconds": 74
+    },
+    "en/day/core/1": {
+      "key": "en/day/core/02-truth.11b1c380.mp3",
+      "hash": "11b1c380795900b23e3fcb4fb1744d6dc4f4b6fc49a546ae1e3b30d8ee859045",
+      "bytes": 1126026,
+      "seconds": 70
+    },
+    "en/day/core/10": {
+      "key": "en/day/core/11-pride.e7e1bbca.mp3",
+      "hash": "e7e1bbcab27cea0cb2327b44e98969c8eac2d4d43e867eb35f7a76e06a7409df",
+      "bytes": 878594,
+      "seconds": 55
+    },
+    "en/day/core/11": {
+      "key": "en/day/core/12-temptation.fe642b26.mp3",
+      "hash": "fe642b26a4830a514298ac1cac001ddd2d8c56bd7f876cda830be488d4318a85",
+      "bytes": 1025715,
+      "seconds": 64
+    },
+    "en/day/core/12": {
+      "key": "en/day/core/13-despair.e1b8ad2e.mp3",
+      "hash": "e1b8ad2ef70829bc0be6e045f6d667ad674ac9f57d15769a709ddfa0d6a23c54",
+      "bytes": 963857,
+      "seconds": 60
+    },
+    "en/day/core/13": {
+      "key": "en/day/core/14-rest.c66092dc.mp3",
+      "hash": "c66092dc64513890735a07091d028ba011f4fd2580bf21452a7d92c223759763",
+      "bytes": 1015266,
+      "seconds": 63
+    },
+    "en/day/core/14": {
+      "key": "en/day/core/15-guard-your-words.42666632.mp3",
+      "hash": "4266663245b9bd0be9782dc155a0403daaacd63a9bedadc2a1812620e4e2bfbd",
+      "bytes": 998966,
+      "seconds": 62
+    },
+    "en/day/core/15": {
+      "key": "en/day/core/16-discernment.6342c658.mp3",
+      "hash": "6342c65840e5e20a3ffa56efd236b364b67c8e7a189bc4f935f71b3dc0019bbc",
+      "bytes": 1058316,
+      "seconds": 66
+    },
+    "en/day/core/16": {
+      "key": "en/day/core/17-boundaries.3d83c2d7.mp3",
+      "hash": "3d83c2d7647406d35e24e072107df6ed5c0fdf2c4530e8f0996a0846ab4104c8",
+      "bytes": 874832,
+      "seconds": 55
+    },
+    "en/day/core/17": {
+      "key": "en/day/core/18-false-accusations.edf15961.mp3",
+      "hash": "edf159614ea1221e507d4e247a396873d31f083bb3bad3582ff48364e2121c0e",
+      "bytes": 1133549,
+      "seconds": 71
+    },
+    "en/day/core/18": {
+      "key": "en/day/core/19-forgiveness.c2c3d6fd.mp3",
+      "hash": "c2c3d6fd9e4905c4360d35d0308451d322b48dc70584220cf93eb910fe9198a9",
+      "bytes": 1039090,
+      "seconds": 65
+    },
+    "en/day/core/19": {
+      "key": "en/day/core/20-love-your-enemy.ee590da5.mp3",
+      "hash": "ee590da56023fa823ab20bcb2cbe273c85095b22d7e7cd55f1aafef9a65f8c13",
+      "bytes": 1062914,
+      "seconds": 66
+    },
+    "en/day/core/2": {
+      "key": "en/day/core/03-righteousness.b32551cf.mp3",
+      "hash": "b32551cfcc2cace152ba0e63fe9ac289967406fa07b700d23dd92761064f9808",
+      "bytes": 1157373,
+      "seconds": 72
+    },
+    "en/day/core/20": {
+      "key": "en/day/core/21-protect-the-vulnerable.ef439498.mp3",
+      "hash": "ef4394982d627440af0e04a18a8debfa4c0d4f8904c06c582ff4d8004cef828c",
+      "bytes": 1032403,
+      "seconds": 65
+    },
+    "en/day/core/21": {
+      "key": "en/day/core/22-courage.38262d9a.mp3",
+      "hash": "38262d9a1c901a78d09c81b7a5eef0063b03354b10f9ee6f941f58c67ed6dc01",
+      "bytes": 957170,
+      "seconds": 60
+    },
+    "en/day/core/22": {
+      "key": "en/day/core/23-wisdom.119a0be4.mp3",
+      "hash": "119a0be471e6106269f831116c273997eaa966d6ca5af8adcabe318cbc143dcb",
+      "bytes": 861457,
+      "seconds": 54
+    },
+    "en/day/core/23": {
+      "key": "en/day/core/24-justice.038c6b9f.mp3",
+      "hash": "038c6b9f14f355cc3662b0b34869452b43082eb08da2873438e1d8e3dc59f274",
+      "bytes": 905343,
+      "seconds": 57
+    },
+    "en/day/core/24": {
+      "key": "en/day/core/25-mercy.6d6614a4.mp3",
+      "hash": "6d6614a454cc7e46b8e27a1cf3f05aa0171dc51039f8b5ac2da0aa66d8d65985",
+      "bytes": 877758,
+      "seconds": 55
+    },
+    "en/day/core/25": {
+      "key": "en/day/core/26-humility.22d41921.mp3",
+      "hash": "22d419217da7396bb45e7657f3909628f7568b6ff106f0647b11e2bc7127a000",
+      "bytes": 959678,
+      "seconds": 60
+    },
+    "en/day/core/26": {
+      "key": "en/day/core/27-perseverance.cd344fa2.mp3",
+      "hash": "cd344fa2996cbcb9804b19b830d3cdd9f65ebe56cb9c940e8bcf7b7dc109c999",
+      "bytes": 963439,
+      "seconds": 60
+    },
+    "en/day/core/27": {
+      "key": "en/day/core/28-surrender.0d2628ec.mp3",
+      "hash": "0d2628ecb337cf7e2ae4b0b6cc0e86820dc103115a8730385db7eb5abccb11eb",
+      "bytes": 897820,
+      "seconds": 56
+    },
+    "en/day/core/28": {
+      "key": "en/day/core/29-become-the-light.132bf1d8.mp3",
+      "hash": "132bf1d8a0e32c917d265e95709ac575a8838ae0349ef9ca8fbd0d8bbfa184b9",
+      "bytes": 996040,
+      "seconds": 62
+    },
+    "en/day/core/29": {
+      "key": "en/day/core/30-character.f1a14cd4.mp3",
+      "hash": "f1a14cd43467ae3d5501c8ae149fb17758d474710f32150a2867a0523229d8de",
+      "bytes": 1011505,
+      "seconds": 63
+    },
+    "en/day/core/3": {
+      "key": "en/day/core/04-peace.cef637f1.mp3",
+      "hash": "cef637f1520e69511e5e28d90b8aff5d945463460d07f37742946d65a6eefb0d",
+      "bytes": 1003982,
+      "seconds": 63
+    },
+    "en/day/core/4": {
+      "key": "en/day/core/05-faith.10a0b8a3.mp3",
+      "hash": "10a0b8a305b58055d405958cef790939a48210829d2e4f62a7c0107b96ddf6de",
+      "bytes": 1141072,
+      "seconds": 71
+    },
+    "en/day/core/5": {
+      "key": "en/day/core/06-guard-the-mind.8558670a.mp3",
+      "hash": "8558670a10c20e320f8517fc33a95672d81c37bc7ad71163ba9cb7b38d78f0ba",
+      "bytes": 1024044,
+      "seconds": 64
+    },
+    "en/day/core/6": {
+      "key": "en/day/core/07-the-word.ed613bf7.mp3",
+      "hash": "ed613bf708e231c4536d712cff70758b81d0c94a7488c23232060dd38116791f",
+      "bytes": 973053,
+      "seconds": 61
+    },
+    "en/day/core/7": {
+      "key": "en/day/core/08-fear.cc3ca096.mp3",
+      "hash": "cc3ca096bd50f93c2a49ae4eee314ce4077e8d5260ed94855ac7d047c24359e8",
+      "bytes": 876504,
+      "seconds": 55
+    },
+    "en/day/core/8": {
+      "key": "en/day/core/09-anger.fe31e991.mp3",
+      "hash": "fe31e9919219848fe20e35882df77893146067b51af99b926fb7e5339dbf0480",
+      "bytes": 1021954,
+      "seconds": 64
+    },
+    "en/day/core/9": {
+      "key": "en/day/core/10-resentment.6b12a019.mp3",
+      "hash": "6b12a019651475ea347880e692b9bd07029fd21f3564d71cce457e0e0136116d",
+      "bytes": 938780,
+      "seconds": 59
+    }
+  }
 };
 
 if (typeof module !== "undefined" && module.exports) module.exports = { audioManifest };

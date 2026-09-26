@@ -37,6 +37,14 @@ const server = http.createServer((req, res) => {
     return res.end();
   }
   if (file === "/") file = "/index.html";
+  // The suite must not depend on the audio host: every recorded-narration
+  // check below installs its own manifest entries, pointed at this origin, so
+  // the page gets an empty manifest whatever the committed one holds.
+  // scripts/verify-audio.js is what checks the committed manifest.
+  if (file === "/audio-manifest.js") {
+    res.writeHead(200, { "Content-Type": "text/javascript" });
+    return res.end(`const audioManifest = { version: 1, enabled: true, base: "", items: {} };\n`);
+  }
   // Mirror Vercel's cleanUrls: /about -> about/index.html, /day/x -> day/x.html
   let full = path.join(ROOT, file);
   if (!fs.existsSync(full) || fs.statSync(full).isDirectory()) {
@@ -261,9 +269,8 @@ const server = http.createServer((req, res) => {
   await page.waitForTimeout(300);
   await page.evaluate(() => stopAudio());
 
-  // Recorded narration. The committed manifest is empty until recordings are
-  // rendered, so the suite points it at a one-second silent MP3 served from
-  // this origin (the CSP allows 'self' and the audio CDN) and checks the
+  // Recorded narration. The test server serves an empty manifest (above), so
+  // the suite points it at a one-second silent MP3 served from this origin (the CSP allows 'self' and the audio CDN) and checks the
   // player takes the recording rather than the device voice, ends back at
   // idle, and falls back to the device voice when the file is missing.
   {
@@ -271,7 +278,7 @@ const server = http.createServer((req, res) => {
     check("CSP allows media from the audio origins", /media-src 'self' https:\/\/stand-audio\.vercel\.app https:\/\/audio\.prayers\.dougdevitre\.org;/.test(csp));
     check("the day narration script is the shared one", await page.evaluate(() =>
       narrationScript(0).startsWith("Day one. Stand.\n\nScripture... Ephesians, chapter six, verses ten through thirteen.")));
-    check("no recording is offered until the manifest has one", await page.evaluate(() =>
+    check("no recording is offered without a manifest entry", await page.evaluate(() =>
       recordedFor(0) === null && document.getElementById("audioTime").textContent === "About 3 minutes"));
     await page.evaluate(() => {
       audioManifest.base = location.origin;

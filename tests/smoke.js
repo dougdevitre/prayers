@@ -215,6 +215,14 @@ const server = http.createServer((req, res) => {
   await page.fill("#notes", "track note");
   await page.waitForTimeout(600);
   await page.click("#libraryButton");
+  // The selected journey's subtitle sits on the chip's gold-soft ground, not
+  // its own; muted grey there was 3.9:1 (found by an axe-core audit).
+  check("the selected journey's subtitle meets AA contrast on its chip", await page.evaluate(() => {
+    const lum = c => { const [r, g, b] = c.match(/\d+/g).slice(0, 3).map(n => { n /= 255; return n <= 0.03928 ? n / 12.92 : Math.pow((n + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+    const chip = document.querySelector(".track-chip.active");
+    const a = lum(getComputedStyle(chip.querySelector("small")).color), b = lum(getComputedStyle(chip).backgroundColor);
+    return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) >= 4.5;
+  }));
   await page.click('.track-chip[data-track="core"]');
   check("core day content restored", (await page.textContent("#dayNumber")) === "DAY 02");
   check("core progress unaffected by track", (await page.textContent("#progressPercent")).startsWith("1 of 30"));

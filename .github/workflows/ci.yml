@@ -32,3 +32,6 @@ jobs:
       - run: git diff --exit-code -- day track fears es privacy terms 404.html robots.txt sitemap.xml
       - run: npx playwright install --with-deps chromium
       - run: npm test
+      # axe-core against every page shape and app dialog, light and dark:
+      # the contrast and labelling problems no hand-written check anticipates.
+      - run: npm run test:a11y

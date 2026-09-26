@@ -108,7 +108,7 @@ const LOCALES = [
     fearsEyebrow: "EMPIEZA DONDE ESTÁS", fearsHeading: "¿Dónde estás ahora mismo?",
     fearsLead: "No tienes que empezar en el día uno, ni saber qué camino necesitas. Encuentra la frase que se parezca a tu semana y empieza ahí.",
     fearsCloseHeading: "¿Ninguna encaja del todo?",
-    fearsCloseBody: "Abre la app y pulsa \u201cCalma ahora\u201d. Toma noventa segundos y no te pide nada primero.",
+    fearsCloseBody: "Abre la app y pulsa «Calma ahora». Son noventa segundos y no te pide nada primero.",
     sosLabel: "Calma ahora",
     switchLabel: "English",
     imageAlt: "Stand — un compañero de oración para el miedo",
@@ -466,7 +466,7 @@ const PRIVACY = {
         para("One thing to know on iPhone: Safari may delete a website’s stored data after about a week without a visit, unless the site has been added to your Home Screen. If your notes matter to you, please download a backup from time to time.")
       ]],
       ["LISTENING OFFLINE", [
-        para("If you turn on offline listening, audio recordings are saved on your device, in the browser’s cache, so they can play without a connection. Turning it off, or erasing all data, deletes them.")
+        para("If you turn on “Keep a week of audio on this device”, audio recordings are saved on your device, in the browser’s cache, so they can play without a connection. Turning it off, or erasing all data, deletes them.")
       ]],
       ["HOSTING", [
         para("The website and the audio recordings are served by Vercel, our hosting provider; the recordings come from stand-audio.vercel.app. Like any web host, Vercel receives technical information with each request, such as your IP address, your browser type and the page you asked for, in order to deliver the site and protect it. You can read <a href=\"https://vercel.com/legal/privacy-policy\">Vercel’s privacy notice</a>.")
@@ -514,7 +514,7 @@ const PRIVACY = {
         para("Algo importante en iPhone: Safari puede borrar los datos que guarda un sitio web si pasa alrededor de una semana sin que lo visites, a menos que hayas añadido el sitio a tu pantalla de inicio. Si tus notas son valiosas para ti, descarga un respaldo de vez en cuando.")
       ]],
       ["ESCUCHAR SIN CONEXIÓN", [
-        para("Si activas la escucha sin conexión, las grabaciones de audio se guardan en tu dispositivo, en la caché del navegador, para que suenen aunque no tengas internet. Al desactivarla, o al borrar todos los datos, se eliminan.")
+        para("Si activas «Guardar una semana de audio en este dispositivo», las grabaciones de audio se guardan en tu dispositivo, en la caché del navegador, para que suenen aunque no tengas internet. Al desactivarla, o al borrar todos los datos, se eliminan.")
       ]],
       ["ALOJAMIENTO", [
         para("El sitio web y las grabaciones de audio los sirve Vercel, nuestro proveedor de alojamiento; las grabaciones llegan desde stand-audio.vercel.app. Como cualquier servidor web, Vercel recibe información técnica con cada solicitud —por ejemplo, tu dirección IP, el tipo de navegador y la página que pediste— para poder entregarte el sitio y protegerlo. Puedes leer el <a href=\"https://vercel.com/legal/privacy-policy\">aviso de privacidad de Vercel</a>.")
@@ -593,8 +593,8 @@ const TERMS = {
     summary: "Stand es un compañero gratuito para orar cuando tienes miedo. Ofrece acompañamiento espiritual, no consejo médico, de salud mental, legal ni financiero, y no ocupa el lugar de un profesional con licencia. Si estás en crisis o en peligro, busca ayuda ahora; los números están más abajo. Stand se ofrece gratis y tal como es, y solo te pedimos que lo uses con amabilidad.",
     sections: [
       ["QUÉ ES STAND", [
-        para("Stand ofrece ánimo espiritual y oración. No es consejo médico, de salud mental, legal ni financiero, y no sustituye a un profesional con licencia."),
-        para("Los caminos sobre la salud y el dinero oran junto a la atención médica y los pasos prácticos, nunca en su lugar.")
+        para("Stand ofrece acompañamiento espiritual y oración. No es consejo médico, de salud mental, legal ni financiero, y no sustituye a un profesional con licencia."),
+        para("Los caminos sobre salud y dinero acompañan con oración la atención médica y los pasos prácticos; nunca los sustituyen.")
       ]],
       ["SI ESTÁS EN CRISIS", [
         para("No tienes que cargar con esto a solas. Si estás en Estados Unidos:"),

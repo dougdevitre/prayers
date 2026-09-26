@@ -964,7 +964,7 @@ const server = http.createServer((req, res) => {
   // Dialogs and generated files follow too.
   await page.click("#journalButton");
   check("the journal is Spanish", (await page.textContent("#exportButton")) === "Descargar mis reflexiones (.txt)");
-  check("the ledger is Spanish", (await page.textContent("#ledger")).includes("REGISTRO DE CALMA"));
+  check("the ledger is Spanish", (await page.textContent("#ledger")).includes("HISTORIAL DE CALMA"));
   await page.click("#closeJournal");
 
   await page.click("#libraryButton");

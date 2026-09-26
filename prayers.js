@@ -1136,7 +1136,7 @@ const prayerUi = {
   es: {
     eyebrow: "ORAR", title: "Componer una oraci\u00f3n", language: "Idioma",
     both: "Mostrar ambos idiomas",
-    kind: "Tipo", intention: "Intenci\u00f3n", length: "Extensi\u00f3n", closing: "Despedida",
+    kind: "Tipo", intention: "Intenci\u00f3n", length: "Extensi\u00f3n", closing: "Conclusi\u00f3n",
     full: "Completa", short: "Breve", auto: "Tal como se compone",
     styles: { simple: "Sencilla", trinitarian: "Trinitaria", marian: "Mariana", franciscan: "Franciscana" },
     romanCatholic: "cat\u00f3lica romana",

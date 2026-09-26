@@ -1,0 +1,102 @@
+{
+  "_comment": "Where prayers.js gets its traditional prayers, and which differences from that source are deliberate. Read and written by scripts/remam-sync.js (see its header); CI runs its check. Hashes, not text: the prayers themselves live in prayers.js and in REMAM.",
+  "repo": "dougdevitre/remam",
+  "path": "packages/data/content/prayers.json",
+  "commit": "082321cdcbc201a051172d42e0841baa79b12f78",
+  "traditional": {
+    "sign-of-the-cross": {
+      "name.en": "799ec27250031811",
+      "name.es": "f603912f12686842",
+      "text.en": "d7257067cf379131",
+      "text.es": "b00f87a8e9ffad12",
+      "audio": "632b0eccdd549564"
+    },
+    "our-father": {
+      "name.en": "bcf3f330dd799c16",
+      "name.es": "60018126f7d112c4",
+      "text.en": "9201a6704d50cc3d",
+      "text.es": "32c167a03bda2f44",
+      "audio": "6806d7ea85f464fb"
+    },
+    "hail-mary": {
+      "name.en": "5eecfa5340739f96",
+      "name.es": "b70b37e50c9bd83a",
+      "text.en": "9dfe00cdb68a93e2",
+      "text.es": "db8f484b8f825294",
+      "audio": "09c45436d1a98fe7"
+    },
+    "glory-be": {
+      "name.en": "d3ebe9641a607b00",
+      "name.es": "ebec6781e9c19de1",
+      "text.en": "a855621de3a746f1",
+      "text.es": "c6ff30330506a537",
+      "audio": "23a764e056aa9da5"
+    },
+    "apostles-creed": {
+      "name.en": "2d1a26a46002a4b9",
+      "name.es": "5d7b0647ba15dc53",
+      "text.en": "2e378790ac4e522e",
+      "text.es": "8cdd7b17766dbea4",
+      "audio": "30d0811129cc3ce0"
+    },
+    "hail-holy-queen": {
+      "name.en": "0ab9114c88069880",
+      "name.es": "1d50c4bf574cbb57",
+      "text.en": "1bd5ed02ef1fb9f1",
+      "text.es": "4d92398b9fa8cbb3",
+      "audio": "d89f83c629e0ff79"
+    },
+    "act-of-contrition": {
+      "name.en": "99c8fc415b03c27d",
+      "name.es": "84b8049b65cd3a61",
+      "text.en": "6fc65e382545cffa",
+      "text.es": "e0ee73f8539b02fa",
+      "audio": "3635e157f8918bb6"
+    },
+    "angelus": {
+      "name.en": "17e49ea3ec646c25",
+      "name.es": "19306a1ef179c4cb",
+      "text.en": "3bd32a24bf6a52a2",
+      "text.es": "3d66353063e05ec7",
+      "audio": "c36333d6af88c95d"
+    },
+    "memorare": {
+      "name.en": "b11e613d414722bc",
+      "name.es": "d1df607d94bf20eb",
+      "text.en": "6a225072202ed799",
+      "text.es": "22447de20eb60001",
+      "audio": "379c2905e5025cbb"
+    },
+    "st-michael": {
+      "name.en": "30e63c92ff422af5",
+      "name.es": "eb5f55204c5e1808",
+      "text.en": "48f1bafe76517d33",
+      "text.es": "80b1498349aa38a6",
+      "audio": "b277a065c09399f0"
+    },
+    "prayer-of-st-francis": {
+      "name.en": "c473b9f83b450f87",
+      "name.es": "2ca1e882de22ca82",
+      "text.en": "27a9881e573b11b8",
+      "text.es": "1c3232e92f68fd47",
+      "audio": "f2e9633c18caa921"
+    },
+    "come-holy-spirit": {
+      "name.en": "598ee07469e597cb",
+      "name.es": "ff78230970704819",
+      "text.en": "c63bb246551b3820",
+      "text.es": "b90e39c5d5c44cd4",
+      "audio": "2610ea973552b7ea"
+    },
+    "grace-before-meals": {
+      "name.en": "26bcc3e4ac9106db",
+      "name.es": "b4f7c5f84b60ae6b",
+      "text.en": "a55feed225aef0b7",
+      "text.es": "fba4f39c6fed35de",
+      "audio": "74234e98afe7498f"
+    }
+  },
+  "modes": "be87ecaee75d1890",
+  "overrides": [],
+  "standOnly": []
+}

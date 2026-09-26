@@ -402,8 +402,9 @@ ${siteFooter(L, relPath)}
 // Plain language, short sections, nothing claimed that the code does not do:
 // every statement below was checked against this repository (localStorage
 // only, no cookies or analytics, the Cache API for offline audio, Vercel
-// hosting, the /calendar.ics query, pre-rendered ElevenLabs narration). If
-// the app changes what it stores or sends, these pages must change with it.
+// hosting, the /calendar.ics query, the scrubbed /api/report error reports,
+// pre-rendered ElevenLabs narration). If the app changes what it stores or
+// sends, these pages must change with it.
 //
 // Section bodies are trusted markup written here, not content, so they are
 // not escaped; headings are. Paragraph text stays on one line because
@@ -439,6 +440,9 @@ const PRIVACY = {
       ]],
       ["HOSTING", [
         para("The website and the audio recordings are served by Vercel, our hosting provider; the recordings come from stand-audio.vercel.app. Like any web host, Vercel receives technical information with each request, such as your IP address, your browser type and the page you asked for, in order to deliver the site and protect it. You can read <a href=\"https://vercel.com/legal/privacy-policy\">Vercel’s privacy notice</a>.")
+      ]],
+      ["ERROR REPORTS", [
+        para("If part of Stand stops working on your device, the app sends a short technical report to our host so we can fix it: the kind of error, a shortened error message with any quoted text removed, the file and line in Stand’s own code where it happened, and the page it happened on. It never includes your notes, your progress or anything you typed, and it carries no identifier. At most three reports are sent per visit, and none if your browser sends the Global Privacy Control signal. Reports are kept only in our host’s logs, for a short time.")
       ]],
       ["CALENDAR SUBSCRIPTION", [
         para("If you subscribe to Stand’s calendar feed (/calendar.ics), your calendar app will request a link from time to time. That link contains only the journey, the day to start on, a date, a time, the language and a few option settings. It contains no notes and no personal details. The request is handled by our host.")
@@ -484,6 +488,9 @@ const PRIVACY = {
       ]],
       ["ALOJAMIENTO", [
         para("El sitio web y las grabaciones de audio los sirve Vercel, nuestro proveedor de alojamiento; las grabaciones llegan desde stand-audio.vercel.app. Como cualquier servidor web, Vercel recibe información técnica con cada solicitud —por ejemplo, tu dirección IP, el tipo de navegador y la página que pediste— para poder entregarte el sitio y protegerlo. Puedes leer el <a href=\"https://vercel.com/legal/privacy-policy\">aviso de privacidad de Vercel</a>.")
+      ]],
+      ["INFORMES DE ERRORES", [
+        para("Si alguna parte de Stand deja de funcionar en tu dispositivo, la app envía un breve informe técnico a nuestro proveedor de alojamiento para que podamos arreglarlo: el tipo de error, un mensaje de error abreviado sin el texto entre comillas, el archivo y la línea del código de Stand donde ocurrió, y la página en la que estabas. Nunca incluye tus notas, tu progreso ni nada de lo que escribiste, y no lleva ningún identificador. Se envían como máximo tres informes por visita, y ninguno si tu navegador envía la señal Global Privacy Control. Los informes se guardan solo en los registros de nuestro proveedor, por poco tiempo.")
       ]],
       ["SUSCRIPCIÓN AL CALENDARIO", [
         para("Si te suscribes al calendario de Stand (/calendar.ics), tu app de calendario pedirá un enlace de vez en cuando. Ese enlace contiene solo el camino, el día en que empiezas, una fecha, una hora, el idioma y algunas opciones. No contiene notas ni datos personales. La solicitud la atiende nuestro proveedor de alojamiento.")

@@ -1188,6 +1188,8 @@ const server = http.createServer((req, res) => {
     await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
     check(`${url} links to Vercel's privacy notice`, (await page.$$('main a[href="https://vercel.com/legal/privacy-policy"]')).length === 1);
     check(`${url} names where the recordings come from`, (await page.textContent("main")).includes("stand-audio.vercel.app"));
+    check(`${url} describes the error reports and the Global Privacy Control opt-out`,
+      /ERROR REPORTS|INFORMES DE ERRORES/.test(await page.textContent("main")) && (await page.textContent("main")).includes("Global Privacy Control"));
   }
   for (const url of ["/terms", "/es/terms"]) {
     await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });

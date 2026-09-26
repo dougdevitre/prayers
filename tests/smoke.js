@@ -351,7 +351,10 @@ const server = http.createServer((req, res) => {
   // stacking down the side of the card.
   const playerRows = async () => page.evaluate(() => {
     const tops = [...document.querySelectorAll(".audio-extras > *")].map(el => Math.round(el.getBoundingClientRect().top));
-    return { rows: new Set(tops).size, card: Math.round(document.querySelector(".audio-card").getBoundingClientRect().height) };
+    const scale = [...document.querySelectorAll(".checkin-section .checkin-scale button")].map(el => Math.round(el.getBoundingClientRect().top));
+    const icon = document.querySelector(".action-icon").getBoundingClientRect();
+    return { rows: new Set(tops).size, card: Math.round(document.querySelector(".audio-card").getBoundingClientRect().height),
+      scaleRows: new Set(scale).size, iconRound: Math.round(icon.width) === Math.round(icon.height) };
   });
   const desk = await playerRows();
   await page.setViewportSize({ width: 390, height: 844 });
@@ -359,6 +362,8 @@ const server = http.createServer((req, res) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   check(`the player's controls sit on one row, on a desktop and at 390px (${desk.rows}, ${phone.rows} rows)`, desk.rows === 1 && phone.rows === 1);
   check(`the player stays compact on a phone (${phone.card}px tall)`, phone.card <= 200);
+  check("the fear check-in's five choices share one row on a phone", phone.scaleRows === 1);
+  check("the practice icon stays a circle on a phone", phone.iconRound);
 
   // static SEO day page
   await page.goto("http://localhost:8123/day/08-fear.html", { waitUntil: "networkidle" });

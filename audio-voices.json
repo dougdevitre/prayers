@@ -1,9 +1,9 @@
 {
-  "_comment": "Voice ids and delivery settings per language and kind, read by scripts/build-audio.js. A kind may name its own voiceId and model; otherwise it uses the language's. Changing anything here changes every item's hash it applies to, so the next build re-renders what it touches. No secrets live here; the API key comes from ELEVENLABS_API_KEY. Traditional prayers use the voice REMAM's prayer audio uses (dougdevitre/remam, scripts/generate-prayer-audio.mjs), in both languages, so the two apps' prayers sound the same; they start from the prayer settings and take stability, style and speed from their own entry in prayers.js when it has them.",
+  "_comment": "Voice ids and delivery settings per language and kind, read by scripts/build-audio.js. One voice narrates everything in both languages: the voice dougdevitre/remam renders its prayer audio with (scripts/generate-prayer-audio.mjs there), so Stand and REMAM sound the same. A kind may still name its own voiceId and model to override the language's. Changing anything here changes every item's hash it applies to, so the next build re-renders what it touches. No secrets live here; the API key comes from ELEVENLABS_API_KEY. Traditional prayers start from the prayer settings and take stability, style and speed from their own entry in prayers.js when it has them.",
   "outputFormat": "mp3_44100_128",
   "en": {
-    "voiceId": "alFofuDn3cOwyoz1i44T",
-    "voiceName": "Dallin - Storyteller",
+    "voiceId": "2ydcbtd5sJZRYFMNgMVZ",
+    "voiceName": "REMAM narration voice (the voice dougdevitre/remam renders its prayer audio with)",
     "model": "eleven_multilingual_v2",
     "day": {
       "stability": 0.55,
@@ -20,8 +20,6 @@
       "boost": true
     },
     "prayer": {
-      "voiceId": "2ydcbtd5sJZRYFMNgMVZ",
-      "voiceName": "REMAM prayer voice (same recordings as remam-regional/audio/prayers)",
       "stability": 0.75,
       "similarity": 0.75,
       "style": 0,
@@ -30,8 +28,8 @@
     }
   },
   "es": {
-    "voiceId": "y3QZXBVdGkWBnlHwEtgG",
-    "voiceName": "Nestor - Deep Calm Narrator",
+    "voiceId": "2ydcbtd5sJZRYFMNgMVZ",
+    "voiceName": "REMAM narration voice (the voice dougdevitre/remam renders its prayer audio with)",
     "model": "eleven_multilingual_v2",
     "day": {
       "stability": 0.55,
@@ -48,8 +46,6 @@
       "boost": true
     },
     "prayer": {
-      "voiceId": "2ydcbtd5sJZRYFMNgMVZ",
-      "voiceName": "REMAM prayer voice (same recordings as remam-regional/audio/prayers)",
       "stability": 0.75,
       "similarity": 0.75,
       "style": 0,

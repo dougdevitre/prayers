@@ -13,7 +13,8 @@
 # recordings are already published by then, so merging the manifest is what
 # makes them live.
 #
-# The one secret is ELEVENLABS_API_KEY. AUDIO_BASE_URL is a repository
+# The one secret is the ElevenLabs key, stored as ELEVENLABS_API (preferred
+# when both exist) or ELEVENLABS_API_KEY. AUDIO_BASE_URL is a repository
 # variable (the origin the app loads recordings from); for s3 so are
 # AWS_PUBLISHER_ROLE_ARN and AUDIO_BUCKET. A secret of the same name is
 # honoured too.
@@ -62,7 +63,7 @@ jobs:
 
       - name: Preflight, reporting which settings are present without printing values
         env:
-          HAS_KEY: ${{ secrets.ELEVENLABS_API_KEY != '' }}
+          HAS_KEY: ${{ (secrets.ELEVENLABS_API || secrets.ELEVENLABS_API_KEY) != '' }}
           ROLE: ${{ vars.AWS_PUBLISHER_ROLE_ARN || secrets.AWS_PUBLISHER_ROLE_ARN }}
           BUCKET: ${{ vars.AUDIO_BUCKET || secrets.AUDIO_BUCKET }}
           BASE: ${{ vars.AUDIO_BASE_URL }}
@@ -70,14 +71,14 @@ jobs:
           DRY: ${{ inputs.dry_run }}
         run: |
           echo "publish target:            $PUBLISH"
-          echo "ELEVENLABS_API_KEY secret: $([ "$HAS_KEY" = "true" ] && echo set || echo MISSING)"
+          echo "ElevenLabs key secret (ELEVENLABS_API or ELEVENLABS_API_KEY): $([ "$HAS_KEY" = "true" ] && echo set || echo MISSING)"
           echo "AUDIO_BASE_URL:            ${BASE:-not set (branch default applies)}"
           if [ "$PUBLISH" = "s3" ]; then
             echo "AWS_PUBLISHER_ROLE_ARN:    $([ -n "$ROLE" ] && echo set || echo MISSING)"
             echo "AUDIO_BUCKET:              ${BUCKET:-MISSING}"
           fi
           if [ "$DRY" != "true" ]; then
-            if [ "$HAS_KEY" != "true" ]; then echo "::error::A real run needs the ELEVENLABS_API_KEY secret."; exit 1; fi
+            if [ "$HAS_KEY" != "true" ]; then echo "::error::A real run needs the ElevenLabs key secret (ELEVENLABS_API or ELEVENLABS_API_KEY)."; exit 1; fi
             if [ "$PUBLISH" = "s3" ] && { [ -z "$ROLE" ] || [ -z "$BUCKET" ]; }; then
               echo "::error::Publishing to s3 needs AWS_PUBLISHER_ROLE_ARN and AUDIO_BUCKET."; exit 1
             fi
@@ -92,7 +93,7 @@ jobs:
 
       - name: Render
         env:
-          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API || secrets.ELEVENLABS_API_KEY }}
           AUDIO_BUCKET: ${{ vars.AUDIO_BUCKET || secrets.AUDIO_BUCKET }}
           AUDIO_BASE_URL: ${{ vars.AUDIO_BASE_URL || (inputs.publish == 'branch' && 'https://stand-audio.vercel.app') || '' }}
         run: |

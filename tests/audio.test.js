@@ -12,7 +12,8 @@ const os = require("os");
 const path = require("path");
 const lib = require("../scripts/audio-lib.js");
 const build = require("../scripts/build-audio.js");
-const { verify } = require("../scripts/verify-audio.js");
+const { verify, checkRemoteOnce, verifyRemote } = require("../scripts/verify-audio.js");
+const { bump: bumpSw } = require("../scripts/bump-sw.js");
 const { slugify } = require("../logic.js");
 
 let failures = 0;
@@ -268,6 +269,69 @@ function fakeApi({ failFirst = 0, status = 429 } = {}) {
     assert.strictEqual(puts[0].bucket, "stand-audio");
     assert.match(puts[0].key, /^en\/sos\/1-psalm-27-1\.[0-9a-f]{8}\.mp3$/);
     fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  await test("--max-chars refuses a run over the limit before any request is made", async () => {
+    const api = fakeApi();
+    const dir = tmp();
+    const deps = { items, voices, slugify, manifest: freshManifest(), manifestFile: path.join(dir, "m.js"), fetchImpl: api.fetchImpl, apiKey: "k", log: quiet };
+    await assert.rejects(build.run({ ...build.parseArgs(["--only", "en/day/core", "--max-chars", "500"]), out: dir }, deps), /over the --max-chars limit of 500/);
+    assert.strictEqual(api.calls.length, 0);
+    // A dry run only reports, whatever the limit; 0 means no limit.
+    const dry = await build.run({ ...build.parseArgs(["--dry-run", "--only", "en/day/core", "--max-chars", "500"]), out: dir }, deps);
+    assert.ok(dry.work.length > 0);
+    const r = await build.run({ ...build.parseArgs(["--only", "en/sos/0", "--max-chars", "0"]), out: dir }, deps);
+    assert.strictEqual(r.rendered.length, 1);
+    assert.throws(() => build.parseArgs(["--max-chars", "lots"]), /--max-chars/);
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  await test("--remote checks every manifest file on the host and names what is wrong", async () => {
+    // A stand-in host: serves the fixture for known keys, a short body for one,
+    // text for another, nothing for the rest.
+    const served = { "en/day/core/01-stand.aaaaaaaa.mp3": MP3, "en/day/core/02-truth.bbbbbbbb.mp3": MP3.subarray(0, 100) };
+    const server = http.createServer((req, res) => {
+      const key = req.url.slice(1);
+      if (key === "en/day/core/03-text.cccccccc.mp3") { res.writeHead(200, { "content-type": "text/plain", "content-length": MP3.length }); return res.end(); }
+      if (!served[key]) { res.writeHead(404); return res.end(); }
+      res.writeHead(200, { "content-type": "audio/mpeg", "content-length": served[key].length, "accept-ranges": "bytes" });
+      res.end(req.method === "HEAD" ? undefined : served[key]);
+    });
+    await new Promise(r => server.listen(0, r));
+    const base = `http://127.0.0.1:${server.address().port}`;
+    const entry = (key) => ({ key, hash: "0".repeat(64), bytes: MP3.length, seconds: 1 });
+    const good = { version: 1, enabled: true, base, items: { "en/day/core/0": entry("en/day/core/01-stand.aaaaaaaa.mp3") } };
+    const r1 = await checkRemoteOnce({ manifest: good });
+    assert.deepStrictEqual(r1, { ok: true, checked: 1, bad: [] });
+    const mixed = { ...good, items: { ...good.items, "en/day/core/1": entry("en/day/core/02-truth.bbbbbbbb.mp3"), "en/day/core/2": entry("en/day/core/03-text.cccccccc.mp3"), "en/day/core/3": entry("en/day/core/04-missing.dddddddd.mp3") } };
+    const r2 = await checkRemoteOnce({ manifest: mixed });
+    assert.strictEqual(r2.ok, false);
+    assert.strictEqual(r2.checked, 4);
+    assert.deepStrictEqual(r2.bad.map(b => [b.id, b.reason]), [
+      ["en/day/core/1", `100 bytes served, manifest says ${MP3.length}`],
+      ["en/day/core/2", "content-type text/plain"],
+      ["en/day/core/3", "HTTP 404"]
+    ]);
+    // --base overrides the manifest's base; no base at all is a failure, not a pass.
+    assert.strictEqual((await checkRemoteOnce({ manifest: { ...good, base: "" }, base })).ok, true);
+    assert.match((await checkRemoteOnce({ manifest: { ...good, base: "" } })).bad[0].reason, /no usable base/);
+    // Polling: the file appears on the second attempt.
+    const late = { version: 1, enabled: true, base, items: { "en/day/core/4": entry("en/day/core/05-late.eeeeeeee.mp3") } };
+    setTimeout(() => { served["en/day/core/05-late.eeeeeeee.mp3"] = MP3; }, 30);
+    const polled = await verifyRemote({ manifest: late, attempts: 5, delayMs: 20 });
+    assert.strictEqual(polled.ok, true);
+    assert.ok(polled.attempts >= 2, `took ${polled.attempts} attempt(s)`);
+    server.close();
+  });
+
+  await test("bump-sw increments the service worker cache name and refuses anything else", () => {
+    const sw = fs.readFileSync(path.join(lib.ROOT, "sw.js"), "utf8");
+    const { source, from, to } = bumpSw(sw);
+    assert.match(from, /^stand-v\d+$/);
+    assert.strictEqual(to, from.replace(/\d+$/, n => String(Number(n) + 1)));
+    assert.ok(source.includes(`const CACHE = "${to}";`) && !source.includes(`const CACHE = "${from}";`));
+    assert.strictEqual(source.length, sw.length + (to.length - from.length));
+    assert.throws(() => bumpSw("const CACHE = `stand-v1`;"), /no line like/);
   });
 
   await test("the committed manifest verifies against the committed content", () => {

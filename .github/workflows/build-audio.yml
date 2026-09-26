@@ -31,6 +31,10 @@ on:
         description: "Stop after this many renders (empty for no limit)."
         required: false
         default: ""
+      max_chars:
+        description: "Refuse to start when the run would send more than this many characters to ElevenLabs (0 = no limit)"
+        required: false
+        default: "40000"
       publish:
         description: "Where the recordings go."
         type: choice
@@ -101,6 +105,7 @@ jobs:
           args=()
           if [ -n "${{ inputs.only }}" ]; then args+=(--only "${{ inputs.only }}"); fi
           if [ -n "${{ inputs.limit }}" ]; then args+=(--limit "${{ inputs.limit }}"); fi
+          args+=(--max-chars "${{ inputs.max_chars || '40000' }}")
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             node scripts/build-audio.js --dry-run "${args[@]}"
           elif [ "${{ inputs.publish }}" = "s3" ]; then
@@ -135,6 +140,17 @@ jobs:
           git push origin HEAD:audio
           echo "Published $count recording(s) to the audio branch." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Check that the host serves every recording in the manifest
+        if: ${{ !cancelled() && !inputs.dry_run }}
+        env:
+          AUDIO_BASE_URL: ${{ vars.AUDIO_BASE_URL || (inputs.publish == 'branch' && 'https://stand-audio.vercel.app') || '' }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- audio-manifest.js; then echo "Nothing new was rendered."; exit 0; fi
+          # The host publishes a minute or two after the push; poll until every
+          # file answers 200 with the byte count the manifest recorded.
+          node scripts/verify-audio.js --remote --base "$AUDIO_BASE_URL" --attempts 16 --delay 15000
+
       - name: Push the manifest as a branch
         if: ${{ !cancelled() && !inputs.dry_run }}
         run: |
@@ -147,7 +163,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "$branch"
-          git add audio-manifest.js
+          # Installed apps precache the manifest; a new cache name makes them
+          # refetch it on their next visit instead of one visit later.
+          node scripts/bump-sw.js
+          git add audio-manifest.js sw.js
           git commit -m "Render narration (build-audio run ${{ github.run_number }})"
           git push -u origin "$branch"
           echo "Open a pull request from $branch" >> "$GITHUB_STEP_SUMMARY"

@@ -6,6 +6,10 @@
  *   --only <prefix[,prefix]>  render only items whose id starts with a prefix
  *                             (e.g. en/day/core, es/sos, en/day/core/0)
  *   --limit <n>               stop after n renders (a cheap first look)
+ *   --max-chars <n>           refuse to start when the run would send more than
+ *                             n characters to ElevenLabs (0 = no limit); a
+ *                             content edit that touches every item cannot
+ *                             quietly re-spend the whole library
  *   --dry-run                 list what would be rendered and its size; no API calls
  *   --force                   re-render items the manifest already has fresh
  *   --concurrency <n>         parallel requests, at most 4 (the plan allows 5 in
@@ -32,11 +36,12 @@ const API = "https://api.elevenlabs.io/v1/text-to-speech";
 const KBPS = 128;
 
 function parseArgs(argv) {
-  const o = { only: [], limit: Infinity, dryRun: false, force: false, concurrency: 3, out: path.join(lib.ROOT, ".audio-out"), upload: false, bucket: process.env.AUDIO_BUCKET || "", base: process.env.AUDIO_BASE_URL || null };
+  const o = { only: [], limit: Infinity, maxChars: 0, dryRun: false, force: false, concurrency: 3, out: path.join(lib.ROOT, ".audio-out"), upload: false, bucket: process.env.AUDIO_BUCKET || "", base: process.env.AUDIO_BASE_URL || null };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i], next = () => argv[++i];
     if (a === "--only") o.only.push(...next().split(",").map(s => s.trim()).filter(Boolean));
     else if (a === "--limit") o.limit = Number(next());
+    else if (a === "--max-chars") o.maxChars = Number(next());
     else if (a === "--dry-run") o.dryRun = true;
     else if (a === "--force") o.force = true;
     else if (a === "--concurrency") o.concurrency = Math.max(1, Math.min(4, Number(next()) || 3));
@@ -47,6 +52,7 @@ function parseArgs(argv) {
     else throw new Error(`unknown option ${a}`);
   }
   if (!Number.isFinite(o.limit) && o.limit !== Infinity) throw new Error("--limit needs a number");
+  if (!Number.isFinite(o.maxChars) || o.maxChars < 0) throw new Error("--max-chars needs a number of characters (0 for no limit)");
   return o;
 }
 
@@ -122,6 +128,9 @@ async function run(options, deps = {}) {
     return { rendered: [], failed: [], skipped: plan.length - work.length, work };
   }
   if (!work.length) return { rendered: [], failed: [], skipped: plan.length, work };
+  if (options.maxChars && chars > options.maxChars) {
+    throw new Error(`this run would send ${chars.toLocaleString()} characters to ElevenLabs, over the --max-chars limit of ${options.maxChars.toLocaleString()}; narrow it with --only or --limit, or raise the limit if the spend is intended`);
+  }
   if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not set");
   if (options.upload && !options.bucket) throw new Error("--upload needs --bucket or AUDIO_BUCKET");
 

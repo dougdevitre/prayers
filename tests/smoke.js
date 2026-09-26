@@ -211,9 +211,42 @@ const server = http.createServer((req, res) => {
   check("ledger shows weekly average", ledgerText.includes("this week"));
   await page.click("#closeJournal");
 
-  // share button: desktop fallback downloads a verse card PNG
-  const card = await Promise.all([page.waitForEvent("download"), page.click("#shareButton")]).then(r => r[0]);
-  check("share downloads verse card", card.suggestedFilename() === "stand-day-01.png");
+  // share button: headless Chromium has no navigator.share, so this is the
+  // desktop path, a dialog. The link is the day's crawlable page (which
+  // previews with the day's own title), not the app's /app#1.
+  await page.click("#shareButton");
+  check("share opens the share dialog on desktop", await page.evaluate(() => document.getElementById("shareDialog").open));
+  {
+    const pageUrl = "http://localhost:8123/day/01-stand";
+    const enc = encodeURIComponent(pageUrl);
+    const hrefs = await page.$$eval("#shareSheet .share-link", as => as.map(a => a.getAttribute("href")));
+    check("share dialog links carry the day's canonical page, not /app", hrefs.length === 4
+      && hrefs[0].startsWith("https://twitter.com/intent/tweet?text=") && hrefs[0].endsWith(`&url=${enc}`)
+      && hrefs[1] === `https://www.facebook.com/sharer/sharer.php?u=${enc}`
+      && hrefs[2].startsWith("https://wa.me/?text=") && hrefs[2].endsWith(enc)
+      && hrefs[3].startsWith("mailto:?subject=Day%201%3A%20Stand") && hrefs.every(h => !h.includes(encodeURIComponent("/app"))));
+    check("share dialog links draw their icons and open safely", await page.$$eval("#shareSheet .share-link", as =>
+      as.every(a => a.querySelector("svg") && a.target === "_blank" && a.rel.includes("noopener") && (a.getAttribute("aria-label") || "").startsWith("Share"))));
+    check("share dialog shows the verse it will share", (await page.textContent("#shareCaption")).startsWith("“Be strong in the Lord"));
+    await page.context().grantPermissions(["clipboard-read", "clipboard-write"], { origin: "http://localhost:8123" });
+    await page.click("#shareCopy");
+    await page.waitForFunction(() => document.getElementById("shareCopyLabel").textContent === "Link copied", null, { timeout: 3000 }).catch(() => {});
+    check("share dialog copies the canonical page URL and says so", await page.evaluate(() => navigator.clipboard.readText()) === pageUrl
+      && (await page.textContent("#shareCopyLabel")) === "Link copied");
+    const card = await Promise.all([page.waitForEvent("download"), page.click("#shareSaveCard")]).then(r => r[0]);
+    check("share dialog saves the verse card", card.suggestedFilename() === "stand-day-01.png");
+    // The suite's contrast() helper is declared further down; this is the same
+    // WCAG 2.1 ratio, local to this block.
+    const ratio = sel => page.evaluate(s => {
+      const lum = c => { const [r, g, b] = c.match(/\d+/g).slice(0, 3).map(n => { n /= 255; return n <= 0.03928 ? n / 12.92 : Math.pow((n + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+      const cs = getComputedStyle(document.querySelector(s));
+      const a = lum(cs.color), b = lum(cs.backgroundColor);
+      return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    }, sel);
+    check("share dialog has no contrast failures", (await ratio("#shareCopy")) >= 4.5 && (await ratio("#shareSaveCard")) >= 4.5);
+    await page.click("#closeShare");
+    check("share dialog closes", await page.evaluate(() => !document.getElementById("shareDialog").open));
+  }
 
   // repeat toggle and sleep timer controls
   await page.click("#repeatButton");

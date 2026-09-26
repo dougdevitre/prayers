@@ -1,10 +1,10 @@
-// Tests for scripts/share-links.js: the intent URLs baked into every day
+// Tests for the link builders in share.js: the intent URLs baked into every day
 // page, and the caption limit for X.
 //
 //   npm run test:unit
 
 const assert = require("assert");
-const { shareLinks, truncate, X_TEXT_LIMIT } = require("../scripts/share-links.js");
+const { shareLinks, shareIcons, truncate, X_TEXT_LIMIT } = require("../share.js");
 
 let failures = 0;
 function test(name, fn) {
@@ -54,6 +54,15 @@ test("a long verse is cut for X at a word boundary with an ellipsis, elsewhere k
   assert.strictEqual(q(l.whatsapp, "text"), `${long} ${page.url}`);
   assert.strictEqual(truncate("short"), "short");
   assert.strictEqual(truncate("abcdefghij", 6), "abcde…");
+});
+
+test("every share target has an icon, and every icon is decorative SVG", () => {
+  const targets = Object.keys(shareLinks(page));
+  for (const name of [...targets, "link", "share"]) {
+    assert.ok(shareIcons[name], `no icon for ${name}`);
+    assert.ok(/^<svg [^>]*aria-hidden="true"/.test(shareIcons[name]), `${name} is not an aria-hidden svg`);
+    assert.ok(!/<script|on\w+=/i.test(shareIcons[name]), `${name} carries script`);
+  }
 });
 
 if (failures) { console.log(`\n${failures} failing`); process.exit(1); }

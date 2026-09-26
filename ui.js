@@ -390,7 +390,7 @@ const appUi = {
     "ledger.kicker": "REGISTRO DE CALMA",
     "ledger.empty": "Tu registro de calma aparece aquí después de tu primer registro del miedo.",
     "ledger.drop": "Después de orar, tu miedo baja en promedio {avg} puntos ({n} {sessions} de calma).",
-    "ledger.early": "{n} {sessions} de calma registradas — sigue firme; la tendencia tarda unas cuantas en verse.",
+    "ledger.early": "{n} {sessions} de calma — sigue firme; la tendencia tarda unas cuantas en verse.",
     "ledger.week": "Registro promedio de esta semana: {avg} de 5 ({n} {checkins}).",
     "ledger.session": "sesión",
     "ledger.sessions": "sesiones",

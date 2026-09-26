@@ -61,13 +61,13 @@ const LOCALES = [
       { href: "/privacy", label: "Privacy" },
       { href: "/terms", label: "Terms" }
     ],
-    openApp: "Open the app", menu: "Menu", brandHome: "/",
+    openApp: "Open the app", menu: "Menu", navLabel: "Main", brandHome: "/",
     footerNote: "Free, and private by default.",
     reflection: "Reflection", pray: "PRAY", declare: "DECLARE", practice: "TODAY'S PRACTICE", amen: "Amen.",
     dayWord: "DAY", dayNav: n => `Day ${n}`,
     openDay: n => `Open Day ${n} in the app — with guided audio`,
     pageTitle: (n, t) => `Day ${n}: ${t} — Stand`,
-    describe: (t, track) => `A prayer for ${t.toLowerCase()} from Stand${track.id === "core" ? ", a 30-day journey from fear to faith" : ` — ${track.name}`}.`,
+    describe: (t, track) => `“${t}”: a prayer from Stand${track.id === "core" ? ", a 30-day journey from fear to faith" : ` — ${track.name}`}.`,
     daysWord: n => `${n} days`, openInApp: "open in the app",
     fearsTitle: "Where are you right now? — Stand",
     fearsDesc: "Say what you are afraid of \u2014 a court date, a diagnosis, a child, a bill, the dark \u2014 and start with the prayers written for it.",
@@ -95,13 +95,13 @@ const LOCALES = [
       { href: "/es/privacy", label: "Privacidad" },
       { href: "/es/terms", label: "Términos" }
     ],
-    openApp: "Abrir la app", menu: "Menú", brandHome: "/es",
+    openApp: "Abrir la app", menu: "Menú", navLabel: "Principal", brandHome: "/es",
     footerNote: "Gratis y privado por defecto.",
     reflection: "Reflexión", pray: "ORA", declare: "DECLARA", practice: "PRÁCTICA DE HOY", amen: "Amén.",
     dayWord: "DÍA", dayNav: n => `Día ${n}`,
     openDay: n => `Abre el día ${n} en la app — con audio guiado`,
     pageTitle: (n, t) => `Día ${n}: ${t} — Stand`,
-    describe: (t, track) => `Una oración para ${t.toLowerCase()} de Stand${track.id === "core" ? ", un camino de 30 días del miedo a la fe" : ` — ${track.name}`}.`,
+    describe: (t, track) => `«${t}»: una oración de Stand${track.id === "core" ? ", un camino de 30 días del miedo a la fe" : ` — ${track.name}`}.`,
     daysWord: n => `${n} días`, openInApp: "abrir en la app",
     fearsTitle: "¿Dónde estás ahora mismo? — Stand",
     fearsDesc: "Di a qué le tienes miedo \u2014 una cita en el tribunal, un diagnóstico, un hijo, una cuenta, la oscuridad \u2014 y empieza con las oraciones escritas para eso.",
@@ -128,7 +128,7 @@ function siteNav(L, current, alt) {
     .map(l => `            <li><a href="${l.href}">${l.label}</a></li>`)
     .concat(alt ? [`            <li><a href="${alt}" hreflang="${L.code === "en" ? "es" : "en"}">${L.switchLabel}</a></li>`] : [])
     .join("\n");
-  return `      <nav class="site-nav" aria-label="Main">
+  return `      <nav class="site-nav" aria-label="${L.navLabel}">
         <a class="nav-cta" href="${APP}">${L.openApp}</a>
         <details class="nav-menu">
           <summary>${L.menu}</summary>

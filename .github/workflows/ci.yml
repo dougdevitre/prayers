@@ -20,6 +20,9 @@ jobs:
       - run: npm install
       - run: npm run check
       - run: npm run validate
+      # The traditional prayers must match REMAM's at the locked commit, apart
+      # from recorded overrides (scripts/remam-lock.json). No network needed.
+      - run: npm run verify:remam
       - run: npm run verify:scripture
       - run: npm run verify:ui
       - run: npm run verify:audio

@@ -70,7 +70,7 @@ The list is now also a crawlable page at `/fears`, generated from the same `fear
 Next on this thread: surfacing the list on the welcome screen once there is evidence about where first-time users get stuck, and watching which situations actually draw traffic — that is the cheapest signal available about which fears to write for next.
 
 ### Prayer composer (shipped)
-Ported from REMAM (`dougdevitre/remam`), English only: a reviewed corpus of blocks (`prayers.js`) plus a seeded, deterministic composer (`compose.js`). A given mode + intention + seed always yields the same prayer, and "another prayer" is seed + 1 — no generation at runtime, so the whole space of possible prayers is reviewable in the data file. The optional personal intention is inserted into the corpus's own template and never stored or sent.
+Ported from REMAM (`dougdevitre/remam`), now in English and Spanish: a reviewed corpus of blocks (`prayers.js`) plus a seeded, deterministic composer (`compose.js`). A given mode + intention + seed always yields the same prayer, and "another prayer" is seed + 1 — no generation at runtime, so the whole space of possible prayers is reviewable in the data file. The optional personal intention is inserted into the corpus's own template and never stored or sent.
 
 Carried over from REMAM's audio framework: per-prayer pacing metadata (`speed`/`stability`/`style` and ordered `{after, seconds}` break anchors). Device narration honours the anchors today by splitting the text and holding the silence; because the metadata stays inside the same limits REMAM's ElevenLabs generator enforces (validated in CI), recorded MP3s can be generated from it later without changing the data.
 
@@ -86,7 +86,9 @@ Roman Catholic material is present and named. Six of the traditional prayers, an
 
 Side by side shipped. “Show both languages” renders each line with its translation beneath it, for the traditional prayers as well as composed ones, and the preference is saved with the rest of the state. It rests on the invariant above — one seed, the same blocks, two languages — so the two columns are one prayer rather than two. `composeBilingual` pairs them and the validator checks each column against what that language composes alone, which is the check that actually has teeth: an earlier version compared only the primary column and passed even with the pairing deliberately broken.
 
-Next on this thread: recorded narration for the traditional prayers in both languages via the same generator REMAM uses — the pacing metadata is already generator-ready and validated, so this needs an ElevenLabs key and an S3 bucket rather than more code. And, if the composer proves useful, an SOS variant that composes rather than reads a fixed script.
+Recorded narration for the traditional prayers shipped in both languages, rendered by Stand's own audio build in the voice REMAM uses and at each prayer's declared pacing. The traditional prayers are locked to REMAM's text (`scripts/remam-lock.json`, checked in CI): a change is made in REMAM first and synced, or recorded here as a deliberate override with its reason, so the two apps cannot drift apart unnoticed.
+
+Next on this thread: if the composer proves useful, an SOS variant that composes rather than reads a fixed script.
 
 ### Landing page (shipped)
 `/` — a hand-written static page describing what Stand does, built from the same stylesheet and the same components as the app and the day pages, so the marketing surface and the product read as one thing. It is in the sitemap, and `/fears` carries the same nav and footer.

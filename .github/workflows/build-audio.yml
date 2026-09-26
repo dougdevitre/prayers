@@ -139,7 +139,7 @@ jobs:
             echo "Nothing new was rendered; the manifest is unchanged."
             exit 0
           fi
-          branch="audio/manifest-${{ github.run_number }}"
+          branch="audio-manifest-${{ github.run_number }}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "$branch"

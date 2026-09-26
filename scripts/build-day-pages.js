@@ -34,6 +34,16 @@ const { shareLinks, shareIcons: ICON } = require("../share.js");
 // address carries a hash of what the card shows, so an edit is a new URL.
 const { cardFor, cardPath } = require("../cards.js");
 const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+// Meta descriptions are cut to 155 characters; at a word, with an ellipsis,
+// rather than mid-word ("…it is to stand. Standing means refu").
+const clip = (text, max) => {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max - 1);
+  const space = cut.lastIndexOf(" ");
+  const head = (space > max * 0.6 ? cut.slice(0, space) : cut).replace(/[\s,;:—–-]+$/, "");
+  // A cut that lands on a sentence's end reads complete as it is.
+  return /[.!?]$/.test(head) ? head : head + "…";
+};
 const pageName = (track, i) => `${String(i + 1).padStart(2, "0")}-${slugify(track.days[i][0])}`;
 
 // Every generated page carries the same nav and footer, in its own language.
@@ -301,7 +311,7 @@ for (const L of LOCALES) {
     for (let i = 0; i < track.days.length; i++) {
       const [title, ref, verse, reflection, prayer, declaration, action] = track.days[i];
       const pageTitle = L.pageTitle(i + 1, title);
-      const description = `${L.describe(title, track)} ${reflection}`.slice(0, 155);
+      const description = clip(`${L.describe(title, track)} ${reflection}`, 155);
       const relPath = `${urlBase}/${slugs[L.code][id][i]}`;
       const altPath = dayPath(other, id, i);
       const card = cardFor(L.code, id, i);

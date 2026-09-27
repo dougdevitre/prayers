@@ -146,17 +146,6 @@
       "kind": "gender"
     }
   ],
-  "day.core.29": [
-    {
-      "from": "Lo que he sobrevivido puede volverse luz para otro.",
-      "options": [
-        "Lo que he atravesado puede volverse luz para otro.",
-        "Aquello a lo que he sobrevivido puede volverse luz para otro."
-      ],
-      "why": "In Spanish \"sobrevivir\" takes \"a\" (you survive to something); using it with a direct object copies English and is considered incorrect.",
-      "kind": "grammar"
-    }
-  ],
   "day.core.30": [
     {
       "from": "Quizá sea que el odio no te hizo odioso, ni el engaño deshonesto, ni el miedo cobarde, ni el sufrimiento cruel.",
@@ -239,15 +228,6 @@
   ],
   "day.night.05": [
     {
-      "from": "La misericordia de la mañana es nueva; anoche no la factura.",
-      "options": [
-        "La misericordia de la mañana es nueva; la noche anterior no le pasa factura.",
-        "La misericordia de la mañana es nueva; la noche pasada no le cobra nada."
-      ],
-      "why": "The English is \"last night does not bill it\". \"Anoche\" is an adverb and cannot be the subject of \"factura\", so this reads as broken Spanish; \"no le pasa factura\" is the natural idiom.",
-      "kind": "calque"
-    },
-    {
       "from": "Morning mercy is new — last night does not bill it.",
       "options": [
         "Morning mercy is new — it does not bill you for last night.",
@@ -258,28 +238,6 @@
       "lang": "en"
     }
   ],
-  "day.giant.02": [
-    {
-      "from": "Muéstrame lo que ya me has entrenado a hacer, y dame la humildad de usar cosas pequeñas y comprobadas.",
-      "options": [
-        "Muéstrame lo que ya me has enseñado a hacer, y dame la humildad de usar cosas pequeñas y comprobadas.",
-        "Muéstrame lo que ya me has entrenado para hacer, y dame la humildad de usar cosas pequeñas y comprobadas."
-      ],
-      "why": "In Spanish it is \"entrenar para\" (trained for), not \"entrenar a\"; \"enseñar a\" (taught to) is also natural.",
-      "kind": "grammar"
-    }
-  ],
-  "day.den.02": [
-    {
-      "from": "Ni escaló ni se escondió.",
-      "options": [
-        "No avivó el conflicto ni se escondió.",
-        "Ni agravó las cosas ni se escondió."
-      ],
-      "why": "The English is \"He did not escalate\". Without an object, \"escaló\" reads as \"he climbed\"; the sense needs to be said outright.",
-      "kind": "calque"
-    }
-  ],
   "day.unseen.02": [
     {
       "from": "Déjame sentirme superado en número, pero en la dirección correcta.",
@@ -288,17 +246,6 @@
       ],
       "why": "\"Superado\" is masculine and describes the person praying; \"me superan\" is gender-neutral.",
       "kind": "gender"
-    }
-  ],
-  "day.throne.01": [
-    {
-      "from": "Ester estaba a salvo, y esa seguridad era el problema: callar habría conservado su posición y costado la de todos los demás.",
-      "options": [
-        "Ester estaba a salvo, y esa seguridad era el problema: callar habría conservado su posición y les habría costado todo a los demás.",
-        "Ester estaba a salvo, y esa seguridad era el problema: callar habría conservado su posición y les habría costado caro a todos los demás."
-      ],
-      "why": "The Spanish says silence would have cost everyone else their \"position\"; the English means it would have cost everyone else dearly (their lives).",
-      "kind": "meaning"
     }
   ],
   "day.wall.02": [
@@ -386,16 +333,6 @@
       ],
       "why": "\"Seguro\" is masculine and addresses the reader.",
       "kind": "gender"
-    },
-    {
-      "from": "Take the step you have been holding until you felt sure.",
-      "options": [
-        "Take the step you have been holding back until you felt sure.",
-        "Take the step you have been putting off until you feel sure."
-      ],
-      "why": "English: \"holding\" needs \"back\" or \"off\" to mean delaying. The Spanish of this line is flagged too.",
-      "kind": "english",
-      "lang": "en"
     }
   ],
   "day.torches.01": [
@@ -452,39 +389,6 @@
       "kind": "gender"
     }
   ],
-  "day.zarephath.02": [
-    {
-      "from": "Muéstrame una manera honesta y proporcionada de abrir hoy la mano: no con imprudencia, pero de verdad.",
-      "options": [
-        "Muéstrame una manera honesta y proporcionada de abrir hoy la mano: no con imprudencia, sino de verdad."
-      ],
-      "why": "After a negation, Spanish requires \"sino\" (not \"pero\") to mean \"not X, but rather Y\".",
-      "kind": "grammar"
-    }
-  ],
-  "day.shipwreck.03": [
-    {
-      "from": "Déjame comer, dormir y seguir a un ritmo que un cuerpo pueda sobrevivir.",
-      "options": [
-        "Déjame comer, dormir y seguir a un ritmo que un cuerpo pueda aguantar.",
-        "Déjame comer, dormir y seguir a un ritmo al que un cuerpo pueda sobrevivir."
-      ],
-      "why": "\"Sobrevivir\" needs the preposition \"a\" (sobrevivir a algo); as written it is ungrammatical.",
-      "kind": "grammar"
-    }
-  ],
-  "day.barley.03": [
-    {
-      "from": "Keep me working the row in front of me and let You handle the coincidences.",
-      "options": [
-        "Keep me working the row in front of me, and You handle the coincidences.",
-        "Keep me working the row in front of me and let me leave the coincidences to You."
-      ],
-      "why": "English: \"let You handle\" is ungrammatical here. The Spanish already reads correctly; this would change only the English (and its recording).",
-      "kind": "english",
-      "lang": "en"
-    }
-  ],
   "compose.forgiveness.examen.2": [
     {
       "from": "Miro mi corazón con verdad: veo la herida, veo también mi parte, y no quiero cargar esto solo.",
@@ -516,16 +420,6 @@
       ],
       "why": "\"perdonado\" is masculine for the person praying; an active phrasing avoids the gendered participle.",
       "kind": "gender"
-    }
-  ],
-  "sos.4": [
-    {
-      "from": "Dios, cuando mis sentimientos griten en absolutos, recuérdame que este momento no es la historia completa.",
-      "options": [
-        "Dios, cuando mis sentimientos griten en términos absolutos, recuérdame que este momento no es la historia completa."
-      ],
-      "why": "\"griten en absolutos\" copies the English \"shout in absolutes\" word for word and sounds odd in Spanish; the natural phrase is \"en términos absolutos\".",
-      "kind": "calque"
     }
   ],
   "compose.forgiveness.body.community.2": [
@@ -594,18 +488,6 @@
       "lang": "en"
     }
   ],
-  "day.unknown.03": [
-    {
-      "from": "A lamp for feet lights steps, not horizons.",
-      "options": [
-        "A lamp for your feet lights steps, not horizons.",
-        "A lamp to the feet lights steps, not horizons."
-      ],
-      "why": "English: a word is missing before \"feet\", so the allusion to Psalm 119:105 reads as garbled.",
-      "kind": "english",
-      "lang": "en"
-    }
-  ],
   "day.furnace.01": [
     {
       "from": "Fear grows loudest where the pressure is legitimate — real authority, real consequence, no exit that keeps everything intact.",
@@ -614,18 +496,6 @@
       ],
       "why": "English: \"legitimate\" can read as \"rightful\", as if the pressure to bow were justified; the sentence means the pressure is real.",
       "kind": "clarity",
-      "lang": "en"
-    }
-  ],
-  "day.hem.02": [
-    {
-      "from": "Lord, I have stopped asking directly because of how often the asking has gone.",
-      "options": [
-        "Lord, I have stopped asking directly because of how the asking has gone so many times.",
-        "Lord, I have stopped asking directly because of how often the asking has gone nowhere."
-      ],
-      "why": "English: the sentence is missing a word after \"has gone\". The Spanish reads \"because of how the asking has gone so many times\".",
-      "kind": "english",
       "lang": "en"
     }
   ],
@@ -660,17 +530,6 @@
       ],
       "why": "English: \"reception\" is vague (the king's response) and \"place\" does not fit a moment in time, so the sentence is hard to follow.",
       "kind": "clarity",
-      "lang": "en"
-    }
-  ],
-  "compose.prayer.closing.6": [
-    {
-      "from": "Virgin of Guadalupe, patroness of our America, cover us with your mantle.",
-      "options": [
-        "Virgin of Guadalupe, patroness of the Americas, cover us with your mantle."
-      ],
-      "why": "English: \"our America\" carries over the Spanish \"nuestra América\"; the usual English title is \"Patroness of the Americas\", and English readers may take \"our America\" to mean the United States.",
-      "kind": "english",
       "lang": "en"
     }
   ]

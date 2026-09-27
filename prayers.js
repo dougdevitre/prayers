@@ -285,7 +285,7 @@ const prayerCorpus = {
           {
             "style": "marian",
             "tradition": "roman-catholic",
-            "en": "Virgin of Guadalupe, patroness of our America, cover us with your mantle. Amen.",
+            "en": "Virgin of Guadalupe, patroness of the Americas, cover us with your mantle. Amen.",
             "es": "Virgen de Guadalupe, patrona de nuestra América, cúbrenos con tu manto. Amén."
           }
         ]

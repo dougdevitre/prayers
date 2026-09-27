@@ -23,10 +23,10 @@ const audioManifest = {
       "seconds": 76
     },
     "en/day/barley/2": {
-      "key": "en/day/barley/03-she-happened-upon-the-field.ddd1b83e.mp3",
-      "hash": "ddd1b83e529572759f7fcbd2e6bdf30053acc7204aa836643e96465cc19813ab",
-      "bytes": 1154447,
-      "seconds": 72
+      "key": "en/day/barley/03-she-happened-upon-the-field.9061501a.mp3",
+      "hash": "9061501af1e85ad2c45a2cdd95e12848d893c034abdd75ba5eb5868a2fd29fdd",
+      "bytes": 1068765,
+      "seconds": 67
     },
     "en/day/barley/3": {
       "key": "en/day/barley/04-handfuls-on-purpose.89fcbb7e.mp3",
@@ -317,10 +317,10 @@ const audioManifest = {
       "seconds": 77
     },
     "en/day/hem/1": {
-      "key": "en/day/hem/02-if-i-just-touch-his-clothes.73f5328e.mp3",
-      "hash": "73f5328ede5675c3a5b9570765296bd08845aaf87e2578aef50b68326f552c53",
-      "bytes": 1151103,
-      "seconds": 72
+      "key": "en/day/hem/02-if-i-just-touch-his-clothes.1031a937.mp3",
+      "hash": "1031a937b0c44ee3bb3e3749428988893a0bfeafa31752b388c01a23ba2af71a",
+      "bytes": 1196661,
+      "seconds": 75
     },
     "en/day/hem/2": {
       "key": "en/day/hem/03-who-touched-my-clothes.45e5ade7.mp3",
@@ -341,9 +341,9 @@ const audioManifest = {
       "seconds": 59
     },
     "en/day/jordan/1": {
-      "key": "en/day/jordan/02-feet-in-the-water.c5b055a2.mp3",
-      "hash": "c5b055a2a838738a99eef1695bb564168a6689f5f7c3dd7b19f939e5a7031671",
-      "bytes": 1195825,
+      "key": "en/day/jordan/02-feet-in-the-water.9b3f940c.mp3",
+      "hash": "9b3f940c5678ce73d7d799684065b0c4597f1b8a46713dd1a4a8623a97a818cc",
+      "bytes": 1200422,
       "seconds": 75
     },
     "en/day/jordan/2": {
@@ -545,10 +545,10 @@ const audioManifest = {
       "seconds": 60
     },
     "en/day/unknown/2": {
-      "key": "en/day/unknown/03-light-for-the-next-step.f97d916f.mp3",
-      "hash": "f97d916f2961f6f6c15cb2a4cadebb75237f7e48bd6a506e42bfb77b55a701a9",
-      "bytes": 1054137,
-      "seconds": 66
+      "key": "en/day/unknown/03-light-for-the-next-step.531cf799.mp3",
+      "hash": "531cf799b050f810953ab82e1da0162cbbaf83a7d49fe7d24cc1b79cb54173fe",
+      "bytes": 912031,
+      "seconds": 57
     },
     "en/day/unknown/3": {
       "key": "en/day/unknown/04-held.4f538df8.mp3",
@@ -935,10 +935,10 @@ const audioManifest = {
       "seconds": 68
     },
     "es/day/core/28": {
-      "key": "es/day/core/29-se-la-luz.c7e90608.mp3",
-      "hash": "c7e9060814af09f2e006a98c70d3a2cef8763276199c325bbb5a7338b8aebb4e",
-      "bytes": 1037418,
-      "seconds": 65
+      "key": "es/day/core/29-se-la-luz.68557741.mp3",
+      "hash": "68557741efbd6a50b61e8e8804fcb2d57e8de68ec0522b8b0ad49ee1a12adc5a",
+      "bytes": 1070437,
+      "seconds": 67
     },
     "es/day/core/29": {
       "key": "es/day/core/30-caracter.ad9fd1a1.mp3",
@@ -995,9 +995,9 @@ const audioManifest = {
       "seconds": 78
     },
     "es/day/den/1": {
-      "key": "es/day/den/02-las-ventanas-abiertas.70266c74.mp3",
-      "hash": "70266c744424469efde5b633b357028f874060ccd8a8a8698d85c0c476a8df31",
-      "bytes": 1287358,
+      "key": "es/day/den/02-las-ventanas-abiertas.6966d804.mp3",
+      "hash": "6966d804f067c3e426442f61654dc26c51f7ac87beb72af4a382fc7e3f5255ff",
+      "bytes": 1276909,
       "seconds": 80
     },
     "es/day/den/2": {
@@ -1043,10 +1043,10 @@ const audioManifest = {
       "seconds": 90
     },
     "es/day/giant/1": {
-      "key": "es/day/giant/02-cinco-piedras-lisas.fc02a986.mp3",
-      "hash": "fc02a9868932e81a37c13270042fb72619fce40c2b5adb3a1fcf93ad88e4f002",
-      "bytes": 1322048,
-      "seconds": 83
+      "key": "es/day/giant/02-cinco-piedras-lisas.d4380b2d.mp3",
+      "hash": "d4380b2dbb880acda737f5afb65ecf674beb8bde638d6824df266d274d64c9d2",
+      "bytes": 1298225,
+      "seconds": 81
     },
     "es/day/giant/2": {
       "key": "es/day/giant/03-no-con-espada-ni-lanza.9bf02d03.mp3",
@@ -1133,10 +1133,10 @@ const audioManifest = {
       "seconds": 74
     },
     "es/day/night/4": {
-      "key": "es/day/night/05-misericordias-nuevas.68ae3485.mp3",
-      "hash": "68ae3485004bb9845d1542709a0b2f9de34f380c76af4082832792288c26f3e0",
-      "bytes": 1235949,
-      "seconds": 77
+      "key": "es/day/night/05-misericordias-nuevas.a6748992.mp3",
+      "hash": "a6748992e54b19c5fd4c3eca64200e5d73317ce064c69fbc217489e4fa8112aa",
+      "bytes": 1348380,
+      "seconds": 84
     },
     "es/day/shiloh/0": {
       "key": "es/day/shiloh/01-ano-tras-ano.60971938.mp3",
@@ -1175,10 +1175,10 @@ const audioManifest = {
       "seconds": 81
     },
     "es/day/shipwreck/2": {
-      "key": "es/day/shipwreck/03-tomad-alimento.846ede08.mp3",
-      "hash": "846ede08dc407597c70ab5ebbec77a3b721566dd2bcae4cfa2c816bb49692d3e",
-      "bytes": 1304494,
-      "seconds": 82
+      "key": "es/day/shipwreck/03-tomad-alimento.d13f982f.mp3",
+      "hash": "d13f982feaf53e625267e4d8983a6e1f54896c0109687218db20ac073dcf203e",
+      "bytes": 1278163,
+      "seconds": 80
     },
     "es/day/shipwreck/3": {
       "key": "es/day/shipwreck/04-sobre-tablas-rotas.b8a25fc0.mp3",
@@ -1211,10 +1211,10 @@ const audioManifest = {
       "seconds": 73
     },
     "es/day/throne/0": {
-      "key": "es/day/throne/01-para-esta-hora.5cba5045.mp3",
-      "hash": "5cba5045c83d903fa796e7b213b369459d23a016e833f79ef23cdb3deef2b7a8",
-      "bytes": 1256847,
-      "seconds": 79
+      "key": "es/day/throne/01-para-esta-hora.8d4043ce.mp3",
+      "hash": "8d4043ce7ea9b14cf97757263b7fdc9969e54bd661ccdaafdf4a203c99ce610f",
+      "bytes": 1287358,
+      "seconds": 80
     },
     "es/day/throne/1": {
       "key": "es/day/throne/02-si-perezco-que-perezca.f3678122.mp3",
@@ -1391,10 +1391,10 @@ const audioManifest = {
       "seconds": 79
     },
     "es/day/zarephath/1": {
-      "key": "es/day/zarephath/02-hazme-primero-una-torta.13dcc5b6.mp3",
-      "hash": "13dcc5b635e92b76f1e696b20b481c2803680611b42e9ebdb5b7644d32718680",
-      "bytes": 1390594,
-      "seconds": 87
+      "key": "es/day/zarephath/02-hazme-primero-una-torta.4876fbb1.mp3",
+      "hash": "4876fbb1bd53b61b528f7b77dd1be55aeafa9b84b51affb7ca739765a400ed29",
+      "bytes": 1400207,
+      "seconds": 88
     },
     "es/day/zarephath/2": {
       "key": "es/day/zarephath/03-la-tinaja-no-escaseo.d2e0be15.mp3",
@@ -1505,10 +1505,10 @@ const audioManifest = {
       "seconds": 27
     },
     "es/sos/3": {
-      "key": "es/sos/4-salmo-42-11.5e2ed5f0.mp3",
-      "hash": "5e2ed5f0a3e3a62c66bb0d0c18f7e13bcf9f172f551d84beeee419b1f13a992a",
-      "bytes": 400031,
-      "seconds": 25
+      "key": "es/sos/4-salmo-42-11.1d927f67.mp3",
+      "hash": "1d927f6700a9a5629b71cc80624f876a249ce7c31e124b1809d620bc5418f39f",
+      "bytes": 412569,
+      "seconds": 26
     }
   }
 };

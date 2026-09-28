@@ -74,6 +74,14 @@ const siteHeaders = Object.fromEntries(vercel.headers.find(h => h.source === "/(
       keyLocation: `https://prayers.dougdevitre.org/${"a".repeat(32)}.txt`, urlList: ["https://prayers.dougdevitre.org/day/01-stand"] });
     const refused = await submit("https://prayers.dougdevitre.org", ["https://prayers.dougdevitre.org/"], "a".repeat(32), { fetchImpl: async () => ({ status: 403 }) });
     assert.strictEqual(refused.ok, false);
+    // A refusal carries the search engine's own reason, on one line.
+    const why = await submit("https://prayers.dougdevitre.org", ["https://prayers.dougdevitre.org/"], "a".repeat(32),
+      { fetchImpl: async () => ({ status: 403, text: async () => '{"code":"UserForbiddedToAccessSite",\n "message":"x"}' }) });
+    assert.deepStrictEqual([why.ok, why.reason], [false, '{"code":"UserForbiddedToAccessSite", "message":"x"}']);
+    const long = await submit("https://prayers.dougdevitre.org", ["https://prayers.dougdevitre.org/"], "a".repeat(32),
+      { fetchImpl: async () => ({ status: 422, text: async () => "y".repeat(900) }) });
+    assert.strictEqual(long.reason.length, 300);
+    assert.strictEqual(r.reason, "");
     let called = false;
     const none = await submit("https://prayers.dougdevitre.org", [], "a".repeat(32), { fetchImpl: async () => { called = true; } });
     assert.ok(none.ok && none.sent === 0 && !called);

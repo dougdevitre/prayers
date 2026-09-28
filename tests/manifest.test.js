@@ -72,7 +72,7 @@ test("landing screenshots exist as PNG and WebP, at the size each page declares"
   for (const page of ["index.html", "es/index.html"]) {
     const html = fs.readFileSync(path.join(ROOT, page), "utf8");
     const imgs = [...html.matchAll(/<img src="\/(shots\/[a-z-]+)\.png" width="(\d+)" height="(\d+)"/g)];
-    assert.strictEqual(imgs.length, 3, `${page}: three screenshots`);
+    assert.strictEqual(imgs.length, 4, `${page}: four screenshots`);
     for (const [, base, w, h] of imgs) {
       for (const variant of [base, `${base}-dark`]) {
         assert.strictEqual(pngSize(`${variant}.png`), `${w}x${h}`, `${variant}.png is not the ${w}x${h} ${page} declares`);

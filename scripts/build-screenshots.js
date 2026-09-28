@@ -19,6 +19,11 @@
 // screens (not cropped dialogs) at a phone's 2x density, plus one desktop
 // window, which browsers show in their install sheet. English and light,
 // like the manifest itself.
+//
+//   node scripts/build-screenshots.js --only rosary
+//
+// renders only the shots whose names start with that (comma-separated), so
+// adding a screen does not rewrite every other capture's bytes.
 
 const http = require("http");
 const fs = require("fs");
@@ -52,6 +57,20 @@ const server = http.createServer((req, res) => {
 
 const url = p => `http://localhost:${PORT}${p}`;
 const INSTALL_ONLY = process.argv.includes("--install");
+const ONLY = (process.argv[process.argv.indexOf("--only") + 1] || "").split(",").filter(Boolean);
+const wanted = name => !process.argv.includes("--only") || ONLY.some(o => name.startsWith(o) || name.startsWith(`install-${o}`));
+
+// The guided Rosary mid-decade: the Joyful Mysteries (so every capture shows
+// the same set, whatever the day), the third Hail Mary of the first decade,
+// scrolled so the prayer, its beads filling and Back / Listen / Next are on
+// screen (the set's name and options are above).
+const openRosaryAt = page => page.evaluate(async () => {
+  await openRosary("joyful");
+  rosaryRun.index = rosaryRun.steps.findIndex(s => s.decade === 1 && s.prayer === "hail-mary");
+  rosaryRun.bead = 2;
+  renderRosary();
+  document.getElementById("rosaryProgress").scrollIntoView({ block: "start" });
+});
 
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
@@ -86,6 +105,7 @@ const INSTALL_ONLY = process.argv.includes("--install");
   // its own dimmed backdrop reads as a screenshot of a screenshot, and the
   // 844px viewport clipped it at both ends.
   const capture = async (page, name, selector) => {
+    if (!wanted(name)) { await page.close(); return; }
     const target = selector ? page.locator(selector) : page;
     await target.screenshot({ path: path.join(OUT, name) });
     shots.push(name);
@@ -117,6 +137,11 @@ const INSTALL_ONLY = process.argv.includes("--install");
     await page.waitForTimeout(300);
     await capture(page, "install-composer.png");
 
+    page = await phone();
+    await openRosaryAt(page);
+    await page.waitForTimeout(500);
+    await capture(page, "install-rosary.png");
+
     page = await freshPage("light", "en", { width: 1280, height: 800 }, 1);
     await page.waitForTimeout(400);
     await capture(page, "install-wide.png");
@@ -146,6 +171,12 @@ const INSTALL_ONLY = process.argv.includes("--install");
     await page.locator("#prayerCard").scrollIntoViewIfNeeded();
     await page.waitForTimeout(300);
     await capture(page, `composer${sfx}.png`, "#prayerDialog");
+
+    // 4. The guided Rosary, a bead at a time.
+    page = await freshPage(scheme, lang);
+    await openRosaryAt(page);
+    await page.waitForTimeout(500);
+    await capture(page, `rosary${sfx}.png`, "#bookDialog");
   }
 
   // The landing pages also get a WebP of each capture, which <picture> offers

@@ -115,9 +115,10 @@ function prayerOgCard(card) {
 
 /** 1080x1350: a set's five mysteries, or the four sets, as a numbered list. */
 function rosaryPostCard(card) {
-  const item = (line, i) => h("div", { display: "flex", alignItems: "baseline", gap: 22, padding: "18px 0", borderTop: i ? `1px solid #e3d6b8` : "none" },
-    h("div", { display: "flex", fontFamily: "Serif", fontSize: 40, color: GOLD_TEXT, width: 36 }, String(i + 1)),
-    h("div", { display: "flex", flexDirection: "column" },
+  const item = (line, i) => h("div", { display: "flex", alignItems: "flex-start", gap: 22, padding: "18px 0", borderTop: i ? `1px solid #e3d6b8` : "none" },
+    // The number keeps its width; a long mystery wraps in the column beside it.
+    h("div", { display: "flex", fontFamily: "Serif", fontSize: 40, lineHeight: 1.2, color: GOLD_TEXT, width: 36, flexShrink: 0 }, String(i + 1)),
+    h("div", { display: "flex", flexDirection: "column", flexGrow: 1, flexShrink: 1, minWidth: 0 },
       h("div", { display: "flex", fontFamily: "Serif", fontSize: 40, lineHeight: 1.2 }, line.lead),
       h("div", { display: "flex", fontFamily: "Sans", fontSize: 24, color: MUTED, marginTop: 6 }, line.rest)));
   return h("div", { display: "flex", width: "100%", height: "100%", padding: 56, backgroundColor: PAPER, color: INK },

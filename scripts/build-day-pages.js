@@ -88,15 +88,15 @@ const LOCALES = [
     ],
     openApp: "Open the app", menu: "Menu", navLabel: "Main", brandHome: "/",
     footerNote: "Free, and private by default.",
-    reflection: "Reflection", pray: "PRAY", declare: "DECLARE", practice: "TODAY’S PRACTICE", amen: "Amen.",
-    dayWord: "DAY", dayNav: n => `Day ${n}`,
+    reflection: "Reflection", pray: "Pray", declare: "Declare", practice: "Today’s practice", amen: "Amen.",
+    dayWord: "Day", dayNav: n => `Day ${n}`,
     openDay: n => `Open Day ${n} in the app — with guided audio`,
     pageTitle: (n, t) => `Day ${n}: ${t} — Stand`,
     describe: (t, track) => `“${t}”: a prayer from Stand${track.id === "core" ? ", a 30-day journey from fear to faith" : ` — ${track.name}`}.`,
     daysWord: n => `${n} days`, openInApp: "open in the app",
     fearsTitle: "Where are you right now? — Stand",
     fearsDesc: "Say what you are afraid of \u2014 a court date, a diagnosis, a child, a bill, the dark \u2014 and start with the prayers written for it.",
-    fearsEyebrow: "START WHERE YOU ARE", fearsHeading: "Where are you right now?",
+    fearsEyebrow: "Start where you are", fearsHeading: "Where are you right now?",
     fearsLead: "You do not have to start at day one, and you do not have to know which journey you need. Find the sentence that sounds like your week, and begin there.",
     fearsCloseHeading: "None of these quite fit?",
     fearsCloseBody: "Open the app and press \u201cSteady me now\u201d. It takes ninety seconds and asks nothing of you first.",
@@ -105,14 +105,14 @@ const LOCALES = [
     imageAlt: "Stand — a prayer companion for fear",
     cardAlt: (n, t) => `Day ${n}: ${t} — the day’s reflection and the start of its prayer, from Stand`,
     share: { label: "Share this day", copy: "Copy link", copied: "Link copied", native: "Share…", x: "Share on X", facebook: "Share on Facebook", whatsapp: "Share on WhatsApp", email: "Share by email", url: "Page link",
-      card: "SHARE AS A CARD", download: "Download card", shareImage: "Share card",
+      card: "Share as a card", download: "Download card", shareImage: "Share card",
       cardAlt: (n, t) => `Share card for Day ${n}: ${t}, with the day’s verse, reflection and prayer` },
     // The Prayer Book. Interface words only: the prayers, their names and the
     // section names and notes all come from prayers.js.
     book: {
       title: "Prayer Book — Stand",
       description: "Traditional Christian prayers in English and Spanish: the Our Father, the Creed, the Hail Mary, the Angelus and more, to read, share and listen to.",
-      eyebrow: "PRAYER BOOK", heading: "Prayer Book",
+      eyebrow: "Prayer Book", heading: "Prayer Book",
       lead: n => `${n} traditional prayers, in English and in Spanish. Read them here, share them, or listen to a recording in the app.`,
       catholicTitle: "Roman Catholic prayers — Prayer Book — Stand",
       catholicDescription: "Roman Catholic prayers in English and Spanish: the Hail Mary, Hail Holy Queen, Act of Contrition, Angelus, Memorare and the Prayer to St. Michael.",
@@ -120,7 +120,7 @@ const LOCALES = [
       catholicLink: "The Roman Catholic prayers on a page of their own",
       pageTitle: name => `${name} — Prayer Book — Stand`,
       describe: name => `“${name}”, from the Stand Prayer Book, in English and Spanish.`,
-      pray: "PRAY",
+      pray: "Pray",
       open: "Listen in the app — with a recording",
       openShort: "listen in the app",
       prayerNav: "Prayer navigation",
@@ -136,14 +136,14 @@ const LOCALES = [
       lead: "Five decades of prayer, each opening on a moment in the life of Christ and his mother. Here are the order of prayer and the mysteries for each day, in English and in Spanish; the app goes through it with you one bead at a time.",
       openToday: "Pray today’s Rosary in the app",
       openSet: name => `Pray ${name.replace(/^The /, "the ")} in the app`,
-      orderHeading: "THE ORDER OF PRAYER",
+      orderHeading: "The order of prayer",
       threeHailMarys: virtues => `Three Hail Marys, ${virtues.charAt(0).toLowerCase()}${virtues.slice(1)}`,
       eachDecade: "Then, for each of the five mysteries:",
       announce: "Announce the mystery, and pause on its verse",
       tenHailMarys: "Ten Hail Marys",
       optional: "(optional)",
       finally: "To close:",
-      daysHeading: "THE MYSTERIES BY DAY",
+      daysHeading: "The mysteries by day",
       prayedOn: days => `Prayed on ${days}.`,
       source: "The mysteries and the days they are prayed on follow St John Paul II’s apostolic letter",
       sourceTitle: "Rosarium Virginis Mariae",
@@ -178,15 +178,15 @@ const LOCALES = [
     ],
     openApp: "Abrir la app", menu: "Menú", navLabel: "Principal", brandHome: "/es",
     footerNote: "Gratis y privado por defecto.",
-    reflection: "Reflexión", pray: "ORA", declare: "DECLARA", practice: "PRÁCTICA DE HOY", amen: "Amén.",
-    dayWord: "DÍA", dayNav: n => `Día ${n}`,
+    reflection: "Reflexión", pray: "Ora", declare: "Declara", practice: "Práctica de hoy", amen: "Amén.",
+    dayWord: "Día", dayNav: n => `Día ${n}`,
     openDay: n => `Abrir el día ${n} en la app — con audio guiado`,
     pageTitle: (n, t) => `Día ${n}: ${t} — Stand`,
     describe: (t, track) => `«${t}»: una oración de Stand${track.id === "core" ? ", un camino de 30 días del miedo a la fe" : ` — ${track.name}`}.`,
     daysWord: n => `${n} días`, openInApp: "abrir en la app",
     fearsTitle: "¿Dónde estás ahora mismo? — Stand",
     fearsDesc: "Di a qué le tienes miedo \u2014 una cita en el tribunal, un diagnóstico, un hijo, una cuenta, la oscuridad \u2014 y empieza con las oraciones escritas para eso.",
-    fearsEyebrow: "EMPIEZA DONDE ESTÁS", fearsHeading: "¿Dónde estás ahora mismo?",
+    fearsEyebrow: "Empieza donde estás", fearsHeading: "¿Dónde estás ahora mismo?",
     fearsLead: "No tienes que empezar en el día uno, ni saber qué camino necesitas. Encuentra la frase que se parezca a tu semana y empieza ahí.",
     fearsCloseHeading: "¿Ninguna encaja del todo?",
     fearsCloseBody: "Abre la app y pulsa «Calma ahora». Son noventa segundos y no te pide nada primero.",
@@ -195,12 +195,12 @@ const LOCALES = [
     imageAlt: "Stand — un compañero de oración para el miedo",
     cardAlt: (n, t) => `Día ${n}: ${t} — la reflexión del día y el comienzo de su oración, de Stand`,
     share: { label: "Compartir este día", copy: "Copiar enlace", copied: "Enlace copiado", native: "Compartir…", x: "Compartir en X", facebook: "Compartir en Facebook", whatsapp: "Compartir en WhatsApp", email: "Compartir por correo", url: "Enlace de la página",
-      card: "COMPARTIR COMO TARJETA", download: "Descargar tarjeta", shareImage: "Compartir tarjeta",
+      card: "Compartir como tarjeta", download: "Descargar tarjeta", shareImage: "Compartir tarjeta",
       cardAlt: (n, t) => `Tarjeta para compartir del Día ${n}: ${t}, con el versículo, la reflexión y la oración del día` },
     book: {
       title: "Devocionario — Stand",
       description: "Oraciones cristianas tradicionales en español y en inglés: el Padre Nuestro, el Credo, el Ave María, el Ángelus y más, para leer, compartir y escuchar.",
-      eyebrow: "DEVOCIONARIO", heading: "Devocionario",
+      eyebrow: "Devocionario", heading: "Devocionario",
       lead: n => `${n} oraciones tradicionales, en español y en inglés. Léelas aquí, compártelas o escucha una grabación en la app.`,
       catholicTitle: "Oraciones católicas romanas — Devocionario — Stand",
       catholicDescription: "Oraciones católicas romanas en español y en inglés: el Ave María, la Salve, el Acto de Contrición, el Ángelus, el Memorare y la oración a San Miguel.",
@@ -208,7 +208,7 @@ const LOCALES = [
       catholicLink: "Las oraciones católicas romanas en su propia página",
       pageTitle: name => `${name} — Devocionario — Stand`,
       describe: name => `«${name}», del Devocionario de Stand, en español y en inglés.`,
-      pray: "ORA",
+      pray: "Ora",
       open: "Escuchar en la app — con una grabación",
       openShort: "escuchar en la app",
       prayerNav: "Navegación de oraciones",
@@ -222,14 +222,14 @@ const LOCALES = [
       lead: "Cinco decenas de oración, cada una abierta a un momento de la vida de Cristo y de su madre. Aquí están el orden de las oraciones y los misterios de cada día, en español y en inglés; la app te acompaña cuenta por cuenta.",
       openToday: "Rezar el Rosario de hoy en la app",
       openSet: name => `Rezar los ${name.toLocaleLowerCase("es")} en la app`,
-      orderHeading: "EL ORDEN DE LAS ORACIONES",
+      orderHeading: "El orden de las oraciones",
       threeHailMarys: virtues => `Tres avemarías, ${virtues.charAt(0).toLowerCase()}${virtues.slice(1)}`,
       eachDecade: "Después, por cada uno de los cinco misterios:",
       announce: "Anuncia el misterio y detente en su versículo",
       tenHailMarys: "Diez avemarías",
       optional: "(opcional)",
       finally: "Para terminar:",
-      daysHeading: "LOS MISTERIOS DE CADA DÍA",
+      daysHeading: "Los misterios de cada día",
       prayedOn: days => `Se rezan los ${days}.`,
       source: "Los misterios y los días en que se rezan siguen la carta apostólica de san Juan Pablo II",
       sourceTitle: "Rosarium Virginis Mariae",
@@ -544,7 +544,7 @@ ${sections}
       <section class="landing-section landing-close">
         <h2>${esc(L.fearsCloseHeading)}</h2>
         <p>${esc(L.fearsCloseBody)}</p>
-        <a class="complete-button" href="${appLink(L.code, "sos=1")}">${L.sosLabel}</a>
+        <a class="complete-button sos-cta" href="${appLink(L.code, "sos=1")}">${L.sosLabel}</a>
       </section>
     </main>
 ${siteFooter(L, relPath)}
@@ -607,7 +607,7 @@ function bookSection(L, tradition, { id, more } = {}) {
             <p>${esc(clip(p.text[L.code].trim(), 110))} · <a href="${appPrayerLink(L, p.id)}">${B.openShort}</a></p>
           </div>`).join("\n");
   return `      <section class="landing-section"${id ? ` id="${id}"` : ""}>
-        <h2 class="section-kicker">${esc(prayerBook.label(tradition, L.code).toLocaleUpperCase(L.code))}</h2>
+        <h2 class="section-kicker">${esc(prayerBook.label(tradition, L.code))}</h2>
         <p class="tradition-note">${esc(prayerBook.note(tradition, L.code))}</p>
         <div class="feature-grid">
 ${cards}
@@ -650,7 +650,7 @@ const rosaryPath = (code, set) => rosaryPagePath(code, set && set.id);
 function rosaryTeaser(L) {
   const R = L.rosary;
   return `      <section class="landing-section" id="rosary">
-        <h2 class="section-kicker">${esc(rosary.name[L.code].toLocaleUpperCase(L.code))}</h2>
+        <h2 class="section-kicker">${esc(rosary.name[L.code])}</h2>
         <p>${esc(R.teaser)} <a href="${rosaryPath(L.code)}">${esc(R.teaserLink)} →</a></p>
       </section>`;
 }
@@ -677,7 +677,7 @@ for (const L of LOCALES) {
     const next = i < all.length - 1 ? link(all[i + 1], false) : "<span></span>";
     const main = `      <article class="devotional prayer-page">
         <p class="eyebrow"><a href="${prayerBook.bookPath(L.code)}">${B.eyebrow}</a></p>
-        <div class="title-row"><div><p class="day-number"><a href="${prayerBook.sectionPath(L.code, item.tradition)}">${esc(prayerBook.label(item.tradition, L.code).toLocaleUpperCase(L.code))}</a></p><h1>${esc(name)}</h1></div></div>
+        <div class="title-row"><div><p class="day-number"><a href="${prayerBook.sectionPath(L.code, item.tradition)}">${esc(prayerBook.label(item.tradition, L.code))}</a></p><h1>${esc(name)}</h1></div></div>
         <p class="tradition-note">${esc(prayerBook.note(item.tradition, L.code))}</p>
         <section class="prayer-panel"><p class="section-kicker">${B.pray}</p><p>${esc(text)}</p></section>
 ${shareRow({ L, url: `${SITE_URL}${relPath}`, title, text: card.prayerLead, label: B.shareLabel })}
@@ -793,7 +793,7 @@ for (const L of LOCALES) {
           </li>
           <li>${esc(R.finally)} ${prayerLink("hail-holy-queen")}, ${prayerLink("sign-of-the-cross")}</li>
         </ol>
-        <section class="prayer-panel" id="fatima"><h3 class="section-kicker">${esc(rosary.fatima.name[code].toLocaleUpperCase(code))}</h3><p>${esc(rosary.fatima.text[code])}</p></section>
+        <section class="prayer-panel" id="fatima"><h3 class="section-kicker">${esc(rosary.fatima.name[code])}</h3><p>${esc(rosary.fatima.text[code])}</p></section>
       </section>
       <section class="landing-section" id="days">
         <h2 class="section-kicker">${R.daysHeading}</h2>
@@ -827,14 +827,14 @@ ${shareCard({ L, card, fileName: `stand-${code === "es" ? "rosario" : "rosary"}.
     const prev = i > 0 ? link(rosary.sets[i - 1], true) : "<span></span>";
     const next = i < rosary.sets.length - 1 ? link(rosary.sets[i + 1], false) : "<span></span>";
     const mysteries = set.mysteries.map((m, n) => `        <section class="content-section rosary-mystery" id="${m.id}">
-          <p class="section-kicker">${esc(R.mysteryHeading(R.ordinals[n], set.adjective[code]).toLocaleUpperCase(code))}</p>
+          <p class="section-kicker">${esc(R.mysteryHeading(R.ordinals[n], set.adjective[code]))}</p>
           <h2>${esc(m.name[code])}</h2>
           <blockquote class="scripture"><p>“${esc(m.verse[code])}”</p><cite>${esc(mysteryRef(m, code))}</cite></blockquote>${m.note ? `
           <p class="tradition-note">${esc(m.note[code])}</p>` : ""}
         </section>`).join("\n");
     const main = `      <article class="devotional prayer-page rosary-page">
-        <p class="eyebrow"><a href="${rosaryPath(code)}">${esc(rosary.name[code].toLocaleUpperCase(code))}</a></p>
-        <div class="title-row"><div><p class="day-number">${esc(R.prayedOn(days).replace(/\.$/, "").toLocaleUpperCase(code))}</p><h1>${esc(name)}</h1></div></div>
+        <p class="eyebrow"><a href="${rosaryPath(code)}">${esc(rosary.name[code])}</a></p>
+        <div class="title-row"><div><p class="day-number">${esc(R.prayedOn(days).replace(/\.$/, ""))}</p><h1>${esc(name)}</h1></div></div>
 ${mysteries}
 ${shareRow({ L, url: `${SITE_URL}${relPath}`, title, text: card.prayerLead, label: R.shareLabel })}
 ${shareCard({ L, card, fileName: `stand-${code === "es" ? "rosario" : "rosary"}-${card.slug}.png`, alt: R.cardAlt(name) })}
@@ -874,46 +874,46 @@ const PRIVACY = {
   en: {
     title: "Privacy — Stand",
     description: "How Stand handles your information, in plain language: no account, no cookies, no tracking, and what you write stays on your device.",
-    eyebrow: "PRIVACY POLICY",
+    eyebrow: "Privacy policy",
     heading: "Privacy",
     summary: "Stand has no account, no cookies, no advertising and no tracking, and it never sells or shares your personal data. What you write, save and choose in the app stays on your own device; we never see it. Like any website, Stand is delivered by a hosting company, which receives basic technical information in order to send you the pages. The sections below explain each of these in a little more detail.",
     sections: [
-      ["WHAT STAND DOES NOT DO", [
+      ["What Stand does not do", [
         list(["No account and no sign-in.", "No cookies.", "No advertising.", "No analytics or tracking scripts.", "No selling or sharing of your personal data."])
       ]],
-      ["WHAT STAYS ON YOUR DEVICE", [
+      ["What stays on your device", [
         para("Everything you enter in Stand — your progress, notes, journal, fear check-ins, favorites and preferences — is stored only on your own device, in your browser’s local storage. It is not sent to us or to anyone else."),
         para("It leaves your device only if you choose to take it out: by downloading your journal as a text file (.txt), by downloading a backup file (.json), or by sharing.")
       ]],
-      ["REMOVING YOUR DATA", [
+      ["Removing your data", [
         para("You can delete everything at any time with “Erase all data” in the app. Clearing your browser’s stored data for this site deletes it too."),
         para("One thing to know on iPhone: Safari may delete a website’s stored data after about a week without a visit, unless the site has been added to your Home Screen. If your notes matter to you, please download a backup from time to time.")
       ]],
-      ["LISTENING OFFLINE", [
+      ["Listening offline", [
         para("If you turn on “Keep a week of audio on this device”, audio recordings are saved on your device, in the browser’s cache, so they can play without a connection. Turning it off, or erasing all data, deletes them.")
       ]],
-      ["HOSTING", [
+      ["Hosting", [
         para("The website and the audio recordings are served by Vercel, our hosting provider; the recordings come from stand-audio.vercel.app. Like any web host, Vercel receives technical information with each request, such as your IP address, your browser type and the page you asked for, in order to deliver the site and protect it. You can read <a href=\"https://vercel.com/legal/privacy-policy\">Vercel’s privacy notice</a>.")
       ]],
-      ["ERROR REPORTS", [
+      ["Error reports", [
         para("If part of Stand stops working on your device, the app sends a short technical report to our host so we can fix it: the kind of error, a shortened error message with any quoted text removed, the file and line in Stand’s own code where it happened, and the page it happened on. It never includes your notes, your progress or anything you typed, and it carries no identifier. At most three reports are sent per visit, and none if your browser sends the Global Privacy Control signal. Reports are kept only in our host’s logs, for a short time.")
       ]],
-      ["CALENDAR SUBSCRIPTION", [
+      ["Calendar subscription", [
         para("If you subscribe to Stand’s calendar feed (/calendar.ics), your calendar app will request a link from time to time. That link contains only the journey, the day to start on, a date, a time, the language and a few option settings. It contains no notes and no personal details. The request is handled by our host.")
       ]],
-      ["RECORDED NARRATION", [
+      ["Recorded narration", [
         para("The spoken narration was produced ahead of time with ElevenLabs text-to-speech. Nothing you enter in Stand is ever sent to ElevenLabs or to any AI service.")
       ]],
-      ["SHARING", [
+      ["Sharing", [
         para("When you use Share, Copy link, or a link to X, Facebook, WhatsApp or email, what happens next is governed by that platform. Stand adds no tracking parameters to the links it shares.")
       ]],
-      ["CHILDREN", [
+      ["Children", [
         para("Stand is not directed to children under 13.")
       ]],
-      ["CHANGES TO THIS POLICY", [
+      ["Changes to this policy", [
         para("If this policy changes, the new version will be posted on this page with a new date.")
       ]],
-      ["CONTACT", [
+      ["Contact", [
         para(`If you have a question about your privacy, you can write to ${contactLink}.`)
       ]]
     ],
@@ -922,46 +922,46 @@ const PRIVACY = {
   es: {
     title: "Privacidad — Stand",
     description: "Cómo trata Stand tu información, en palabras sencillas: sin cuenta, sin cookies, sin rastreo, y lo que escribes se queda en tu dispositivo.",
-    eyebrow: "POLÍTICA DE PRIVACIDAD",
+    eyebrow: "Política de privacidad",
     heading: "Privacidad",
     summary: "Stand no tiene cuentas, ni cookies, ni publicidad, ni rastreo, y nunca vende ni comparte tus datos personales. Lo que escribes, guardas y eliges en la app se queda en tu propio dispositivo; nosotros nunca lo vemos. Como cualquier sitio web, Stand llega a ti a través de una empresa de alojamiento, que recibe información técnica básica para poder enviarte las páginas. Aquí abajo te lo explicamos con un poco más de detalle.",
     sections: [
-      ["LO QUE STAND NO HACE", [
+      ["Lo que Stand no hace", [
         list(["No hay cuenta ni inicio de sesión.", "No usa cookies.", "No muestra publicidad.", "No lleva scripts de analítica ni de rastreo.", "No vende ni comparte tus datos personales."])
       ]],
-      ["LO QUE SE QUEDA EN TU DISPOSITIVO", [
+      ["Lo que se queda en tu dispositivo", [
         para("Todo lo que introduces en Stand —tu progreso, tus notas, tu diario, tus registros del miedo, tus favoritos y tus preferencias— se guarda solo en tu propio dispositivo, en el almacenamiento local del navegador. No se envía ni a nosotros ni a nadie."),
         para("Solo sale de tu dispositivo si tú decides sacarlo: al descargar tu diario como archivo de texto (.txt), al descargar un respaldo (.json) o al compartir.")
       ]],
-      ["CÓMO BORRAR TUS DATOS", [
+      ["Cómo borrar tus datos", [
         para("Puedes borrarlo todo cuando quieras con “Borrar todos los datos” en la app. Si borras los datos guardados de este sitio en tu navegador, también desaparecen."),
         para("Algo importante en iPhone: Safari puede borrar los datos que guarda un sitio web si pasa alrededor de una semana sin que lo visites, a menos que hayas añadido el sitio a tu pantalla de inicio. Si tus notas son valiosas para ti, descarga un respaldo de vez en cuando.")
       ]],
-      ["ESCUCHAR SIN CONEXIÓN", [
+      ["Escuchar sin conexión", [
         para("Si activas «Guardar una semana de audio en este dispositivo», las grabaciones de audio se guardan en tu dispositivo, en la caché del navegador, para que suenen aunque no tengas internet. Al desactivarla, o al borrar todos los datos, se eliminan.")
       ]],
-      ["ALOJAMIENTO", [
+      ["Alojamiento", [
         para("El sitio web y las grabaciones de audio los sirve Vercel, nuestro proveedor de alojamiento; las grabaciones llegan desde stand-audio.vercel.app. Como cualquier servidor web, Vercel recibe información técnica con cada solicitud —por ejemplo, tu dirección IP, el tipo de navegador y la página que pediste— para poder entregarte el sitio y protegerlo. Puedes leer el <a href=\"https://vercel.com/legal/privacy-policy\">aviso de privacidad de Vercel</a>.")
       ]],
-      ["INFORMES DE ERRORES", [
+      ["Informes de errores", [
         para("Si alguna parte de Stand deja de funcionar en tu dispositivo, la app envía un breve informe técnico a nuestro proveedor de alojamiento para que podamos arreglarlo: el tipo de error, un mensaje de error abreviado sin el texto entre comillas, el archivo y la línea del código de Stand donde ocurrió, y la página en la que estabas. Nunca incluye tus notas, tu progreso ni nada de lo que escribiste, y no lleva ningún identificador. Se envían como máximo tres informes por visita, y ninguno si tu navegador envía la señal Global Privacy Control. Los informes se guardan solo en los registros de nuestro proveedor, por poco tiempo.")
       ]],
-      ["SUSCRIPCIÓN AL CALENDARIO", [
+      ["Suscripción al calendario", [
         para("Si te suscribes al calendario de Stand (/calendar.ics), tu app de calendario pedirá un enlace de vez en cuando. Ese enlace contiene solo el camino, el día en que empiezas, una fecha, una hora, el idioma y algunas opciones. No contiene notas ni datos personales. La solicitud la atiende nuestro proveedor de alojamiento.")
       ]],
-      ["NARRACIÓN GRABADA", [
+      ["Narración grabada", [
         para("La narración se grabó de antemano con la tecnología de texto a voz de ElevenLabs. Nada de lo que introduces en Stand se envía nunca a ElevenLabs ni a ningún servicio de inteligencia artificial.")
       ]],
-      ["COMPARTIR", [
+      ["Compartir", [
         para("Cuando usas Compartir, Copiar enlace o un enlace a X, Facebook, WhatsApp o el correo, lo que ocurre después depende de esa plataforma y de sus propias reglas. Stand no añade parámetros de rastreo a los enlaces que comparte.")
       ]],
-      ["MENORES", [
+      ["Menores", [
         para("Stand no está dirigido a menores de 13 años.")
       ]],
-      ["CAMBIOS EN ESTA POLÍTICA", [
+      ["Cambios en esta política", [
         para("Si esta política cambia, publicaremos la nueva versión en esta página con una fecha nueva.")
       ]],
-      ["CONTACTO", [
+      ["Contacto", [
         para(`Si tienes alguna pregunta sobre tu privacidad, puedes escribir a ${contactLink}.`)
       ]]
     ],
@@ -975,35 +975,35 @@ const TERMS = {
   en: {
     title: "Terms of use — Stand",
     description: "The terms for using Stand, in plain language: spiritual encouragement rather than professional advice, where to find help in a crisis, and what you may share.",
-    eyebrow: "TERMS OF USE",
+    eyebrow: "Terms of use",
     heading: "Terms of use",
     summary: "Stand is a free companion for prayer when you are afraid. It offers spiritual encouragement, not medical, mental health, legal or financial advice, and it does not take the place of a licensed professional. If you are in crisis or in danger, please reach out for help now; the numbers are below. Stand is offered freely and as it is, and we ask only that you use it kindly.",
     sections: [
-      ["WHAT STAND IS", [
+      ["What Stand is", [
         para("Stand offers spiritual encouragement and prayer. It is not medical, mental health, legal or financial advice, and it is not a substitute for a licensed professional."),
         para("The journeys about health and money pray alongside medical care and practical steps, never instead of them.")
       ]],
-      ["IF YOU ARE IN CRISIS", [
+      ["If you are in crisis", [
         para("You do not have to carry this alone. If you are in the United States:"),
         list(["Call or text <a href=\"tel:988\">988</a>.", "Text HOME to 741741.", "If you are in immediate danger, call <a href=\"tel:911\">911</a>."]),
         para("Outside the United States, you can find a local helpline at <a href=\"https://findahelpline.com\">findahelpline.com</a>.")
       ]],
-      ["SCRIPTURE", [
+      ["Scripture", [
         para("The scripture in Stand is in the public domain: the World English Bible in English and the Reina-Valera 1909 in Spanish.")
       ]],
-      ["STAND’S OWN WORDS AND RECORDINGS", [
+      ["Stand’s own words and recordings", [
         para("The original text, prayers and recordings in Stand belong to the Stand project. You are welcome to use them for your own personal, non-commercial prayer, and to share links to them with anyone.")
       ]],
-      ["OFFERED FREELY, AS IT IS", [
+      ["Offered freely, as it is", [
         para("Stand is free. It is provided “as is”, without warranties of any kind. The service may change, and it may stop.")
       ]],
-      ["USING STAND", [
+      ["Using Stand", [
         para("Please use Stand kindly and lawfully, and do not try to disrupt the service.")
       ]],
-      ["YOUR PRIVACY", [
+      ["Your privacy", [
         para("How Stand handles information is explained in the <a href=\"/privacy\">privacy policy</a>.")
       ]],
-      ["CONTACT", [
+      ["Contact", [
         para(`If you have a question about these terms, you can write to ${contactLink}.`)
       ]]
     ],
@@ -1012,20 +1012,20 @@ const TERMS = {
   es: {
     title: "Términos de uso — Stand",
     description: "Los términos de Stand, en palabras sencillas: acompañamiento espiritual y no consejo profesional, dónde buscar ayuda en una crisis y qué puedes compartir.",
-    eyebrow: "TÉRMINOS DE USO",
+    eyebrow: "Términos de uso",
     heading: "Términos de uso",
     summary: "Stand es un compañero gratuito para orar cuando tienes miedo. Ofrece acompañamiento espiritual, no consejo médico, de salud mental, legal ni financiero, y no ocupa el lugar de un profesional con licencia. Si estás en crisis o en peligro, busca ayuda ahora; los números están más abajo. Stand se ofrece gratis y tal como es, y solo te pedimos que lo uses con amabilidad.",
     sections: [
-      ["QUÉ ES STAND", [
+      ["Qué es Stand", [
         para("Stand ofrece acompañamiento espiritual y oración. No es consejo médico, de salud mental, legal ni financiero, y no sustituye a un profesional con licencia."),
         para("Los caminos sobre salud y dinero acompañan con oración la atención médica y los pasos prácticos; nunca los sustituyen.")
       ]],
-      ["SI ESTÁS EN CRISIS", [
+      ["Si estás en crisis", [
         para("No tienes que cargar con esto a solas. Si estás en Estados Unidos:"),
         list(["Llama al <a href=\"tel:988\">988</a> y marca 2, o envía un mensaje de texto con la palabra AYUDA al 988.", "Envía AYUDA por mensaje de texto al 741741.", "Si estás en peligro inmediato, llama al <a href=\"tel:911\">911</a>."]),
         para("Fuera de Estados Unidos, puedes encontrar una línea de ayuda local en <a href=\"https://findahelpline.com\">findahelpline.com</a>.")
       ]],
-      ["LA ESCRITURA", [
+      ["La Escritura", [
         para("La Escritura en Stand es de dominio público: la World English Bible en inglés y la Reina-Valera 1909 en español.")
       ]],
       ["LAS PALABRAS Y GRABACIONES DE STAND", [
@@ -1130,22 +1130,22 @@ ${siteNav(en, null, "/es")}
     </header>
     <main>
       <section class="landing-hero">
-        <p class="eyebrow">PAGE NOT FOUND</p>
+        <p class="eyebrow">Page not found</p>
         <h1>This page isn’t here.</h1>
         <p class="landing-lead">The link may be old, or a letter may have slipped — it happens. You can open the app, take ninety steady seconds, or start again from the home page.</p>
         <div class="hero-actions">
           <a class="complete-button" href="${appLink("en")}">${en.openApp}</a>
-          <a class="complete-button hero-secondary" href="${appLink("en", "sos=1")}">${en.sosLabel}</a>
+          <a class="complete-button sos-cta" href="${appLink("en", "sos=1")}">${en.sosLabel}</a>
         </div>
         <p class="landing-fineprint"><a href="/">Go to the home page</a></p>
       </section>
       <section class="landing-section landing-close" lang="es">
-        <p class="section-kicker">PÁGINA NO ENCONTRADA</p>
+        <p class="section-kicker">Página no encontrada</p>
         <h2>Esta página no está aquí.</h2>
         <p>Puede que el enlace sea antiguo o que se haya colado una letra; son cosas que pasan. Puedes abrir la app, tomarte noventa segundos para recuperar la calma o empezar de nuevo desde la página de inicio.</p>
         <div class="hero-actions">
           <a class="complete-button" href="${appLink("es")}">${es.openApp}</a>
-          <a class="complete-button hero-secondary" href="${appLink("es", "sos=1")}">${es.sosLabel}</a>
+          <a class="complete-button sos-cta" href="${appLink("es", "sos=1")}">${es.sosLabel}</a>
         </div>
         <p class="landing-fineprint"><a href="/es">Ir a la página de inicio en español</a></p>
       </section>

@@ -1235,7 +1235,7 @@ function renderJournal() {
     entry.className = "journal-entry";
     const kicker = document.createElement("p");
     kicker.className = "section-kicker";
-    kicker.textContent = `${t("day.number", { n: String(d + 1).padStart(2, "0") })} · ${activeTrack().days[d][0].toUpperCase()}`;
+    kicker.textContent = `${t("day.number", { n: String(d + 1).padStart(2, "0") })} · ${activeTrack().days[d][0]}`;
     const body = document.createElement("p");
     body.textContent = tdata().notes[d];
     entry.append(kicker, body);
@@ -2127,7 +2127,7 @@ function renderBookList() {
     if (tradition) {
       const heading = document.createElement("p");
       heading.className = "section-kicker";
-      heading.textContent = prayerBook.label(tradition, state.lang).toLocaleUpperCase(state.lang);
+      heading.textContent = prayerBook.label(tradition, state.lang);
       const note = document.createElement("p");
       note.className = "tradition-note";
       note.textContent = prayerBook.note(tradition, state.lang);
@@ -2201,7 +2201,7 @@ function showBookPrayer(id) {
   $("rosaryView").hidden = true;
   syncWakeLock();
   $("bookReader").hidden = false;
-  $("bookSection").textContent = prayerBook.label(item.tradition, state.lang).toLocaleUpperCase(state.lang);
+  $("bookSection").textContent = prayerBook.label(item.tradition, state.lang);
   $("bookTitle").textContent = item.name[state.lang];
   $("bookNote").textContent = prayerBook.note(item.tradition, state.lang);
   const text = $("bookText");

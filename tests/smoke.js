@@ -868,7 +868,7 @@ const server = http.createServer((req, res) => {
     await page.goto("http://localhost:8123/prayers", { waitUntil: "networkidle" });
     check("prayer book loads", (await page.title()) === "Prayer Book — Stand");
     check("prayer book lists every traditional prayer", (await page.$$(".feature-card")).length === all.length);
-    check("prayer book names both traditions", (await page.$$eval(".landing-section h2.section-kicker", els => els.map(e => e.textContent)))
+    check("prayer book names both traditions", (await page.$$eval(".landing-section h2.section-kicker", els => els.map(e => e.innerText)))
       .join("|") === "THE ROSARY|TRADITIONAL PRAYERS|ROMAN CATHOLIC PRAYERS");
     check("prayer book heading levels do not skip", !(await headingsSkip()));
     check("prayer book has no horizontal scroll", !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)));
@@ -886,7 +886,7 @@ const server = http.createServer((req, res) => {
 
     await page.goto("http://localhost:8123/prayers/angelus", { waitUntil: "networkidle" });
     check("a prayer page shows the prayer whole", (await page.textContent(".prayer-panel p:not(.section-kicker)")) === prayerBook.byId("angelus").text.en.trim());
-    check("a prayer page names its tradition", (await page.textContent(".day-number")) === "ROMAN CATHOLIC PRAYERS");
+    check("a prayer page names its tradition", (await page.innerText(".day-number")) === "ROMAN CATHOLIC PRAYERS");
     const cardSrc = await page.getAttribute(".share-card img", "src");
     const cardRes = await page.request.get("http://localhost:8123" + cardSrc);
     check("a prayer page's share card renders", /^\/cards\/en\/prayers\/angelus\.[0-9a-f]{8}\.post\.png$/.test(cardSrc)
@@ -916,7 +916,7 @@ const server = http.createServer((req, res) => {
         && (await page.$$('.footer-links a[href="/prayers"]')).length === 1);
       await page.goto("http://localhost:8123/es/oraciones/rosario/gozosos", { waitUntil: "networkidle" });
       check("a set's page gives its five mysteries with their verses, in Spanish", (await page.$$(".rosary-mystery")).length === 5
-        && (await page.textContent(".rosary-mystery .section-kicker")) === "PRIMER MISTERIO GOZOSO"
+        && (await page.innerText(".rosary-mystery .section-kicker")) === "PRIMER MISTERIO GOZOSO"
         && (await page.textContent(".rosary-mystery cite")) === "Lucas 1:38");
       const setCard = await page.getAttribute(".share-card img", "src");
       const setCardRes = await page.request.get("http://localhost:8123" + setCard);
@@ -952,7 +952,7 @@ const server = http.createServer((req, res) => {
       await fresh.click('.landing-footer .footer-links a[href^="/app?sos=1"]');
       await fresh.waitForSelector("#sosDialog[open]");
       check("Calma ahora on a Spanish page opens the SOS screen in Spanish", await fresh.evaluate(() =>
-        state.lang === "es" && document.documentElement.lang === "es") && /CALMA/.test(await fresh.textContent("#sosDialog")));
+        state.lang === "es" && document.documentElement.lang === "es") && /CALMA/.test(await fresh.innerText("#sosDialog")));
       await fresh.keyboard.press("Escape");
       await fresh.click("#libraryButton");
       check("the app's library links to the Spanish pages in Spanish", (await fresh.getAttribute("#libraryFears", "href")) === "/es/fears"
@@ -1011,7 +1011,7 @@ const server = http.createServer((req, res) => {
     check("a prayer opens in the reader", await reader.isVisible("#bookReader") && !(await reader.isVisible("#bookList"))
       && (await reader.textContent("#bookTitle")) === "Angelus"
       && (await reader.textContent("#bookText")) === prayerBook.byId("angelus").text.en.trim());
-    check("it names its tradition", (await reader.textContent("#bookSection")) === "ROMAN CATHOLIC PRAYERS");
+    check("it names its tradition", (await reader.innerText("#bookSection")) === "ROMAN CATHOLIC PRAYERS");
     check("…and opens at the top, close button in view", await reader.evaluate(() => document.getElementById("bookDialog").scrollTop === 0));
     await reader.click("#bookFavorite");
     check("a prayer can be a favorite", (await reader.getAttribute("#bookFavorite", "aria-pressed")) === "true"
@@ -1504,7 +1504,7 @@ const server = http.createServer((req, res) => {
   // Dialogs and generated files follow too.
   await page.click("#journalButton");
   check("the journal is Spanish", (await page.textContent("#exportButton")) === "Descargar mis notas (.txt)");
-  check("the ledger is Spanish", (await page.textContent("#ledger")).includes("HISTORIAL DE CALMA"));
+  check("the ledger is Spanish", (await page.innerText("#ledger")).includes("HISTORIAL DE CALMA"));
   await page.click("#closeJournal");
 
   await page.click("#libraryButton");
@@ -1789,7 +1789,7 @@ const server = http.createServer((req, res) => {
   check("Spanish day quotes the RV1909", (await page.textContent(".scripture")).includes("Confortaos en el Señor"));
   check("Spanish day localizes the reference", (await page.textContent(".scripture cite")) === "Efesios 6:10–13");
   check("Spanish day localizes its headings", (await page.textContent("article")).includes("Reflexión")
-    && (await page.textContent("article")).includes("PRÁCTICA DE HOY"));
+    && (await page.innerText("article")).includes("PRÁCTICA DE HOY"));
   check("Spanish day is canonical to itself", await page.getAttribute('link[rel="canonical"]', "href") === `${SITE}/es/day/01-firmeza`);
   check("Spanish day names its navigation in Spanish", (await page.getAttribute("nav.site-nav", "aria-label")) === "Principal");
   check("Spanish day's description quotes the title instead of lowercasing it into a sentence",
@@ -1803,7 +1803,7 @@ const server = http.createServer((req, res) => {
     (await page.getAttribute(".share-card img", "src")).startsWith("/cards/es/core/01-firmeza.")
     && (await page.getAttribute(".share-card img", "alt")).startsWith("Tarjeta para compartir del Día 1: Firmeza")
     && (await page.textContent(".share-card-download span")) === "Descargar tarjeta"
-    && (await page.textContent(".share-card .section-kicker")) === "COMPARTIR COMO TARJETA");
+    && (await page.innerText(".share-card .section-kicker")) === "COMPARTIR COMO TARJETA");
   check("Spanish day declares its locale", await meta2("og:locale") === "es_ES");
 
   // hreflang must be reciprocal or search engines treat the pair as
@@ -1880,7 +1880,7 @@ const server = http.createServer((req, res) => {
     check(`${url} links to Vercel's privacy notice`, (await page.$$('main a[href="https://vercel.com/legal/privacy-policy"]')).length === 1);
     check(`${url} names where the recordings come from`, (await page.textContent("main")).includes("stand-audio.vercel.app"));
     check(`${url} describes the error reports and the Global Privacy Control opt-out`,
-      /ERROR REPORTS|INFORMES DE ERRORES/.test(await page.textContent("main")) && (await page.textContent("main")).includes("Global Privacy Control"));
+      /ERROR REPORTS|INFORMES DE ERRORES/.test(await page.innerText("main")) && (await page.textContent("main")).includes("Global Privacy Control"));
   }
   for (const url of ["/terms", "/es/terms"]) {
     await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });

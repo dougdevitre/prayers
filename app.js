@@ -70,7 +70,7 @@ function tdata() {
 /* ---------- Persistent state ---------- */
 
 function loadState() {
-  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, checkins: [], sos: [], track: "core", tracks: {}, prayerFavorites: [], theme: null, lang: "en", bilingual: false, welcomed: false, installHintDismissed: false };
+  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, checkins: [], sos: [], track: "core", tracks: {}, prayerFavorites: [], rosary: null, rosaryFatima: true, theme: null, lang: "en", bilingual: false, welcomed: false, installHintDismissed: false };
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!raw || typeof raw !== "object") return fallback;
@@ -134,18 +134,23 @@ function firstIncompleteDay() {
 // sosSets and the fear finder all check typeof), so a failed load leaves the
 // app working in English rather than broken. The service worker still
 // precaches the file, so switching works offline.
-let spanishLoading = null;
-function loadSpanish() {
-  if (typeof esTracks !== "undefined") return Promise.resolve();
-  spanishLoading = spanishLoading || new Promise(resolve => {
+// The Rosary (rosary.js) loads the same way, the first time the Prayer Book
+// opens. A script loaded here resolves either way; the caller checks that
+// what it needs arrived.
+const scriptLoads = {};
+function loadScript(src, ready) {
+  if (ready()) return Promise.resolve();
+  scriptLoads[src] = scriptLoads[src] || new Promise(resolve => {
     const script = document.createElement("script");
-    script.src = "/content.es.js";
+    script.src = src;
     script.onload = resolve;
-    script.onerror = () => { spanishLoading = null; resolve(); };
+    script.onerror = () => { delete scriptLoads[src]; resolve(); };
     document.head.append(script);
   });
-  return spanishLoading;
+  return scriptLoads[src];
 }
+const loadSpanish = () => loadScript("/content.es.js", () => typeof esTracks !== "undefined");
+const loadRosary = () => loadScript("/rosary.js", () => typeof rosarySteps !== "undefined");
 const languageReady = () => (state.lang === "es" ? loadSpanish() : Promise.resolve());
 
 // A ?lang= link (from a Spanish Prayer Book page) opens the app in that
@@ -1243,7 +1248,8 @@ function restoreFromBackup(raw) {
     coreDays: themes.length,
     tracks,
     langs: Object.keys(prayerUi),
-    prayerIds: prayerCorpus.traditional.map(p => p.id)
+    prayerIds: prayerCorpus.traditional.map(p => p.id),
+    rosarySets: typeof rosary !== "undefined" ? rosary.sets.map(s => s.id) : []
   });
 }
 
@@ -1254,6 +1260,8 @@ $("restoreInput").onchange = async event => {
   event.target.value = "";
   if (!file) return;
   let clean = null;
+  // A backup may hold a Rosary in progress, checked against rosary.js.
+  await loadRosary();
   try {
     clean = restoreFromBackup(JSON.parse(await file.text()));
   } catch { /* unreadable or invalid JSON */ }
@@ -1905,7 +1913,7 @@ function stopPrayerNarration() {
     clearPositionState();
   }
   prayerAudio.playing = false;
-  for (const id of ["prayerListen", "traditionalListen"]) updatePrayerButton($(id), false);
+  for (const id of ["prayerListen", "traditionalListen", "rosaryListen"]) updatePrayerButton($(id), false);
   book.playing = null;
   paintBookPlay();
   $("bookProgress").style.width = "0";
@@ -2137,6 +2145,7 @@ function showBookPrayer(id) {
   if (book.playing && book.playing !== id) stopPrayerNarration();
   book.open = id;
   $("bookList").hidden = true;
+  $("rosaryView").hidden = true;
   $("bookReader").hidden = false;
   $("bookSection").textContent = prayerBook.label(item.tradition, state.lang).toLocaleUpperCase(state.lang);
   $("bookTitle").textContent = item.name[state.lang];
@@ -2175,7 +2184,9 @@ function showBookPrayer(id) {
 function showBookList() {
   book.open = null;
   $("bookReader").hidden = true;
+  $("rosaryView").hidden = true;
   $("bookList").hidden = false;
+  renderRosaryEntry();
   document.querySelectorAll("#bookDialog .filter-tab").forEach(tab => tab.classList.toggle("active", tab.dataset.bookFilter === book.filter));
   renderBookList();
 }
@@ -2189,6 +2200,7 @@ function openBook(id) {
 }
 
 $("bookEntry").onclick = () => openBook();
+$("bookButton").onclick = () => openBook();
 $("closeBook").onclick = () => $("bookDialog").close();
 $("bookDialog").addEventListener("close", stopPrayerNarration);
 $("bookBack").onclick = showBookList;
@@ -2241,6 +2253,234 @@ $("bookFavorite").onclick = () => {
 $("bookShare").addEventListener("pointerdown", () => { if (book.open) fetchShareCard(prayerShare(book.open).cardUrl); });
 $("bookShare").onclick = () => { if (book.open) shareItem(prayerShare(book.open)); };
 
+/* ---------- The Rosary ----------
+   A guided Rosary inside the Prayer Book: one step at a time, in the order
+   rosary.js gives (rosarySteps), with a bead counter for the Hail Marys.
+   Today's mysteries are the default (setForDate); any set can be chosen.
+   Every prayer but the mysteries and the Fatima Prayer is the Prayer Book's
+   own, so a step shows and plays exactly what the Prayer Book does. Where a
+   reader is is saved (state.rosary), so closing the app mid-decade and coming
+   back resumes there, for twelve hours; after that it starts fresh. */
+
+const ROSARY_RESUME_MS = 12 * 60 * 60 * 1000;
+const rosaryRun = { set: null, fatima: true, steps: [], index: 0, bead: 0, done: false };
+const rosaryLang = () => (state.lang === "es" ? "es" : "en");
+
+/** The saved Rosary, if there is one still worth resuming. */
+function savedRosary() {
+  const r = state.rosary;
+  if (!r || !setById(r.set) || !Number.isFinite(r.started) || Date.now() - r.started > ROSARY_RESUME_MS) return null;
+  return r;
+}
+
+function renderRosaryEntry(retry = true) {
+  // rosary.js arrives on the Prayer Book's first opening; the entry fills in
+  // then (once: a failed load leaves it as its title alone).
+  if (typeof rosarySteps === "undefined") {
+    $("rosaryEntryMeta").textContent = "";
+    if (retry) loadRosary().then(() => renderRosaryEntry(false));
+    return;
+  }
+  const lang = rosaryLang();
+  const saved = savedRosary();
+  if (saved) {
+    const total = rosarySteps(saved.set, { fatima: saved.fatima !== false }).length;
+    $("rosaryEntryMeta").textContent = t("rosary.entryContinue", { set: setById(saved.set).name[lang], n: Math.min(saved.step + 1, total), total });
+  } else {
+    $("rosaryEntryMeta").textContent = t("rosary.entryToday", { set: setForDate(new Date()).name[lang] });
+  }
+}
+
+function saveRosary() {
+  if (rosaryRun.done) state.rosary = null;
+  else {
+    const started = state.rosary && state.rosary.set === rosaryRun.set && Number.isFinite(state.rosary.started) ? state.rosary.started : Date.now();
+    state.rosary = { set: rosaryRun.set, step: rosaryRun.index, bead: rosaryRun.bead, fatima: rosaryRun.fatima, started };
+  }
+  save();
+}
+
+function startRosary(setId) {
+  Object.assign(rosaryRun, { set: setId, fatima: state.rosaryFatima !== false, index: 0, bead: 0, done: false });
+  rosaryRun.steps = rosarySteps(setId, { fatima: rosaryRun.fatima });
+  state.rosary = null;
+  saveRosary();
+}
+
+/** Open the Rosary in the Prayer Book: where the reader left off, or a set. */
+async function openRosary(setId) {
+  await loadRosary();
+  if (typeof rosarySteps === "undefined") return; // offline before it was ever saved
+  const saved = savedRosary();
+  if (setId && setById(setId) && !(saved && saved.set === setId)) startRosary(setId);
+  else if (saved) {
+    Object.assign(rosaryRun, { set: saved.set, fatima: saved.fatima !== false, done: false });
+    rosaryRun.steps = rosarySteps(saved.set, { fatima: rosaryRun.fatima });
+    rosaryRun.index = Math.min(Math.max(0, saved.step | 0), rosaryRun.steps.length - 1);
+    const step = rosaryRun.steps[rosaryRun.index];
+    rosaryRun.bead = step.count ? Math.min(Math.max(0, saved.bead | 0), step.count - 1) : 0;
+  } else startRosary(setForDate(new Date()).id);
+  stopPrayerNarration();
+  book.open = null;
+  $("bookList").hidden = true;
+  $("bookReader").hidden = true;
+  $("rosaryView").hidden = false;
+  if (!$("bookDialog").open) $("bookDialog").showModal();
+  renderRosary();
+  $("bookDialog").scrollTop = 0;
+}
+
+function renderRosary() {
+  const lang = rosaryLang();
+  const set = setById(rosaryRun.set);
+  $("rosaryHeading").textContent = set.name[lang];
+  const today = setForDate(new Date()).id;
+  const select = $("rosarySet");
+  select.textContent = "";
+  for (const s of rosary.sets) {
+    select.append(new Option(s.id === today ? t("rosary.today", { set: s.name[lang] }) : s.name[lang], s.id, false, s.id === set.id));
+  }
+  $("rosaryFatima").checked = rosaryRun.fatima;
+
+  const done = rosaryRun.done;
+  $("rosaryDone").hidden = !done;
+  for (const id of ["rosaryStep", "rosaryProgress", "rosaryDecades"]) $(id).hidden = done;
+  $("rosaryPrev").closest(".rosary-actions").hidden = done;
+  if (done) { $("rosaryAgain").focus(); return; }
+
+  const steps = rosaryRun.steps;
+  const step = steps[rosaryRun.index];
+  $("rosaryProgress").textContent = t("rosary.progress", { n: rosaryRun.index + 1, total: steps.length });
+
+  // Five marks for the decades: done, current, still to come.
+  const current = step.decade || (rosaryRun.index < 5 ? 0 : 6);
+  const decades = $("rosaryDecades");
+  decades.textContent = "";
+  for (let d = 1; d <= 5; d++) {
+    const mark = document.createElement("span");
+    mark.className = `rosary-decade${d < current ? " done" : d === current ? " current" : ""}`;
+    decades.append(mark);
+  }
+
+  let kicker, title, text = "", verse = "", note = "";
+  const where = step.decade ? t("rosary.decade", { n: step.decade }) : t(rosaryRun.index < 5 ? "rosary.opening" : "rosary.closing");
+  if (step.kind === "mystery") {
+    const m = set.mysteries[step.decade - 1];
+    const ordinal = t("rosary.ordinals").split("|")[step.decade - 1];
+    kicker = where;
+    title = t("rosary.mysteryHeading", { ordinal, adjective: set.adjective[lang] });
+    text = m.name[lang];
+    verse = `“${m.verse[lang]}” (${mysteryRef(m, lang)})`;
+    note = m.note ? m.note[lang] : "";
+  } else if (step.kind === "fatima") {
+    kicker = where;
+    title = rosary.fatima.name[lang];
+    text = rosary.fatima.text[lang];
+  } else {
+    const item = prayerBook.byId(step.prayer);
+    kicker = step.label === "virtues" ? `${where} · ${rosary.virtues[lang]}` : where;
+    title = item.name[lang];
+    text = item.text[lang].trim();
+  }
+  $("rosaryStepKicker").textContent = kicker;
+  $("rosaryStepTitle").textContent = title;
+  $("rosaryStepText").textContent = text;
+  $("rosaryStepText").classList.toggle("rosary-mystery-name", step.kind === "mystery");
+  $("rosaryStepVerse").hidden = !verse;
+  $("rosaryStepVerse").textContent = verse;
+  $("rosaryStepNote").hidden = !note;
+  $("rosaryStepNote").textContent = note;
+
+  // The bead counter: one bead per Hail Mary of this step, filled as they
+  // are prayed, and a count a screen reader announces.
+  const beads = $("rosaryBeads");
+  beads.hidden = !step.count;
+  beads.textContent = "";
+  $("rosaryCount").textContent = "";
+  if (step.count) {
+    for (let b = 0; b < step.count; b++) {
+      const bead = document.createElement("span");
+      bead.className = `rosary-bead${b < rosaryRun.bead ? " done" : b === rosaryRun.bead ? " current" : ""}`;
+      beads.append(bead);
+    }
+    $("rosaryCount").textContent = t("rosary.bead", { prayer: title, n: rosaryRun.bead + 1, total: step.count });
+  }
+
+  const last = rosaryRun.index === steps.length - 1;
+  const moreBeads = step.count && rosaryRun.bead < step.count - 1;
+  $("rosaryNext").textContent = t(moreBeads ? "rosary.nextBead" : last ? "rosary.finish" : "rosary.next");
+  $("rosaryPrev").disabled = rosaryRun.index === 0 && rosaryRun.bead === 0;
+  updatePrayerButton($("rosaryListen"), false);
+}
+
+function rosaryNext() {
+  stopPrayerNarration();
+  const step = rosaryRun.steps[rosaryRun.index];
+  if (step.count && rosaryRun.bead < step.count - 1) rosaryRun.bead++;
+  else if (rosaryRun.index < rosaryRun.steps.length - 1) { rosaryRun.index++; rosaryRun.bead = 0; }
+  else rosaryRun.done = true;
+  saveRosary();
+  renderRosary();
+}
+
+function rosaryPrev() {
+  stopPrayerNarration();
+  if (rosaryRun.bead > 0) rosaryRun.bead--;
+  else if (rosaryRun.index > 0) {
+    rosaryRun.index--;
+    const step = rosaryRun.steps[rosaryRun.index];
+    rosaryRun.bead = step.count ? step.count - 1 : 0;
+  }
+  saveRosary();
+  renderRosary();
+}
+
+// Turning the Fatima Prayer on or off keeps the reader's place: the position
+// is counted in steps that are not the Fatima Prayer, which both lists share.
+function setRosaryFatima(on) {
+  state.rosaryFatima = on;
+  const before = rosaryRun.steps.slice(0, rosaryRun.index).filter(s => s.kind !== "fatima").length;
+  rosaryRun.fatima = on;
+  rosaryRun.steps = rosarySteps(rosaryRun.set, { fatima: on });
+  let seen = 0;
+  rosaryRun.index = rosaryRun.steps.findIndex(s => s.kind !== "fatima" && seen++ === before);
+  if (rosaryRun.index < 0) rosaryRun.index = rosaryRun.steps.length - 1;
+  const step = rosaryRun.steps[rosaryRun.index];
+  if (!step.count) rosaryRun.bead = 0;
+  saveRosary();
+  renderRosary();
+}
+
+$("rosaryEntry").onclick = () => openRosary();
+$("rosaryBack").onclick = () => { stopPrayerNarration(); showBookList(); };
+$("rosaryNext").onclick = rosaryNext;
+$("rosaryPrev").onclick = rosaryPrev;
+$("rosarySet").onchange = () => { stopPrayerNarration(); startRosary($("rosarySet").value); renderRosary(); };
+$("rosaryFatima").onchange = () => setRosaryFatima($("rosaryFatima").checked);
+$("rosaryAgain").onclick = () => { startRosary(rosaryRun.set); renderRosary(); $("rosaryNext").focus(); };
+$("rosaryToBook").onclick = showBookList;
+
+// Listen to the step open now: a Prayer Book prayer plays its recording (or
+// the device voice, as in the reader); the mystery and the Fatima Prayer are
+// read by the device voice until they are recorded.
+$("rosaryListen").onclick = () => {
+  const button = $("rosaryListen");
+  if (prayerAudio.playing) { stopPrayerNarration(); return; }
+  const lang = rosaryLang();
+  const step = rosaryRun.steps[rosaryRun.index];
+  if (step.kind === "prayer") {
+    const item = prayerBook.byId(step.prayer);
+    const speak = () => speakPrayer(narrationSegments(item.text[lang], item.audio, lang), button);
+    const src = recordedUrl(prayerItemId(lang, item.id));
+    if (src) playPrayerRecording(src, button, speak, item.name[lang]);
+    else speak();
+  } else {
+    const parts = [$("rosaryStepTitle").textContent, $("rosaryStepText").textContent];
+    if (step.kind === "mystery") parts.push(setById(rosaryRun.set).mysteries[step.decade - 1].verse[lang]);
+    speakPrayer(parts.map(text => ({ text, pause: 0.6 })), button);
+  }
+};
+
 /* ---------- Startup ----------
    Everything above is declarations and handler wiring; this is the only code
    that runs on load, and it runs last — after the whole file has evaluated.
@@ -2269,6 +2509,9 @@ function start() {
     openSos();
   } else if (prayer) {
     openBook(prayer.id);
+  } else if (new URLSearchParams(location.search).has("rosary")) {
+    // A Rosary page links here with ?rosary=<set>, or ?rosary=today.
+    openRosary(new URLSearchParams(location.search).get("rosary"));
   } else if (!state.welcomed) {
     $("welcomeDialog").showModal();
   }

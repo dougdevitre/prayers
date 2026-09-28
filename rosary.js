@@ -45,6 +45,7 @@
         "id": "joyful",
         "slug": { "en": "joyful", "es": "gozosos" },
         "name": { "en": "The Joyful Mysteries", "es": "Misterios Gozosos" },
+        "adjective": { "en": "Joyful", "es": "gozoso" },
         "days": [1, 6],
         "mysteries": [
           { "id": "annunciation", "name": { "en": "The Annunciation", "es": "La Anunciación" }, "ref": "Luke 1:38",
@@ -63,6 +64,7 @@
         "id": "luminous",
         "slug": { "en": "luminous", "es": "luminosos" },
         "name": { "en": "The Luminous Mysteries", "es": "Misterios Luminosos" },
+        "adjective": { "en": "Luminous", "es": "luminoso" },
         "days": [4],
         "mysteries": [
           { "id": "baptism", "name": { "en": "The Baptism of the Lord", "es": "El Bautismo de Jesús en el Jordán" }, "ref": "Matthew 3:17",
@@ -81,6 +83,7 @@
         "id": "sorrowful",
         "slug": { "en": "sorrowful", "es": "dolorosos" },
         "name": { "en": "The Sorrowful Mysteries", "es": "Misterios Dolorosos" },
+        "adjective": { "en": "Sorrowful", "es": "doloroso" },
         "days": [2, 5],
         "mysteries": [
           { "id": "agony", "name": { "en": "The Agony in the Garden", "es": "La oración de Jesús en el Huerto" }, "ref": "Luke 22:42",
@@ -99,6 +102,7 @@
         "id": "glorious",
         "slug": { "en": "glorious", "es": "gloriosos" },
         "name": { "en": "The Glorious Mysteries", "es": "Misterios Gloriosos" },
+        "adjective": { "en": "Glorious", "es": "glorioso" },
         "days": [0, 3],
         "mysteries": [
           { "id": "resurrection", "name": { "en": "The Resurrection", "es": "La Resurrección del Señor" }, "ref": "Luke 24:6",
@@ -119,6 +123,14 @@
   };
 
   const setById = id => rosary.sets.find(s => s.id === id) || null;
+
+  // The Spanish names of the books the mysteries quote, as the Spanish days
+  // name them (scripts/es-books.json; the tests hold the two together).
+  const BOOKS_ES = { "Luke": "Lucas", "Matthew": "Mateo", "Mark": "Marcos", "John": "Juan", "Acts": "Hechos", "Revelation": "Apocalipsis" };
+  /** A mystery's reference in one language: "Luke 1:38", "Lucas 1:38". */
+  const mysteryRef = (mystery, lang) => lang === "es"
+    ? mystery.ref.replace(/^(.*?)(\s+\d+:.*)$/, (_, book, rest) => (BOOKS_ES[book] || book) + rest)
+    : mystery.ref;
 
   /** The mysteries prayed on a date's weekday (Rosarium Virginis Mariae §38). */
   const setForDate = date => rosary.sets.find(s => s.days.includes(date.getDay()));
@@ -155,7 +167,7 @@
     return steps;
   }
 
-  const api = { rosary, setById, setForDate, rosarySteps };
+  const api = { rosary, setById, setForDate, rosarySteps, mysteryRef };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else Object.assign(root, api);
 })(typeof window !== "undefined" ? window : globalThis);

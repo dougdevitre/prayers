@@ -879,7 +879,7 @@ const server = http.createServer((req, res) => {
       const fetched = [];
       english.on("request", r => fetched.push(new URL(r.url()).pathname));
       await english.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
-      check("an English first visit does not download the Spanish journeys", !fetched.includes("/content.es.js")
+      check("an English first visit does not download the Spanish journeys or the Rosary", !fetched.includes("/content.es.js") && !fetched.includes("/rosary.js")
         && await english.evaluate(() => typeof esTracks === "undefined"));
       await english.evaluate(() => { document.getElementById("welcomeDialog").close(); });
       await english.click("#prayerButton");
@@ -956,6 +956,92 @@ const server = http.createServer((req, res) => {
     await reader.click("#libraryButton");
     await reader.click("#bookEntry");
     await reader.click('#bookDialog .filter-tab[data-book-filter="favorites"]');
+
+    // The Rosary, from its own button in the top bar: today's mysteries by
+    // default, one step at a time, the Hail Marys counted bead by bead, the
+    // place kept across a reload, and the Fatima Prayer optional.
+    {
+      const { rosary, setForDate, rosarySteps } = require("../rosary.js");
+      const today = setForDate(new Date());
+      await reader.click("#closeBook");
+      await reader.waitForFunction(() => !prayerAudio.playing, null, { timeout: 3000 }).catch(() => {});
+      check("the top bar has a Prayer Book button, and the library says what it holds",
+        (await reader.getAttribute("#bookButton", "aria-label")) === "Open the Prayer Book and the Rosary"
+        && (await reader.getAttribute("#libraryButton", "aria-label")) === "Journeys and settings");
+      await reader.click("#bookButton");
+      await reader.waitForFunction(() => document.getElementById("rosaryEntryMeta").textContent !== "", null, { timeout: 5000 }).catch(() => {});
+      check("the Prayer Book opens with the Rosary first, naming today's mysteries",
+        (await reader.textContent("#rosaryEntryMeta")) === `Today: ${today.name.en}`
+        && await reader.evaluate(() => document.getElementById("rosaryEntry").compareDocumentPosition(document.getElementById("bookSections")) === Node.DOCUMENT_POSITION_FOLLOWING));
+      await reader.evaluate(() => { state.rosary = null; save(); });
+      await reader.click("#rosaryEntry");
+      check("the Rosary opens at the Sign of the Cross, step 1 of 32", await reader.isVisible("#rosaryView")
+        && (await reader.textContent("#rosaryStepTitle")) === "Sign of the Cross"
+        && (await reader.textContent("#rosaryProgress")) === "Step 1 of 32"
+        && (await reader.textContent("#rosaryHeading")) === today.name.en);
+      for (let i = 0; i < 3; i++) await reader.click("#rosaryNext");
+      check("the three Hail Marys are counted, with their intention", (await reader.textContent("#rosaryCount")) === "Hail Mary 1 of 3"
+        && (await reader.textContent("#rosaryStepKicker")).includes("For faith, hope and charity")
+        && (await reader.$$("#rosaryBeads .rosary-bead")).length === 3
+        && (await reader.textContent("#rosaryNext")) === "Next Hail Mary");
+      await reader.click("#rosaryNext");
+      await reader.click("#rosaryNext");
+      check("each bead fills as it is prayed", (await reader.textContent("#rosaryCount")) === "Hail Mary 3 of 3"
+        && (await reader.$$("#rosaryBeads .rosary-bead.done")).length === 2 && (await reader.textContent("#rosaryNext")) === "Next");
+      await reader.click("#rosaryNext");
+      await reader.click("#rosaryNext");
+      const first = today.mysteries[0];
+      check("the first decade opens with its mystery and verse", (await reader.textContent("#rosaryStepTitle")) === `The first ${today.adjective.en} Mystery`
+        && (await reader.textContent("#rosaryStepText")) === first.name.en
+        && (await reader.textContent("#rosaryStepVerse")) === `“${first.verse.en}” (${first.ref})`
+        && (await reader.textContent("#rosaryStepKicker")) === "Decade 1 of 5");
+      await reader.click("#rosaryPrev");
+      check("back steps to the last bead before it", (await reader.textContent("#rosaryStepTitle")) === "Glory Be"
+        || (await reader.textContent("#rosaryCount")) === "Hail Mary 3 of 3");
+      await reader.click("#rosaryNext");
+      await reader.click("#rosaryNext");
+      await reader.click("#rosaryNext");
+      for (let i = 0; i < 4; i++) await reader.click("#rosaryNext");
+      const place = await reader.evaluate(() => JSON.parse(localStorage.getItem(STORAGE_KEY)).rosary);
+      check("the place is saved as the reader goes", place && place.set === today.id && place.step === 7 && place.bead === 4);
+      await reader.reload({ waitUntil: "networkidle" });
+      await reader.click("#bookButton");
+      await reader.waitForFunction(() => document.getElementById("rosaryEntryMeta").textContent !== "", null, { timeout: 5000 }).catch(() => {});
+      check("the Prayer Book offers to continue", (await reader.textContent("#rosaryEntryMeta")) === `Continue: ${today.name.en} · step 8 of 32`);
+      await reader.click("#rosaryEntry");
+      check("…and resumes at the same bead", (await reader.textContent("#rosaryCount")) === "Hail Mary 5 of 10");
+      await reader.uncheck("#rosaryFatima");
+      check("without the Fatima Prayer, the same place in 27 steps", (await reader.textContent("#rosaryProgress")) === "Step 8 of 27"
+        && (await reader.textContent("#rosaryCount")) === "Hail Mary 5 of 10"
+        && await reader.evaluate(() => state.rosaryFatima === false));
+      await reader.check("#rosaryFatima");
+      await reader.selectOption("#rosarySet", "glorious");
+      check("choosing other mysteries starts them from the beginning", (await reader.textContent("#rosaryHeading")) === rosary.sets[3].name.en
+        && (await reader.textContent("#rosaryProgress")) === "Step 1 of 32");
+      await reader.evaluate(n => { rosaryRun.index = n - 1; rosaryRun.bead = 0; renderRosary(); }, rosarySteps("glorious").length);
+      check("the last step finishes", (await reader.textContent("#rosaryNext")) === "Finish");
+      await reader.click("#rosaryNext");
+      check("…with an amen, and nothing left to resume", await reader.isVisible("#rosaryDone")
+        && await reader.evaluate(() => JSON.parse(localStorage.getItem(STORAGE_KEY)).rosary === null));
+      await reader.click("#rosaryToBook");
+      check("…and back to the Prayer Book, offering today's mysteries again", await reader.isVisible("#bookList")
+        && (await reader.textContent("#rosaryEntryMeta")) === `Today: ${today.name.en}`);
+      await reader.click("#closeBook");
+      // A Rosary page's link opens those mysteries, in the page's language.
+      await reader.goto("http://localhost:8123/app?rosary=luminous&lang=es", { waitUntil: "networkidle" });
+      check("?rosary= opens the named mysteries, in Spanish", await reader.isVisible("#rosaryView")
+        && (await reader.textContent("#rosaryHeading")) === "Misterios Luminosos"
+        && (await reader.textContent("#rosaryStepTitle")) === "Señal de la Cruz");
+      // Sign of the Cross, Creed, Our Father, three beads, Glory Be: seven taps.
+      for (let i = 0; i < 7; i++) await reader.click("#rosaryNext");
+      check("…with the mystery and its reference in Spanish", (await reader.textContent("#rosaryStepTitle")) === "Primer misterio luminoso"
+        && (await reader.textContent("#rosaryStepVerse")).endsWith("(Mateo 3:17)"));
+      await reader.evaluate(() => { state.lang = "en"; state.rosary = null; save(); });
+      await reader.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
+      await reader.click("#libraryButton");
+      await reader.click("#bookEntry");
+      await reader.click('#bookDialog .filter-tab[data-book-filter="favorites"]');
+    }
 
     // The player: a recording plays, pauses and resumes in place, and resets
     // when it ends; the day player stays idle throughout.

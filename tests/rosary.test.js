@@ -4,7 +4,7 @@
 //   npm run test:unit
 
 const assert = require("assert");
-const { rosary, setById, setForDate, rosarySteps } = require("../rosary.js");
+const { rosary, setById, setForDate, rosarySteps, mysteryRef } = require("../rosary.js");
 const { prayerCorpus } = require("../prayers.js");
 
 let failures = 0;
@@ -20,6 +20,7 @@ test("four sets of five mysteries, every name and verse in both languages", () =
   const ids = new Set();
   for (const set of rosary.sets) {
     filled(set.name, set.id);
+    filled(set.adjective, `${set.id} adjective`);
     assert.strictEqual(set.mysteries.length, 5, set.id);
     for (const m of set.mysteries) {
       assert.ok(!ids.has(m.id), `${m.id} twice`);
@@ -87,6 +88,16 @@ test("an unknown set gives nothing, and only the Assumption and Coronation carry
   const noted = rosary.sets.flatMap(s => s.mysteries).filter(m => m.note).map(m => m.id);
   assert.deepStrictEqual(noted, ["assumption", "coronation"]);
   for (const m of rosary.sets.flatMap(s => s.mysteries).filter(m => m.note)) filled(m.note, `${m.id} note`);
+});
+
+test("Spanish references name the books as the Spanish days do", () => {
+  const esBooks = require("../scripts/es-books.json");
+  for (const m of rosary.sets.flatMap(s => s.mysteries)) {
+    const book = m.ref.replace(/\s+\d+:.*$/, "");
+    assert.strictEqual(mysteryRef(m, "es"), m.ref.replace(book, esBooks[book]), m.id);
+    assert.strictEqual(mysteryRef(m, "en"), m.ref);
+  }
+  assert.strictEqual(mysteryRef(setById("joyful").mysteries[0], "es"), "Lucas 1:38");
 });
 
 if (failures) { console.log(`\n${failures} failing`); process.exit(1); }

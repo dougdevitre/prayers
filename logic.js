@@ -88,16 +88,25 @@ function sanitizeTrackData(raw, length) {
   return clean;
 }
 
+/** A saved Rosary from a backup, or null when it is not a sound one. */
+function sanitizeRosary(r, sets) {
+  if (!r || typeof r !== "object" || !sets.includes(r.set)) return null;
+  const whole = (v, max) => Number.isInteger(v) && v >= 0 && v <= max;
+  // 32 steps with the Fatima Prayer; ten beads at most on a step.
+  if (!whole(r.step, 31) || !whole(r.bead, 9) || !Number.isFinite(r.started)) return null;
+  return { set: r.set, step: r.step, bead: r.bead, fatima: r.fatima !== false, started: r.started };
+}
+
 /**
  * A restored backup, or null when the file is not a Stand backup.
  * Everything is validated against the content that exists now: a backup from a
  * newer build can name journeys or days this one does not have, and those are
  * dropped rather than trusted.
  *
- * deps: { coreDays, tracks, langs, prayerIds }
+ * deps: { coreDays, tracks, langs, prayerIds, rosarySets }
  */
 function sanitizeBackup(raw, deps) {
-  const { coreDays, tracks, langs, prayerIds = [] } = deps;
+  const { coreDays, tracks, langs, prayerIds = [], rosarySets = [] } = deps;
   if (!raw || typeof raw !== "object") return null;
   // The legacy top-level fields identify a Stand backup.
   if (!Array.isArray(raw.completed) || !Array.isArray(raw.favorites) || !raw.notes || typeof raw.notes !== "object") return null;
@@ -137,6 +146,10 @@ function sanitizeBackup(raw, deps) {
     prayerFavorites: Array.isArray(raw.prayerFavorites)
       ? [...new Set(raw.prayerFavorites.filter(id => prayerIds.includes(id)))]
       : [],
+    // A Rosary in progress: a known set, a plausible place in it, and when it
+    // began (the app resumes it for twelve hours). Anything else is dropped.
+    rosary: sanitizeRosary(raw.rosary, rosarySets),
+    rosaryFatima: raw.rosaryFatima !== false,
     theme: raw.theme === "light" || raw.theme === "dark" ? raw.theme : null,
     lang: langs.includes(raw.lang) ? raw.lang : "en",
     bilingual: raw.bilingual === true,
@@ -160,5 +173,5 @@ function sanitizeBackup(raw, deps) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { localISO, slugify, completedDatesOf, streakFrom, ledgerStats, sanitizeTrackData, sanitizeBackup };
+  module.exports = { localISO, slugify, completedDatesOf, streakFrom, ledgerStats, sanitizeTrackData, sanitizeBackup, sanitizeRosary };
 }

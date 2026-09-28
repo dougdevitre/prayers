@@ -120,6 +120,16 @@ function fakeApi({ failFirst = 0, status = 429 } = {}) {
     const prayerPlan = lib.planItems({ items, voices, slugify }).filter(p => p.item.kind === "prayer").slice(0, 1);
     const good = { version: 1, enabled: true, base: "", items: { [prayerPlan[0].item.id]: { key: prayerPlan[0].key, hash: prayerPlan[0].hash } } };
     assert.deepStrictEqual(lib.manifestReport(good, prayerPlan).fresh, [prayerPlan[0].item.id], "a prayer key is a recording path");
+    // Every kind the build files a recording under is a recording path the
+    // check accepts: a new kind (the Rosary's) cannot be planned and then refused.
+    const all = lib.planItems({ items: lib.loadItems(), voices, slugify });
+    const kinds = [...new Set(all.map(p => p.item.kind))];
+    assert.ok(kinds.includes("rosary"), "the Rosary is planned");
+    for (const kind of kinds) {
+      const one = all.filter(p => p.item.kind === kind).slice(0, 1);
+      const manifest = { version: 1, enabled: true, base: "", items: { [one[0].item.id]: { key: one[0].key, hash: one[0].hash } } };
+      assert.deepStrictEqual(lib.manifestReport(manifest, one).problems, [], `a ${kind} key is a recording path`);
+    }
   });
 
   await test("the written manifest loads as the module the app reads", () => {

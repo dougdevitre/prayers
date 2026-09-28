@@ -736,6 +736,132 @@ const audioManifest = {
       "bytes": 429706,
       "seconds": 27
     },
+    "en/rosary/agony": {
+      "key": "en/rosary/agony.436a3989.mp3",
+      "hash": "436a3989b6d8f0a830613465cbf79f39a08f0741b732b8c9ebd0cfd8e6b30877",
+      "bytes": 344442,
+      "seconds": 22
+    },
+    "en/rosary/annunciation": {
+      "key": "en/rosary/annunciation.780bbe4d.mp3",
+      "hash": "780bbe4d3256e3e1adef301b5890835c53c5cc286b9dd5538981849ee826db7b",
+      "bytes": 186871,
+      "seconds": 12
+    },
+    "en/rosary/ascension": {
+      "key": "en/rosary/ascension.0f3c336e.mp3",
+      "hash": "0f3c336e81ab4a4b5e23f0324d464ae9c9ee92572412a47ed71db22d4408f129",
+      "bytes": 176422,
+      "seconds": 11
+    },
+    "en/rosary/assumption": {
+      "key": "en/rosary/assumption.5e070708.mp3",
+      "hash": "5e070708086e67b807923597265f6e6bd068aaa964c0ac57fbc1ee9e4e040415",
+      "bytes": 189797,
+      "seconds": 12
+    },
+    "en/rosary/baptism": {
+      "key": "en/rosary/baptism.4852252e.mp3",
+      "hash": "4852252e2c36b5efdd446874a3511573702153d2e77207821f29f96834c02279",
+      "bytes": 160122,
+      "seconds": 10
+    },
+    "en/rosary/cana": {
+      "key": "en/rosary/cana.a558e23a.mp3",
+      "hash": "a558e23a2ad9a6fe506d1f401359238e05c936c513e77931e022d2acfb16c7cd",
+      "bytes": 133373,
+      "seconds": 8
+    },
+    "en/rosary/carrying": {
+      "key": "en/rosary/carrying.8324636d.mp3",
+      "hash": "8324636d9e57726935b0c0341a49ff25f557d6b36d5fe095e635bf1f814bda6b",
+      "bytes": 151345,
+      "seconds": 9
+    },
+    "en/rosary/coronation": {
+      "key": "en/rosary/coronation.092c0538.mp3",
+      "hash": "092c053818f6be88231f094901698a1768769400e1ae4ed427d25a5174dc27ab",
+      "bytes": 278822,
+      "seconds": 17
+    },
+    "en/rosary/crowning": {
+      "key": "en/rosary/crowning.bf9b912a.mp3",
+      "hash": "bf9b912a1cc3683629c2289b164b32dbce6d3f7fa3d6f5029edcfcab143dac26",
+      "bytes": 184782,
+      "seconds": 12
+    },
+    "en/rosary/crucifixion": {
+      "key": "en/rosary/crucifixion.3e03656d.mp3",
+      "hash": "3e03656d1406e336df4a8c8ed6503999852dd73a4d413e81b88923f98eda7552",
+      "bytes": 214457,
+      "seconds": 13
+    },
+    "en/rosary/eucharist": {
+      "key": "en/rosary/eucharist.20c0a0c3.mp3",
+      "hash": "20c0a0c3e58b4b92e016f5e5907255e0765d04f123b442508412276f90bafc46",
+      "bytes": 223234,
+      "seconds": 14
+    },
+    "en/rosary/fatima": {
+      "key": "en/rosary/fatima.114e1d56.mp3",
+      "hash": "114e1d5627d89044c71ba527882845b95d30891ad236aa27d1114b449694bd03",
+      "bytes": 188961,
+      "seconds": 12
+    },
+    "en/rosary/finding": {
+      "key": "en/rosary/finding.7c7c168b.mp3",
+      "hash": "7c7c168b829b3db3825b8253f5c4b2e1004fb1c04524ad719718247febcb57f3",
+      "bytes": 160958,
+      "seconds": 10
+    },
+    "en/rosary/nativity": {
+      "key": "en/rosary/nativity.c3790386.mp3",
+      "hash": "c37903869552b77d0d546e27c94ff4502fcacdddb84dfaef36306326ca1ae995",
+      "bytes": 254999,
+      "seconds": 16
+    },
+    "en/rosary/pentecost": {
+      "key": "en/rosary/pentecost.1c81b0cc.mp3",
+      "hash": "1c81b0cc21df0174942e3c0464c280bb28b3e370cb0a1159814991140532a048",
+      "bytes": 182274,
+      "seconds": 11
+    },
+    "en/rosary/presentation": {
+      "key": "en/rosary/presentation.528c1a1b.mp3",
+      "hash": "528c1a1b312e4a30ebefc4422566320a3a12cbe094ad6da03ba9d47a490e99b9",
+      "bytes": 161376,
+      "seconds": 10
+    },
+    "en/rosary/proclamation": {
+      "key": "en/rosary/proclamation.95d8357b.mp3",
+      "hash": "95d8357beb9a33349a93f076dad8be4f22124be62b6b649aea8e6c998cce9135",
+      "bytes": 202336,
+      "seconds": 13
+    },
+    "en/rosary/resurrection": {
+      "key": "en/rosary/resurrection.4ed0a597.mp3",
+      "hash": "4ed0a597ff86d4ac6359cdd5a1cfdce8a9b2668676a6e1435d69bb6563695ba5",
+      "bytes": 131701,
+      "seconds": 8
+    },
+    "en/rosary/scourging": {
+      "key": "en/rosary/scourging.c560873f.mp3",
+      "hash": "c560873f9556a06d8a7925819b174ba177fee712b0832a17074d3f42b7196117",
+      "bytes": 194395,
+      "seconds": 12
+    },
+    "en/rosary/transfiguration": {
+      "key": "en/rosary/transfiguration.3ea55f1e.mp3",
+      "hash": "3ea55f1e553c46899a73c31377182eabfbfb36ebba77a549e881e9b84fc04e27",
+      "bytes": 174333,
+      "seconds": 11
+    },
+    "en/rosary/visitation": {
+      "key": "en/rosary/visitation.e62be823.mp3",
+      "hash": "e62be8236446b4c30b075eebf7f4d495e8bc40a62d11422abb59bace94769b4a",
+      "bytes": 178094,
+      "seconds": 11
+    },
     "en/sos/0": {
       "key": "en/sos/1-psalm-27-1.6db8206f.mp3",
       "hash": "6db8206fd3191d1e8b496de31650cd5a4b2080ad45c391939287974da0a6fcc7",
@@ -1485,6 +1611,132 @@ const audioManifest = {
       "hash": "66fa2efed463740e53f7124ed594f98ad8274c4fc86bf212331bc0d1058f53f0",
       "bytes": 464814,
       "seconds": 29
+    },
+    "es/rosary/agony": {
+      "key": "es/rosary/agony.7f655af1.mp3",
+      "hash": "7f655af1535a2057056e133f259ee31f18bb7614f2371bdce88f656c0e8c90be",
+      "bytes": 272135,
+      "seconds": 17
+    },
+    "es/rosary/annunciation": {
+      "key": "es/rosary/annunciation.9bcee489.mp3",
+      "hash": "9bcee4899e6684ceb89629eaab7f23ee8b06fa93fa16b9e7547c8963b07c4eec",
+      "bytes": 219472,
+      "seconds": 14
+    },
+    "es/rosary/ascension": {
+      "key": "es/rosary/ascension.05592f35.mp3",
+      "hash": "05592f35478b60c8f43d926c5b795717c8863207d12cac88e982aedea3b513d6",
+      "bytes": 194813,
+      "seconds": 12
+    },
+    "es/rosary/assumption": {
+      "key": "es/rosary/assumption.ef8d0a66.mp3",
+      "hash": "ef8d0a66b9c113b5af398c4695d7c6952374eec1018a8713b9ba9ec795430fc4",
+      "bytes": 261268,
+      "seconds": 16
+    },
+    "es/rosary/baptism": {
+      "key": "es/rosary/baptism.9b07a068.mp3",
+      "hash": "9b07a06864701905cd34ca033c40ffca46203fa342df9f9e4a7f9bf18522d63c",
+      "bytes": 254999,
+      "seconds": 16
+    },
+    "es/rosary/cana": {
+      "key": "es/rosary/cana.94de5441.mp3",
+      "hash": "94de5441baac8280c3ba43a9d7c6ba003aef08eaaba96ab2c3de322e677ebfa1",
+      "bytes": 131701,
+      "seconds": 8
+    },
+    "es/rosary/carrying": {
+      "key": "es/rosary/carrying.455e539b.mp3",
+      "hash": "455e539b296bdd418c9927c0dc6fd1a5bccc2c3e67c0bf4a51ed14287cea8340",
+      "bytes": 245386,
+      "seconds": 15
+    },
+    "es/rosary/coronation": {
+      "key": "es/rosary/coronation.39b8c039.mp3",
+      "hash": "39b8c03978254826ec35760181a7aa728a1c0bc8d89592900517b4530757562e",
+      "bytes": 379968,
+      "seconds": 24
+    },
+    "es/rosary/crowning": {
+      "key": "es/rosary/crowning.580d209f.mp3",
+      "hash": "580d209fa1c860d1b4a42698ebaf8e844c42dca1258904b06d9448fdb1e1dc52",
+      "bytes": 226159,
+      "seconds": 14
+    },
+    "es/rosary/crucifixion": {
+      "key": "es/rosary/crucifixion.c457ad07.mp3",
+      "hash": "c457ad075919fc9a081cb6c54a848764751916e1010a012e91f25441009226c0",
+      "bytes": 247057,
+      "seconds": 15
+    },
+    "es/rosary/eucharist": {
+      "key": "es/rosary/eucharist.6471b283.mp3",
+      "hash": "6471b2835fba6fff0345a99199861ef28d17c3faa1b24432d95b142b8310d2a9",
+      "bytes": 300556,
+      "seconds": 19
+    },
+    "es/rosary/fatima": {
+      "key": "es/rosary/fatima.5ead9b2d.mp3",
+      "hash": "5ead9b2d6ab6c4916267e89d90e685180573773bc1f69ab512018cd80378588a",
+      "bytes": 254581,
+      "seconds": 16
+    },
+    "es/rosary/finding": {
+      "key": "es/rosary/finding.2a27c69f.mp3",
+      "hash": "2a27c69f4fa06d65765f7970c7ec9fc8a1efdf820a2e8b57f3392286d636bd9f",
+      "bytes": 249983,
+      "seconds": 16
+    },
+    "es/rosary/nativity": {
+      "key": "es/rosary/nativity.f3ec880f.mp3",
+      "hash": "f3ec880f7198a65265c8e118ca3f87589146db65f4af16a6d5740c001cf0b685",
+      "bytes": 277568,
+      "seconds": 17
+    },
+    "es/rosary/pentecost": {
+      "key": "es/rosary/pentecost.c34c4460.mp3",
+      "hash": "c34c4460243c802e8d5f21f237f23df6467dd0a8f7243d5457a808d631a1aa12",
+      "bytes": 209023,
+      "seconds": 13
+    },
+    "es/rosary/presentation": {
+      "key": "es/rosary/presentation.00b34d42.mp3",
+      "hash": "00b34d4208f8cb4e1556ad9b9f2700bfcbee7053bb254b1b24a79d3cc5baa710",
+      "bytes": 200246,
+      "seconds": 13
+    },
+    "es/rosary/proclamation": {
+      "key": "es/rosary/proclamation.db51feb0.mp3",
+      "hash": "db51feb097a6d8c78d978ff7c20ed442dfcb75aa112b0b22f9f8be00c06cb7ad",
+      "bytes": 311841,
+      "seconds": 19
+    },
+    "es/rosary/resurrection": {
+      "key": "es/rosary/resurrection.58289064.mp3",
+      "hash": "58289064f313464b427356bb42ef08f741c2fc5585ead27705dea8110beaf9ef",
+      "bytes": 206933,
+      "seconds": 13
+    },
+    "es/rosary/scourging": {
+      "key": "es/rosary/scourging.29fdf9c8.mp3",
+      "hash": "29fdf9c8c54035472eb919ba90863d6b077f02f1798af46bc8ec91c37c199959",
+      "bytes": 198574,
+      "seconds": 12
+    },
+    "es/rosary/transfiguration": {
+      "key": "es/rosary/transfiguration.fbfe458c.mp3",
+      "hash": "fbfe458cc1c4638e23fdbbcdfe9c2585b751d85244c58894d7ec2a2335f43fa4",
+      "bytes": 299720,
+      "seconds": 19
+    },
+    "es/rosary/visitation": {
+      "key": "es/rosary/visitation.16c85f2d.mp3",
+      "hash": "16c85f2d24b8ce155b4fd09d4c6f5df4d1861781d14f1f767cb9d9414150730b",
+      "bytes": 227831,
+      "seconds": 14
     },
     "es/sos/0": {
       "key": "es/sos/1-salmo-27-1.eaac6be1.mp3",

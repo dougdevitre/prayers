@@ -128,7 +128,7 @@ function manifestReport(manifest, plan) {
   for (const [id, entry] of Object.entries(items)) {
     const p = byId.get(id);
     if (!p) { report.orphan.push(id); continue; }
-    if (!entry || typeof entry.key !== "string" || !/^[a-z]{2}\/(day\/[a-z0-9-]+|sos|prayer)\/[a-z0-9-]+\.[0-9a-f]{8}\.mp3$/.test(entry.key)) {
+    if (!entry || typeof entry.key !== "string" || !/^[a-z]{2}\/(day\/[a-z0-9-]+|sos|prayer|rosary)\/[a-z0-9-]+\.[0-9a-f]{8}\.mp3$/.test(entry.key)) {
       report.problems.push(`${id}: key is not a recording path: ${JSON.stringify(entry && entry.key)}`); continue;
     }
     if (!/^[0-9a-f]{64}$/.test(entry.hash || "")) { report.problems.push(`${id}: hash is not sha256 hex`); continue; }

@@ -154,5 +154,27 @@ test("narrationItems lists every day, SOS set and traditional prayer in both lan
   assert.ok(longest < 5000, `longest script is ${longest} characters, within one request`);
 });
 
+test("the Rosary's own text is narrated: the Fatima Prayer and every mystery, in both languages, as the app shows it", () => {
+  const lib = require("../scripts/audio-lib.js");
+  const { rosary } = require("../rosary.js");
+  const { appUi } = require("../ui.js");
+  const all = lib.loadItems();
+  const items = all.filter(i => i.kind === "rosary");
+  assert.strictEqual(items.length, 2 * (1 + rosary.sets.reduce((n, s) => n + s.mysteries.length, 0)));
+  assert.strictEqual(new Set(all.map(i => i.id)).size, all.length, "ids are unique across every kind");
+  const annunciation = items.find(i => i.id === "en/rosary/annunciation");
+  // The heading is the app's own (ui.js), so the recording says what the screen does.
+  assert.strictEqual(annunciation.text.split("\n")[0], `${appUi.en["rosary.mysteryHeading"].replace("{ordinal}", "first").replace("{adjective}", "Joyful")}.`);
+  assert.match(annunciation.text, /^The first Joyful Mystery\.\n\nThe Annunciation\.\n\n"Behold, the servant of the Lord;/);
+  assert.match(annunciation.text, /\.\.\. Luke, chapter one, verse thirty-eight\.$/);
+  assert.match(items.find(i => i.id === "es/rosary/coronation").text, /^Quinto misterio glorioso\.\n\nLa coronación de María\./);
+  const fatima = items.find(i => i.id === "es/rosary/fatima");
+  assert.strictEqual(fatima.text, `${rosary.fatima.name.es}.\n\n${rosary.fatima.text.es}`);
+  const voices = lib.loadVoices();
+  const [plan] = lib.planItems({ items: [annunciation], voices, slugify: require("../logic.js").slugify });
+  assert.match(plan.key, /^en\/rosary\/annunciation\.[0-9a-f]{8}\.mp3$/);
+  assert.deepStrictEqual({ ...voices.en.rosary }, { ...voices.en.prayer }, "read with the prayer settings");
+});
+
 if (failures) { console.log(`\n${failures} failing`); process.exit(1); }
 console.log("\nAll narration tests passed.");

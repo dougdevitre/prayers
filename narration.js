@@ -172,11 +172,28 @@ function prayerScript(item, lang = "en") {
   return `${closed(item.name[lang])}\n\n${text}`;
 }
 
+/**
+ * The narration for a mystery of the Rosary: its heading ("The first Joyful
+ * Mystery", the app's own wording, passed in), its name, and its verse with
+ * the reference read out, as a day's scripture is. The pause after it, to
+ * dwell on the mystery, is the app's (praying along), not the recording's.
+ */
+function mysteryScript(heading, name, verse, ref, lang = "en") {
+  return [closed(heading), closed(name), `"${spokenText(verse)}"\n... ${spokenRef(ref, lang)}.`].join("\n\n");
+}
+
+/** The Fatima Prayer: its name, then the prayer, as a traditional prayer is read. */
+function fatimaScript(name, text) {
+  return `${closed(name)}\n\n${spokenText(text)}`;
+}
+
 /** The id a recording is filed under: "<lang>/day/<track>/<index>",
- * "<lang>/sos/<index>" or "<lang>/prayer/<prayer id>". */
+ * "<lang>/sos/<index>", "<lang>/prayer/<prayer id>" or
+ * "<lang>/rosary/<mystery id | fatima>". */
 function dayItemId(lang, trackId, index) { return `${lang}/day/${trackId}/${index}`; }
 function sosItemId(lang, index) { return `${lang}/sos/${index}`; }
 function prayerItemId(lang, id) { return `${lang}/prayer/${id}`; }
+function rosaryItemId(lang, id) { return `${lang}/rosary/${id}`; }
 
 /**
  * Every narration item there is, in a stable order, each with the exact text
@@ -208,9 +225,21 @@ function narrationItems(deps) {
       items.push({ id: prayerItemId(lang, p.id), lang, kind: "prayer", track: null, index: i, slug: p.id, title: p.name[lang], audio: p.audio || null, text: prayerScript(p, lang) });
     });
   }
+  // The Rosary's own text: the Fatima Prayer and the twenty mysteries. Its
+  // other prayers are the Prayer Book's, recorded above. deps.rosary:
+  // { fatima, sets, heading(set, index, lang), ref(mystery, lang) }.
+  const r = deps.rosary;
+  if (r) {
+    for (const lang of ["en", "es"]) {
+      items.push({ id: rosaryItemId(lang, "fatima"), lang, kind: "rosary", track: null, index: 0, slug: "fatima", title: r.fatima.name[lang], text: fatimaScript(r.fatima.name[lang], r.fatima.text[lang]) });
+      r.sets.forEach(set => set.mysteries.forEach((m, i) => {
+        items.push({ id: rosaryItemId(lang, m.id), lang, kind: "rosary", track: null, index: i, slug: m.id, title: m.name[lang], text: mysteryScript(r.heading(set, i, lang), m.name[lang], m.verse[lang], r.ref(m, lang), lang) });
+      }));
+    }
+  }
   return items;
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { NARRATION_FRAMES, numberWords, parseRef, spokenRef, spokenText, dayScript, sosScript, prayerScript, dayItemId, sosItemId, prayerItemId, narrationItems };
+  module.exports = { NARRATION_FRAMES, numberWords, parseRef, spokenRef, spokenText, dayScript, sosScript, prayerScript, mysteryScript, fatimaScript, dayItemId, sosItemId, prayerItemId, rosaryItemId, narrationItems };
 }

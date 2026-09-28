@@ -21,7 +21,14 @@ function loadItems(root = ROOT) {
   const { tracks, sosSetsEn } = require(path.join(root, "content.js"));
   const { esTracks, esSos } = require(path.join(root, "content.es.js"));
   const { prayerCorpus } = require(path.join(root, "prayers.js"));
-  return narrationItems({ tracks, esTracks, sosSets: sosSetsEn, esSos, prayers: prayerCorpus.traditional });
+  const { rosary, mysteryRef } = require(path.join(root, "rosary.js"));
+  const { appUi } = require(path.join(root, "ui.js"));
+  // A mystery's heading in the app's own words (ui.js), composed as the app
+  // composes it, so the recording and the screen say the same thing.
+  const heading = (set, index, lang) => appUi[lang]["rosary.mysteryHeading"]
+    .replace("{ordinal}", appUi[lang]["rosary.ordinals"].split("|")[index])
+    .replace("{adjective}", set.adjective[lang]);
+  return narrationItems({ tracks, esTracks, sosSets: sosSetsEn, esSos, prayers: prayerCorpus.traditional, rosary: { fatima: rosary.fatima, sets: rosary.sets, heading, ref: mysteryRef } });
 }
 
 function loadVoices(file = VOICES_FILE) {
@@ -57,9 +64,10 @@ function itemHash(text, settings) {
 }
 
 /** "en/day/core/01-stand.7f3a9c2e.mp3", "es/sos/1-salmo-27-1.b91d0c44.mp3",
- * "en/prayer/our-father.3c1e77a0.mp3". */
+ * "en/prayer/our-father.3c1e77a0.mp3", "es/rosary/annunciation.5d2e0a91.mp3". */
 function keyFor(item, hash, slugify) {
   if (item.kind === "prayer") return `${item.lang}/prayer/${item.slug}.${hash.slice(0, 8)}.mp3`;
+  if (item.kind === "rosary") return `${item.lang}/rosary/${item.slug}.${hash.slice(0, 8)}.mp3`;
   const n = item.index + 1;
   const number = item.kind === "day" ? String(n).padStart(2, "0") : String(n);
   const dir = item.kind === "day" ? `${item.lang}/day/${item.track}` : `${item.lang}/sos`;

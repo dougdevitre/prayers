@@ -1,5 +1,5 @@
 {
-  "_comment": "Voice ids and delivery settings per language and kind, read by scripts/build-audio.js. One voice narrates everything in both languages: the voice dougdevitre/remam renders its prayer audio with (scripts/generate-prayer-audio.mjs there), so Stand and REMAM sound the same. A kind may still name its own voiceId and model to override the language's. Changing anything here changes every item's hash it applies to, so the next build re-renders what it touches. No secrets live here; the API key comes from ELEVENLABS_API_KEY. Traditional prayers start from the prayer settings and take stability, style and speed from their own entry in prayers.js when it has them.",
+  "_comment": "Voice ids and delivery settings per language and kind, read by scripts/build-audio.js. One voice narrates everything in both languages: the voice dougdevitre/remam renders its prayer audio with (scripts/generate-prayer-audio.mjs there), so Stand and REMAM sound the same. A kind may still name its own voiceId and model to override the language's. Changing anything here changes every item's hash it applies to, so the next build re-renders what it touches. No secrets live here; the API key comes from ELEVENLABS_API_KEY. Traditional prayers start from the prayer settings and take stability, style and speed from their own entry in prayers.js when it has them. The Rosary's mysteries and Fatima Prayer (kind rosary) are read with the prayer settings.",
   "outputFormat": "mp3_44100_128",
   "en": {
     "voiceId": "2ydcbtd5sJZRYFMNgMVZ",
@@ -20,6 +20,13 @@
       "boost": true
     },
     "prayer": {
+      "stability": 0.75,
+      "similarity": 0.75,
+      "style": 0,
+      "speed": 0.85,
+      "boost": true
+    },
+    "rosary": {
       "stability": 0.75,
       "similarity": 0.75,
       "style": 0,
@@ -46,6 +53,13 @@
       "boost": true
     },
     "prayer": {
+      "stability": 0.75,
+      "similarity": 0.75,
+      "style": 0,
+      "speed": 0.85,
+      "boost": true
+    },
+    "rosary": {
       "stability": 0.75,
       "similarity": 0.75,
       "style": 0,

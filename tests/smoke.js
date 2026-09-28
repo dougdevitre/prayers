@@ -1067,6 +1067,80 @@ const server = http.createServer((req, res) => {
       await reader.selectOption("#rosarySet", "glorious");
       check("choosing other mysteries starts them from the beginning", (await reader.textContent("#rosaryHeading")) === rosary.sets[3].name.en
         && (await reader.textContent("#rosaryProgress")) === "Step 1 of 32");
+
+      // The keyboard moves the beads: → and ← from anywhere in the Rosary.
+      await reader.focus("#rosaryNext");
+      await reader.keyboard.press("ArrowRight");
+      const keyedOn = await reader.textContent("#rosaryProgress");
+      await reader.keyboard.press("ArrowLeft");
+      check("→ and ← move a step, as Next and Back do", keyedOn === "Step 2 of 32" && (await reader.textContent("#rosaryProgress")) === "Step 1 of 32"
+        && (await reader.getAttribute("#rosaryNext", "aria-keyshortcuts")) === "ArrowRight");
+
+      // "Show both languages" sets the other language beneath each step.
+      await reader.evaluate(() => { state.bilingual = true; renderRosary(); });
+      check("with both languages shown, the step's Spanish is beneath it", await reader.isVisible("#rosaryStepOther")
+        && (await reader.getAttribute("#rosaryStepOther", "lang")) === "es"
+        && (await reader.textContent("#rosaryStepOther")) === prayerCorpus.traditional.find(p => p.id === "sign-of-the-cross").text.es.trim());
+      await reader.evaluate(() => { rosaryRun.index = 5; renderRosary(); });
+      const firstGlorious = rosary.sets[3].mysteries[0];
+      check("…and a mystery's Spanish name and verse", (await reader.textContent("#rosaryStepOther")).startsWith(`${firstGlorious.name.es}. “${firstGlorious.verse.es}”`));
+      await reader.evaluate(() => { state.bilingual = false; rosaryRun.index = 0; renderRosary(); });
+      check("…and none when it is off", !(await reader.isVisible("#rosaryStepOther")));
+
+      // The screen is kept on while the Rosary is open, and let go when it is left.
+      await reader.evaluate(() => {
+        window.__wake = { requested: 0, released: 0 };
+        Object.defineProperty(navigator, "wakeLock", { configurable: true, value: { request: async () => {
+          window.__wake.requested++;
+          const lock = new EventTarget();
+          lock.release = async () => { window.__wake.released++; lock.dispatchEvent(new Event("release")); };
+          return lock;
+        } } });
+      });
+      await reader.click("#rosaryBack");
+      await reader.click("#rosaryEntry");
+      await reader.waitForFunction(() => wake.lock !== null, null, { timeout: 3000 }).catch(() => {});
+      const heldOpen = await reader.evaluate(() => window.__wake.requested >= 1 && wake.lock !== null);
+      await reader.click("#rosaryBack");
+      check("the screen stays on while the Rosary is open, and is let go on leaving it", heldOpen
+        && await reader.evaluate(() => window.__wake.released >= 1 && wake.lock === null));
+      await reader.click("#rosaryEntry");
+
+      // Praying along: each step read in turn, moving on by itself. Recordings
+      // are the one-second fixture; the device voice is stubbed to finish at once.
+      await reader.evaluate(ids => {
+        for (const id of ids) audioManifest.items[prayerItemId("en", id)] = { key: "tests/fixtures/silence.mp3", hash: "0".repeat(64), bytes: 15846, seconds: 1 };
+        alongPause.step = 50;
+        alongPause.mystery = 150;
+        speechSynthesis.speak = u => setTimeout(() => u.onend && u.onend(), 20);
+        speechSynthesis.cancel = () => {};
+      }, [...new Set(rosarySteps("glorious").filter(s => s.kind === "prayer").map(s => s.prayer))]);
+      await reader.click("#rosaryAlong");
+      check("Pray along starts reading the step open now", (await reader.getAttribute("#rosaryAlong", "aria-pressed")) === "true"
+        && (await reader.textContent("#rosaryAlong")) === "■ Stop praying along"
+        && await reader.evaluate(() => along.on && prayerAudio.recorded && audioEl.src.endsWith("/tests/fixtures/silence.mp3")));
+      const alongMoved = await reader.waitForFunction(() => rosaryRun.index === 3 && rosaryRun.bead >= 1, null, { timeout: 15000 }).then(() => true).catch(() => false);
+      check("…and moves on by itself, through the prayers and bead by bead", alongMoved
+        && await reader.evaluate(() => along.on && document.querySelectorAll("#rosaryBeads .rosary-bead.done").length >= 1));
+      await reader.evaluate(() => { stopAlong(); rosaryRun.index = 5; rosaryRun.bead = 0; renderRosary(); });
+      await reader.click("#rosaryAlong");
+      const pastMystery = await reader.waitForFunction(() => rosaryRun.index === 6, null, { timeout: 10000 }).then(() => true).catch(() => false);
+      check("…reading a mystery with the device voice, and moving on after a pause", pastMystery && await reader.evaluate(() => along.on));
+      await reader.click("#rosaryNext");
+      check("…Next skips ahead and carries on from there", await reader.evaluate(() => rosaryRun.index === 7 && along.on));
+      await reader.click("#rosaryListen");
+      check("…and Listen stops it", await reader.evaluate(() => !along.on && !prayerAudio.playing)
+        && (await reader.getAttribute("#rosaryAlong", "aria-pressed")) === "false"
+        && (await reader.textContent("#rosaryAlong")) === "▶ Pray along");
+      await reader.click("#rosaryAlong");
+      await reader.evaluate(() => stopAudio());
+      check("…as does any other audio starting", await reader.evaluate(() => !along.on));
+      await reader.evaluate(n => { stopAlong(); rosaryRun.index = n - 1; rosaryRun.bead = 0; renderRosary(); }, rosarySteps("glorious").length);
+      await reader.click("#rosaryAlong");
+      const finished = await reader.waitForFunction(() => rosaryRun.done, null, { timeout: 10000 }).then(() => true).catch(() => false);
+      check("…and it ends with the Rosary", finished && await reader.evaluate(() => !along.on) && await reader.isVisible("#rosaryDone"));
+      await reader.click("#rosaryAgain");
+      await reader.selectOption("#rosarySet", "glorious");
       await reader.evaluate(n => { rosaryRun.index = n - 1; rosaryRun.bead = 0; renderRosary(); }, rosarySteps("glorious").length);
       check("the last step finishes", (await reader.textContent("#rosaryNext")) === "Finish");
       await reader.click("#rosaryNext");

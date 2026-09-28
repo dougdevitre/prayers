@@ -142,8 +142,51 @@ async function open(browser, scheme, url, mode, width = 390) {
     await page.close();
   }
 
+  // Tap targets (WCAG 2.5.5): every control a finger has to hit is at least
+  // 44 by 44 CSS pixels, at phone width, on every screen. A link inside a
+  // sentence is exempt, as the criterion allows: it is sized by its text.
+  // A checkbox or radio counts as its label, which is what takes the tap.
+  // Every dialog also has a name, so a screen reader says what opened.
+  const targets = [];
+  for (const [url, mode] of PAGES) {
+    const page = await open(browser, "light", url, mode);
+    const small = await page.evaluate(() => {
+      const MIN = 44;
+      const visible = el => { const r = el.getBoundingClientRect(); const s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none"; };
+      const layer = document.querySelector("dialog[open]") || document.body;
+      const name = el => `${el.tagName.toLowerCase()}${el.id ? "#" + el.id : ""}${typeof el.className === "string" && el.className.trim() ? "." + el.className.trim().split(/\s+/).join(".") : ""} “${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 24)}”`;
+      const inSentence = a => {
+        if (getComputedStyle(a).display !== "inline") return false;
+        const block = a.closest("p, li, figcaption, dd, td, cite, small, blockquote");
+        return Boolean(block) && block.textContent.trim().length > a.textContent.trim().length + 2;
+      };
+      const out = [];
+      for (const d of document.querySelectorAll("dialog")) {
+        const labelled = d.getAttribute("aria-label") || (d.getAttribute("aria-labelledby") || "").split(/\s+/).some(id => document.getElementById(id)?.textContent.trim());
+        if (!labelled) out.push(`dialog#${d.id} has no accessible name`);
+      }
+      for (const el of layer.querySelectorAll("a[href], button, select, input:not([type=hidden]), textarea, summary, [role=button], [tabindex='0']")) {
+        if (!visible(el) || el.closest("[inert]") || (el.tagName === "A" && inSentence(el))) continue;
+        let box = el;
+        // A link stretched over its card (an absolute ::after) is the card.
+        const after = getComputedStyle(el, "::after");
+        if (after.content !== "none" && after.position === "absolute" && el.offsetParent) box = el.offsetParent;
+        if (el.matches("input[type=checkbox], input[type=radio]")) box = el.closest("label") || (el.id && document.querySelector(`label[for="${el.id}"]`)) || el;
+        const r = box.getBoundingClientRect();
+        if (r.width < MIN - 0.5 || r.height < MIN - 0.5) out.push(`${name(el)} is ${Math.round(r.width)}×${Math.round(r.height)}`);
+      }
+      return [...new Set(out)];
+    });
+    const where = `targets ${url}${mode ? ` [${mode}]` : ""}`;
+    checked++;
+    if (small.length) targets.push({ where, small });
+    console.log(`${small.length ? "FAIL" : "PASS"} ${where}`);
+    await page.close();
+  }
+
   await browser.close();
   server.close();
+  for (const t of targets) console.log(`\n${t.where}:\n  ${t.small.join("\n  ")}`);
   for (const r of reflow) console.log(`\n${r.where} does not reflow:\n  ${r.wide.join("\n  ")}`);
   for (const f of failures) {
     console.log(`\n${f.where}`);
@@ -152,6 +195,6 @@ async function open(browser, scheme, url, mode, width = 390) {
       for (const n of v.nodes) console.log(`    ${n}`);
     }
   }
-  if (failures.length || reflow.length) { console.log(`\n${failures.length + reflow.length} of ${checked} screens fail`); process.exit(1); }
+  if (failures.length || reflow.length || targets.length) { console.log(`\n${failures.length + reflow.length + targets.length} of ${checked} screens fail`); process.exit(1); }
   console.log(`\nNo accessibility violations on ${checked} screens.`);
 })().catch(e => { console.error(e); process.exit(1); });

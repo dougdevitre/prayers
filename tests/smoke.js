@@ -888,7 +888,7 @@ const server = http.createServer((req, res) => {
     check("prayer book loads", (await page.title()) === "Prayer Book — Stand");
     check("prayer book lists every traditional prayer", (await page.$$(".feature-card")).length === all.length);
     check("prayer book names both traditions", (await page.$$eval(".landing-section h2.section-kicker", els => els.map(e => e.innerText)))
-      .join("|") === "THE ROSARY|TRADITIONAL PRAYERS|ROMAN CATHOLIC PRAYERS");
+      .join("|") === "THE ROSARY|SHARED CHRISTIAN PRAYERS|ROMAN CATHOLIC PRAYERS");
     check("prayer book heading levels do not skip", !(await headingsSkip()));
     check("prayer book has no horizontal scroll", !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)));
     check("menu links to the prayer book", (await page.$$('.nav-menu a[href="/prayers"]')).length === 0

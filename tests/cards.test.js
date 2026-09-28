@@ -52,7 +52,7 @@ const fileOf = (card, format) => path.basename(cardPath(card, format));
   await test("a prayer's card shows the whole prayer under its book and section, and its slug is the page's", () => {
     const c = prayerCardFor("es", "our-father");
     assert.strictEqual(c.title, "Padre Nuestro");
-    assert.strictEqual(c.kicker, "DEVOCIONARIO · ORACIONES TRADICIONALES");
+    assert.strictEqual(c.kicker, "DEVOCIONARIO · ORACIONES CRISTIANAS COMUNES");
     assert.ok(c.text.startsWith("Padre nuestro") && c.text.endsWith("Amén."));
     assert.strictEqual(cardPath(c, "og"), `/cards/es/prayers/padre-nuestro.${c.hash}.og.png`);
     assert.strictEqual(cardForSlug("es", "prayers", "padre-nuestro").hash, c.hash);

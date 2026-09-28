@@ -1,10 +1,10 @@
-# Stand — 30 Days of Spiritual Combat
+# Stand — a prayer companion for fear
 
 A mobile-first, audio-ready devotional app built with plain HTML, CSS, and JavaScript. It includes all 30 days, guided device narration, progress tracking, favorites, private reflection notes, dark mode, and responsive design.
 
 ## Features
 
-- **SOS mode — "Steady me now"** — a 90-second guided rescue for fearful moments: slow breathing, an anchoring verse, a short prayer, and a declaration. Always one tap away (including a home-screen shortcut), fully offline, with crisis-support resources always visible.
+- **SOS mode — "Steady me now"** — a 90-second guided pause for fearful moments: slow breathing, an anchoring verse, a short prayer, and a declaration. Always one tap away (including a home-screen shortcut), fully offline, with crisis-support resources always visible.
 - **Fear-specific tracks** — alongside the 30-day core journey, focused 5-day tracks (Fear of the Unknown, Night Fear & Sleep) with their own progress, notes, and favorites; switch journeys from the ☰ library.
 - **Courage stories** — seventeen four-day modules, each built on a single heroic account, covering overwhelming problems, accusation, panic, speaking up, opposition, fear for your children, health fears, financial fear, stepping into the unknown, inadequacy, an unchosen crisis, and starting over. Each walks the same four beats — the fear, the choice, the outcome, what you carry forward — and ends every day with one concrete exercise. Scripture in these tracks is condensed from the public-domain World English Bible — clauses dropped to fit a card, and in places wording from outside the WEB. They are not quotations, and `npm run verify:scripture` reports them separately from the excerpts that are.
 - **"Where are you right now?"** — the ☰ library opens with a plain-language list of situations ("I have a court date", "I'm afraid for my child", "I don't know how I'm going to pay for it") that jumps straight into the journey that meets it, so nobody has to browse twenty titles while afraid. The mapping lives in `fearIndex` in `content.js`.
@@ -52,6 +52,56 @@ A mobile-first, audio-ready devotional app built with plain HTML, CSS, and JavaS
 - **Print-friendly** — printing a day hides the app chrome and keeps the devotional content.
 - Notes, favorites, and progress are stored privately on your device (localStorage), and the deployment ships a strict Content Security Policy.
 
+## Style guide
+
+What keeps the app, the site and the share cards consistent. Each rule is checked in CI; the right-hand column names the check.
+
+### Voice
+
+- Calm, plain and practical. No line grades the reader (“Rest a moment”, not “Well stood”), and the calm ledger reports what happened in the reader’s own check-ins rather than promising a drop.
+- Stand offers a guided *pause*, not a rescue, and spiritual encouragement, not medical or crisis care; the crisis lines stay one tap away on the Steady me now screen.
+- Spanish buttons and menus use the infinitive (“Abrir la app”); tú commands belong in sentences. Apostrophes are curly and English is US spelling.
+
+### Glossary
+
+| Concept | English | Spanish | Checked by |
+|---|---|---|---|
+| A 30-day or 5-day program | journey | camino | `tests/copy.test.js` |
+| The 90-second flow | Steady me now | Calma ahora | `tests/copy.test.js` (no “SOS” on screen) |
+| The book of prayers | Prayer Book | Devocionario (capitalized) | `tests/copy.test.js` |
+| Its first section | Shared Christian prayers | Oraciones cristianas comunes | `tests/cards.test.js`, smoke |
+| The Rosary | the Rosary | el Rosario (*El Santo Rosario* in titles only) | `tests/copy.test.js` |
+| Ten beads | decade | decena | `tests/copy.test.js` |
+| One prayer’s audio | Listen | Escuchar | `tests/copy.test.js`, smoke |
+| The hands-free Rosary | Pray along | Rezar con el audio | `tests/copy.test.js` |
+| The day’s text / the reader’s | Reflection / Notes | Reflexión / Notas | `tests/copy.test.js` |
+| A shareable picture | card | tarjeta | `tests/copy.test.js` |
+| The installed app | Stand — a prayer companion for fear | | `tests/copy.test.js` |
+
+Narrated text (days, Steady me now sets, prayers, mysteries) is never edited by a copy sweep: a changed word changes its recording, and `npm run verify:audio` fails until it is re-rendered.
+
+### Components
+
+| Rule | Checked by |
+|---|---|
+| Every control is at least 44×44 CSS pixels (a link inside a sentence is exempt) | `tests/a11y.js`, tap-target pass |
+| Every dialog has an accessible name; switching views moves focus to the new heading | `tests/a11y.js`, smoke |
+| Small labels are written in normal case; the stylesheet capitalizes them | smoke (reads the rendered text) |
+| Prayer text uses one style, `--prayer-text`, on every surface | `tests/copy.test.js` (reads the stylesheet) |
+| Selected is one look: a gold fill with dark text (`--on-gold`); Steady me now uses the same fill (`.sos-cta`) | `tests/a11y.js` (contrast) |
+| Colours come from tokens (`--ink`, `--gold`, `--on-gold`, `--danger` …), defined for light and dark | `tests/a11y.js` (both themes) |
+| Nothing reads a changing region aloud on every keypress | smoke |
+
+### Audio
+
+| Rule | Checked by |
+|---|---|
+| One player for every prayer: a recording first, else the device voice; the button reads ▶ Listen / ■ Stop | smoke |
+| One saved speed for every voice, kept in backups | smoke, `tests/logic.test.js` |
+| Opening Steady me now stops everything; a step change stops its voice; ♡ and Mark complete do not interrupt the day | smoke |
+| Every surface names itself on the lock screen, and clears it when it stops | smoke |
+| A link’s settings (`?lang`, `?track`, `?prayer`, `?rosary`, `?sos`, `?checkin`) are cleared once applied | smoke |
+
 ## Run locally
 
 ```bash
@@ -68,7 +118,7 @@ npx playwright install chromium
 npm test
 ```
 
-Alongside it, `npm run test:unit` runs 272 unit tests with no browser, and `npm run test:a11y` runs the accessibility audit described above. All three run in CI on every push and pull request.
+Alongside it, `npm run test:unit` runs 275 unit tests with no browser, and `npm run test:a11y` runs the accessibility audit described above. All three run in CI on every push and pull request.
 
 | File | Tests | What it covers |
 |---|---|---|

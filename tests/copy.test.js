@@ -56,7 +56,10 @@ const INTERFACE_RULES = {
     [/\bSOS\b/, "“Steady me now”, not SOS"],
     [/\bprayer book\b/, "the Prayer Book, capitalized"],
     [/\bimage\b/i, "a card, not an image"],
-    [/\breflections?\b/i, "Notes are what the reader writes; the Reflection is the day’s text"]
+    [/\breflections?\b/i, "Notes are what the reader writes; the Reflection is the day’s text"],
+    [/\brescue\b/i, "a guided pause, not a rescue"],
+    [/well stood/i, "no line grades the reader"],
+    [/fear drops/i, "the ledger reports what happened; it does not promise a drop"]
   ],
   es: [
     [/\bSOS\b/, "«Calma ahora», not SOS"],
@@ -64,7 +67,10 @@ const INTERFACE_RULES = {
     [/\bimagen\b/i, "una tarjeta, not una imagen"],
     [/acompañad[oa]/i, "“Rezar con el audio”: “acompañado” is masculine"],
     [/Santo Rosario/, "el Rosario; “El Santo Rosario” only in titles"],
-    [/reflexiones/i, "las notas son lo que escribe quien lee; la Reflexión es el texto del día"]
+    [/reflexiones/i, "las notas son lo que escribe quien lee; la Reflexión es el texto del día"],
+    [/rescate/i, "una pausa guiada, no un rescate"],
+    [/bien hecho/i, "ninguna frase califica a quien lee"],
+    [/miedo baja/i, "el historial informa lo que pasó; no promete que baje"]
   ]
 };
 // Keys whose wording is the day's own text, not the reader's.
@@ -109,7 +115,7 @@ test("the hand-written pages use curly apostrophes, US spelling and the glossary
     const t = text[file];
     for (const m of t.matchAll(/\S*[A-Za-zÀ-ÿ]'[A-Za-zÀ-ÿ]\S*/g)) bad.push(`${file}: straight apostrophe in “${m[0]}”`);
     for (const m of t.matchAll(/\S*(favourite|armour|\.\.\.)\S*/gi)) bad.push(`${file}: “${m[0]}”`);
-    for (const m of t.matchAll(/\b(tracks?|SOS|rezado acompañado|Empieza por un miedo)\b/g)) bad.push(`${file}: “${m[0]}”`);
+    for (const m of t.matchAll(/\b(tracks?|SOS|rezado acompañado|Empieza por un miedo|rescue|rescate)\b/gi)) bad.push(`${file}: “${m[0]}”`);
   }
   assert.deepStrictEqual(bad, []);
 });
@@ -122,11 +128,36 @@ test("no page says SOS, image or imagen, or miscounts the mysteries", () => {
   assert.deepStrictEqual(bad.slice(0, 10), [], `${bad.length} found`);
 });
 
+test("the app is installed and titled as the landing page names it", () => {
+  const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, "manifest.webmanifest"), "utf8"));
+  const title = fs.readFileSync(path.join(ROOT, "app/index.html"), "utf8").match(/<title>([^<]*)<\/title>/)[1];
+  assert.strictEqual(manifest.name, "Stand — a prayer companion for fear");
+  assert.strictEqual(title, manifest.name);
+});
+
+test("the glossary's fixed words: decade and decena, Listen and Escuchar", () => {
+  assert.match(appUi.en["rosary.decade"], /^Decade /);
+  assert.match(appUi.es["rosary.decade"], /^Decena /);
+  assert.strictEqual(appUi.en["book.listen"], "Listen");
+  assert.strictEqual(appUi.es["book.listen"], "Escuchar");
+});
+
+test("every prayer the reader prays is set in the one prayer-text style", () => {
+  const css = fs.readFileSync(path.join(ROOT, "styles.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(m => [m[1].trim(), m[2]]);
+  // The day and the site's prayer panels, Steady me now, the composer, the Prayer Book, the Rosary.
+  for (const selector of [".sos-prayer", ".prayer-line", ".book-reader .prayer-panel p", ".prayer-page .prayer-panel p", ".rosary-step p"]) {
+    const own = rules.filter(([sel, body]) => sel.split(",").some(x => x.trim().startsWith(selector)) && /font(-size|-family)?:/.test(body));
+    assert.ok(own.length, `${selector} has no font rule`);
+    for (const [sel, body] of own) assert.ok(/font:var\(--prayer-text\)/.test(body) && !/font-size|font-family/.test(body), `${sel} sets its own font: ${body}`);
+  }
+});
+
 test("the guard itself catches what it retires", () => {
   // A rule that matched nothing would pass forever; each is shown a violation.
   const hits = (lang, s) => INTERFACE_RULES[lang].some(([re]) => re.test(s));
-  for (const s of ["Choose your path", "A five-day track", "The SOS screen", "Share image", "My reflections"]) assert.ok(hits("en", s), s);
-  for (const s of ["Rezar acompañado", "El Santo Rosario", "Abrir el devocionario", "Compartir imagen", "Mis reflexiones"]) assert.ok(hits("es", s), s);
+  for (const s of ["Choose your path", "A five-day track", "The SOS screen", "Share image", "My reflections", "WELL STOOD", "a guided rescue", "your fear drops"]) assert.ok(hits("en", s), s);
+  for (const s of ["Rezar acompañado", "El Santo Rosario", "Abrir el devocionario", "Compartir imagen", "Mis reflexiones", "Bien hecho", "un rescate", "tu miedo baja"]) assert.ok(hits("es", s), s);
   assert.ok(visibleText('<p>Don\'t</p><img alt="x">').includes("Don't"));
   assert.ok(!visibleText("<script>var sos = 'SOS'</script><p>ok</p>").includes("SOS"));
 });

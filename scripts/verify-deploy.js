@@ -24,6 +24,7 @@ const ROOT = path.join(__dirname, "..");
 const FILES = [
   ["app/index.html", "/app"], ["index.html", "/"], ["es/index.html", "/es"],
   ["fears/index.html", "/fears"], ["es/fears/index.html", "/es/fears"],
+  ["prayers/index.html", "/prayers"], ["prayers/catholic.html", "/prayers/catholic"], ["es/oraciones/padre-nuestro.html", "/es/oraciones/padre-nuestro"],
   ["privacy/index.html", "/privacy"], ["es/privacy/index.html", "/es/privacy"], ["terms/index.html", "/terms"], ["es/terms/index.html", "/es/terms"],
   ["day/01-stand.html", "/day/01-stand"], ["es/day/01-firmeza.html", "/es/day/01-firmeza"],
   ["track/furnace/01-the-decree.html", "/track/furnace/01-the-decree"],

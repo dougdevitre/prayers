@@ -124,6 +124,16 @@ function firstIncompleteDay() {
   return DAYS() - 1;
 }
 
+// A ?lang= link (from a Spanish Prayer Book page) opens the app in that
+// language, and keeps it, as choosing it in the app would.
+{
+  const requested = new URLSearchParams(location.search).get("lang");
+  if ((requested === "en" || requested === "es") && state.lang !== requested) {
+    state.lang = requested;
+    save();
+  }
+}
+
 // A ?track= link (from a track's static page or a share) switches journeys on load.
 {
   const requested = new URLSearchParams(location.search).get("track");
@@ -1962,10 +1972,18 @@ function start() {
   if (new URLSearchParams(location.search).has("checkin")) {
     $("dayCheckin").scrollIntoView({ block: "center" });
   }
+  // A Prayer Book page links here with ?prayer=<id>: open that prayer, ready
+  // to read or play. The welcome waits for a later visit.
+  const prayer = prayerCorpus.traditional.find(t => t.id === new URLSearchParams(location.search).get("prayer"));
   if (new URLSearchParams(location.search).has("sos")) {
     state.welcomed = true;
     save();
     openSos();
+  } else if (prayer) {
+    prayerState.openTraditional = prayer.id;
+    renderPrayerSurface();
+    $("prayerDialog").showModal();
+    $("traditionalCard").scrollIntoView({ block: "start" });
   } else if (!state.welcomed) {
     $("welcomeDialog").showModal();
   }

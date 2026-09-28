@@ -6,7 +6,8 @@
 const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
-const { FORMATS, TEXT_BUDGET, cardFor, cardForSlug, cardPath, latestCardPath, parseCardFile, allCards, firstSentence } = require("../cards.js");
+const { FORMATS, TEXT_BUDGET, PRAYER_BUDGET, cardFor, prayerCardFor, cardForSlug, cardPath, latestCardPath, parseCardFile, allCards, firstSentence, openingOf } = require("../cards.js");
+const { prayerBook } = require("../prayerbook.js");
 const handler = require("../api/card.js");
 const { checkCards } = require("../scripts/verify-cards.js");
 
@@ -33,15 +34,43 @@ const pngSize = b => [b.readUInt32BE(16), b.readUInt32BE(20)];
 const fileOf = (card, format) => path.basename(cardPath(card, format));
 
 (async () => {
-  await test("every day in both languages has a card whose slug is a generated page", () => {
+  await test("every day and every prayer in both languages has a card whose slug is a generated page", () => {
     const all = allCards();
-    assert.strictEqual(all.length, 216);
+    assert.strictEqual(all.length, 216 + 26);
     for (const c of all) {
-      const dir = c.track === "core" ? "day" : path.join("track", c.track);
-      const page = path.join(ROOT, c.lang === "es" ? "es" : "", dir, `${c.slug}.html`);
+      const page = c.kind === "prayer"
+        ? path.join(ROOT, `${prayerBook.prayerPath(c.lang, c.id).slice(1)}.html`)
+        : path.join(ROOT, c.lang === "es" ? "es" : "", c.track === "core" ? "day" : path.join("track", c.track), `${c.slug}.html`);
       assert.ok(fs.existsSync(page), `no page for ${cardPath(c, "post")}`);
     }
-    assert.strictEqual(new Set(all.map(c => cardPath(c, "post"))).size, 216);
+    assert.strictEqual(new Set(all.map(c => cardPath(c, "post"))).size, all.length);
+  });
+
+  await test("a prayer's card shows the whole prayer under its book and section, and its slug is the page's", () => {
+    const c = prayerCardFor("es", "our-father");
+    assert.strictEqual(c.title, "Padre Nuestro");
+    assert.strictEqual(c.kicker, "DEVOCIONARIO · ORACIONES TRADICIONALES");
+    assert.ok(c.text.startsWith("Padre nuestro") && c.text.endsWith("Amén."));
+    assert.strictEqual(cardPath(c, "og"), `/cards/es/prayers/padre-nuestro.${c.hash}.og.png`);
+    assert.strictEqual(cardForSlug("es", "prayers", "padre-nuestro").hash, c.hash);
+    assert.strictEqual(prayerCardFor("en", "angelus").kicker, "PRAYER BOOK · ROMAN CATHOLIC PRAYERS");
+    assert.strictEqual(cardForSlug("en", "prayers", "padre-nuestro"), null);
+    assert.strictEqual(cardForSlug("en", "prayers", "nope"), null);
+    assert.strictEqual(prayerCardFor("en", "nope"), null);
+    assert.strictEqual(prayerCardFor("fr", "our-father"), null);
+  });
+
+  await test(`no prayer is longer than its card was checked for (${PRAYER_BUDGET} characters), and every preview opening is whole sentences`, () => {
+    for (const c of allCards().filter(c => c.kind === "prayer")) {
+      assert.ok(c.text.length <= PRAYER_BUDGET, `${cardPath(c, "post")}: ${c.text.length} characters; check the card, then raise PRAYER_BUDGET`);
+      assert.ok(c.prayerLead.length <= 220, `${cardPath(c, "og")}: the opening is ${c.prayerLead.length} characters`);
+      const lead = c.prayerLead.replace(/ …$/, "");
+      assert.ok(c.text.startsWith(lead), `${cardPath(c, "og")}: the opening is not the prayer's own words`);
+      assert.ok(c.prayerLead.endsWith(" …") === (lead.length < c.text.length), `${cardPath(c, "og")}: ellipsis`);
+    }
+    assert.strictEqual(openingOf("One. Two. Three.", 9), "One. Two. …");
+    assert.strictEqual(openingOf("One, two, three and four.", 10), "One, two, …");
+    assert.strictEqual(openingOf("Short. Amen."), "Short. Amen.");
   });
 
   await test("a card shows the day's verse, reflection and prayer, and the site", () => {
@@ -64,7 +93,7 @@ const fileOf = (card, format) => path.basename(cardPath(card, format));
     assert.match(a.hash, /^[0-9a-f]{8}$/);
     assert.strictEqual(a.hash, b.hash);
     const hashes = new Set(allCards().map(c => c.hash));
-    assert.strictEqual(hashes.size, 216, "two different days share a hash");
+    assert.strictEqual(hashes.size, allCards().length, "two different cards share a hash");
     assert.notStrictEqual(cardFor("en", "core", 0).hash, cardFor("es", "core", 0).hash);
   });
 
@@ -82,7 +111,7 @@ const fileOf = (card, format) => path.basename(cardPath(card, format));
   });
 
   await test(`no day's shown text is longer than the layout was checked for (${TEXT_BUDGET} characters)`, () => {
-    for (const c of allCards()) {
+    for (const c of allCards().filter(c => !c.kind)) {
       const n = c.verse.length + c.reflection.length + c.prayer.length;
       assert.ok(n <= TEXT_BUDGET, `${cardPath(c, "post")}: ${n} characters; check the card layout, then raise TEXT_BUDGET`);
       // The link preview holds at most a two-line title and about 400 characters beneath it.
@@ -97,8 +126,8 @@ const fileOf = (card, format) => path.basename(cardPath(card, format));
   });
 
   await test("the function renders both formats as PNGs at their sizes, cached for a year", async () => {
-    for (const [lang, track, day] of [["en", "core", 0], ["es", "wall", 3]]) {
-      const c = cardFor(lang, track, day);
+    for (const c of [cardFor("en", "core", 0), cardFor("es", "wall", 3), prayerCardFor("es", "angelus"), prayerCardFor("en", "sign-of-the-cross")]) {
+      const { lang, track } = c;
       for (const format of Object.keys(FORMATS)) {
         const res = await request("GET", lang, track, fileOf(c, format));
         assert.strictEqual(res.statusCode, 200, `${format} ${res.statusCode}`);

@@ -189,7 +189,7 @@ const server = http.createServer((req, res) => {
   check("journal entry labeled", (await page.textContent("#journalList")).includes("DAY 01"));
   check("export enabled", !(await page.isDisabled("#exportButton")));
   const download = await Promise.all([page.waitForEvent("download"), page.click("#exportButton")]).then(r => r[0]);
-  check("export downloads reflections file", download.suggestedFilename() === "stand-reflections.txt");
+  check("export downloads the notes file", download.suggestedFilename() === "stand-notes.txt");
 
   // backup, then clear the note and restore it
   const backup = await Promise.all([page.waitForEvent("download"), page.click("#backupButton")]).then(r => r[0]);
@@ -199,7 +199,7 @@ const server = http.createServer((req, res) => {
   await page.fill("#notes", "");
   await page.waitForTimeout(600);
   await page.click("#journalButton");
-  check("journal empty after clearing note", (await page.textContent("#journalList")).includes("No reflections yet"));
+  check("journal empty after clearing note", (await page.textContent("#journalList")).includes("No notes yet"));
   await page.setInputFiles("#restoreInput", backupPath);
   await page.waitForTimeout(400);
   check("restore brings note back", (await page.textContent("#journalList")).includes("test note"));
@@ -1032,7 +1032,7 @@ const server = http.createServer((req, res) => {
     await reader.click("#bookShare");
     await reader.waitForSelector("#shareDialog[open]");
     check("a prayer opens the share dialog, named for the prayer", (await reader.textContent("#shareHeading")) === "Share this prayer"
-      && (await reader.textContent("#shareSaveCard")) === "Save the prayer's card"
+      && (await reader.textContent("#shareSaveCard")) === "Save the prayer’s card"
       && (await reader.textContent("#shareCaption")) === "“The Angel of the Lord declared unto Mary.”");
     check("…linking to the prayer's page", (await reader.$$eval("#shareSheet .share-link", as => as.map(a => a.getAttribute("href"))))
       .every(h => h.includes(encodeURIComponent("http://localhost:8123/prayers/angelus"))));
@@ -1047,7 +1047,7 @@ const server = http.createServer((req, res) => {
     await reader.click("#closeBook");
     await reader.click("#shareButton");
     check("a day's share afterwards is the day's again", (await reader.textContent("#shareHeading")) === "Share this day"
-      && (await reader.textContent("#shareSaveCard")) === "Save the day's card");
+      && (await reader.textContent("#shareSaveCard")) === "Save the day’s card");
     await reader.click("#closeShare");
     await reader.click("#libraryButton");
     await reader.click("#bookEntry");
@@ -1079,7 +1079,7 @@ const server = http.createServer((req, res) => {
       await reader.click("#rosaryShare");
       await reader.waitForSelector("#shareDialog[open]");
       check("the Rosary's share names the mysteries and links to their page", (await reader.textContent("#shareHeading")) === "Share these mysteries"
-        && (await reader.textContent("#shareSaveCard")) === "Save the mysteries' card"
+        && (await reader.textContent("#shareSaveCard")) === "Save the mysteries’ card"
         && (await reader.textContent("#shareCaption")) === today.mysteries.map(m => m.name.en).join(" · ")
         && (await reader.$$eval("#shareSheet .share-link", as => as.map(a => a.getAttribute("href"))))
           .every(h => h.includes(encodeURIComponent(`http://localhost:8123/prayers/rosary/${today.slug.en}`))));
@@ -1481,7 +1481,7 @@ const server = http.createServer((req, res) => {
   check("audio length is Spanish", esChrome.audio === "Unos 3 minutos");
   check("progress is Spanish", esChrome.progress === "Día 1 de 30");
   check("progress count is Spanish", esChrome.count.includes("de 30 completados"));
-  check("form labels are Spanish", esChrome.notes === "Mi reflexión");
+  check("form labels are Spanish", esChrome.notes === "Mis notas");
   check("the check-in scale is Spanish", esChrome.scale === "1 = en calma · 5 = abrumador");
   check("the SOS button is Spanish", esChrome.sos === "Calma ahora");
   check("select options are Spanish", esChrome.timer === "5 min");
@@ -1503,7 +1503,7 @@ const server = http.createServer((req, res) => {
 
   // Dialogs and generated files follow too.
   await page.click("#journalButton");
-  check("the journal is Spanish", (await page.textContent("#exportButton")) === "Descargar mis reflexiones (.txt)");
+  check("the journal is Spanish", (await page.textContent("#exportButton")) === "Descargar mis notas (.txt)");
   check("the ledger is Spanish", (await page.textContent("#ledger")).includes("HISTORIAL DE CALMA"));
   await page.click("#closeJournal");
 
@@ -1802,8 +1802,8 @@ const server = http.createServer((req, res) => {
   check("Spanish day shows the Spanish share card, labelled in Spanish",
     (await page.getAttribute(".share-card img", "src")).startsWith("/cards/es/core/01-firmeza.")
     && (await page.getAttribute(".share-card img", "alt")).startsWith("Tarjeta para compartir del Día 1: Firmeza")
-    && (await page.textContent(".share-card-download span")) === "Descargar imagen"
-    && (await page.textContent(".share-card .section-kicker")) === "COMPARTIR COMO IMAGEN");
+    && (await page.textContent(".share-card-download span")) === "Descargar tarjeta"
+    && (await page.textContent(".share-card .section-kicker")) === "COMPARTIR COMO TARJETA");
   check("Spanish day declares its locale", await meta2("og:locale") === "es_ES");
 
   // hreflang must be reciprocal or search engines treat the pair as

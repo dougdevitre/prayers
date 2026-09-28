@@ -54,7 +54,7 @@ const tracks = {
   },
   unknown: {
     id: "unknown",
-    group: "FEAR TRACKS",
+    group: "JOURNEYS FOR FEAR",
     name: "Fear of the Unknown",
     short: "Fear of the Unknown",
     weeks: ["FEAR OF THE UNKNOWN · FIVE DAYS"],
@@ -68,7 +68,7 @@ const tracks = {
   },
   night: {
     id: "night",
-    group: "FEAR TRACKS",
+    group: "JOURNEYS FOR FEAR",
     name: "Night Fear & Sleep",
     short: "Night Fear & Sleep",
     weeks: ["NIGHT FEAR & SLEEP · FIVE DAYS"],

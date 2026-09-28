@@ -15,8 +15,9 @@ const path = require("path");
 const zlib = require("zlib");
 
 const ROOT = path.join(__dirname, "..");
-// Measured at 157 KB when the budget was set (28 September 2026).
-const TOTAL_BUDGET_KB = 175;
+// 157 KB when the budget was set; 130 KB once the Spanish journeys loaded
+// only for Spanish readers (28 September 2026).
+const TOTAL_BUDGET_KB = 145;
 // The largest single files are the two languages' journeys (~28 KB each) and
 // app.js (~26 KB).
 const FILE_BUDGET_KB = 32;
@@ -51,6 +52,12 @@ test(`a first visit to the app is under ${TOTAL_BUDGET_KB} KB gzipped (now ${kb(
 test(`no single file is over ${FILE_BUDGET_KB} KB gzipped`, () => {
   const over = sizes.filter(([, b]) => b > FILE_BUDGET_KB * 1024).map(([f, b]) => `${f} ${kb(b)} KB`);
   assert.deepStrictEqual(over, []);
+});
+
+test("the Spanish journeys load on demand, and are still precached for offline", () => {
+  assert.ok(!assets.includes("content.es.js"), "app/index.html loads content.es.js up front again");
+  assert.ok(/script\.src = "\/content\.es\.js"/.test(fs.readFileSync(path.join(ROOT, "app.js"), "utf8")), "app.js no longer loads it on demand");
+  assert.ok(fs.readFileSync(path.join(ROOT, "sw.js"), "utf8").includes('"/content.es.js"'), "sw.js no longer precaches it");
 });
 
 if (failures) { console.log(`\n${failures} failing`); process.exit(1); }

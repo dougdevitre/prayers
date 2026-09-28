@@ -128,6 +128,26 @@ function firstIncompleteDay() {
   return DAYS() - 1;
 }
 
+// The Spanish journeys and SOS sets (content.es.js, ~28 KB gzipped) load only
+// when Spanish is wanted: at startup for a Spanish reader, or on switching.
+// Until then every lookup falls back to the English text (activeTrack,
+// sosSets and the fear finder all check typeof), so a failed load leaves the
+// app working in English rather than broken. The service worker still
+// precaches the file, so switching works offline.
+let spanishLoading = null;
+function loadSpanish() {
+  if (typeof esTracks !== "undefined") return Promise.resolve();
+  spanishLoading = spanishLoading || new Promise(resolve => {
+    const script = document.createElement("script");
+    script.src = "/content.es.js";
+    script.onload = resolve;
+    script.onerror = () => { spanishLoading = null; resolve(); };
+    document.head.append(script);
+  });
+  return spanishLoading;
+}
+const languageReady = () => (state.lang === "es" ? loadSpanish() : Promise.resolve());
+
 // A ?lang= link (from a Spanish Prayer Book page) opens the app in that
 // language, and keeps it, as choosing it in the app would.
 {
@@ -825,10 +845,15 @@ function openTrack(id) {
   }
 }
 
+// The finder's phrases are in the reader's language (esFearIndex maps each
+// Spanish phrase to the same journey), rebuilt when the language changes.
 function renderFearFinder() {
   const el = $("fearFinder");
-  if (el.options.length > 1) return;
-  for (const [label, id] of fearIndex) {
+  const lang = state.lang === "es" && typeof esFearIndex !== "undefined" ? "es" : "en";
+  if (el.dataset.lang === lang) return;
+  el.dataset.lang = lang;
+  while (el.options.length > 1) el.remove(1);
+  for (const [label, id] of lang === "es" ? esFearIndex : fearIndex) {
     if (!tracks[id]) continue;
     const option = document.createElement("option");
     option.value = id;
@@ -1209,6 +1234,7 @@ $("restoreInput").onchange = async event => {
   if (!confirm(t("backup.confirm"))) return;
   Object.assign(state, clean);
   save();
+  await languageReady();
   day = Math.max(0, Math.min(day, DAYS() - 1));
   location.hash = String(day + 1);
   applyTheme();
@@ -1936,10 +1962,13 @@ $("prayerLang").onchange = () => {
   renderPrayerSurface();
   // The choice is app-wide: the interface, the devotional day, the week label
   // and the library all follow it, so repaint them behind the open dialog.
+  const repaintJourneys = () => { render(); renderTrackPicker(); renderFearFinder(); };
   applyUi();
-  render();
-  renderTrackPicker();
-  renderFearFinder();
+  repaintJourneys();
+  // The first switch to Spanish fetches the journeys' Spanish text; the
+  // composer and the interface are already bilingual, so they change at
+  // once and the day follows a moment later.
+  if (state.lang === "es" && typeof esTracks === "undefined") loadSpanish().then(repaintJourneys);
 };
 $("prayerMode").onchange = () => {
   prayerState.mode = $("prayerMode").value;
@@ -2231,6 +2260,8 @@ function start() {
 
 // app.js is the last script in the body, so parsing is still in progress and
 // DOMContentLoaded has not fired; the microtask is the belt-and-braces path if
-// the script is ever moved or given defer.
-if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
-else queueMicrotask(start);
+// the script is ever moved or given defer. A Spanish reader's first paint
+// waits for the Spanish text, so the day never flashes in English.
+const boot = () => languageReady().then(start);
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+else queueMicrotask(boot);

@@ -861,7 +861,34 @@ const server = http.createServer((req, res) => {
       await fresh.click("#libraryButton");
       check("the app's library links to the Spanish pages in Spanish", (await fresh.getAttribute("#libraryFears", "href")) === "/es/fears"
         && (await fresh.getAttribute("#libraryAbout", "href")) === "/es");
+      const { esFearIndex, esTracks } = require("../content.es.js");
+      check("the fear finder lists its phrases in Spanish", (await fresh.$$eval("#fearFinder option", os => os.slice(1).map(o => o.textContent)))
+        .join("|") === esFearIndex.filter(([, id]) => tracks[id]).map(([label]) => label).join("|"));
+      await fresh.click("#closeLibrary");
+      // A Spanish reader's first paint waits for the Spanish text: no English flash.
+      await fresh.reload({ waitUntil: "domcontentloaded" });
+      await fresh.waitForFunction(() => document.getElementById("dayTitle").textContent !== "", null, { timeout: 5000 }).catch(() => {});
+      check("a Spanish reader's day opens in Spanish", (await fresh.textContent("#dayTitle")) === esTracks.core.days[0][0]);
       await fresh.close();
+    }
+
+    // The Spanish journeys load only for Spanish: an English visit never fetches them.
+    {
+      const english = await browser.newPage();
+      english.on("pageerror", e => errors.push("pageerror (English first visit): " + e.message));
+      const fetched = [];
+      english.on("request", r => fetched.push(new URL(r.url()).pathname));
+      await english.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
+      check("an English first visit does not download the Spanish journeys", !fetched.includes("/content.es.js")
+        && await english.evaluate(() => typeof esTracks === "undefined"));
+      await english.evaluate(() => { document.getElementById("welcomeDialog").close(); });
+      await english.click("#prayerButton");
+      await english.selectOption("#prayerLang", "es");
+      await english.waitForFunction(() => typeof esTracks !== "undefined", null, { timeout: 5000 }).catch(() => {});
+      await english.waitForFunction(t => document.getElementById("dayTitle").textContent === t, require("../content.es.js").esTracks.core.days[0][0], { timeout: 5000 }).catch(() => {});
+      check("switching to Spanish fetches them, and the day follows", fetched.includes("/content.es.js")
+        && (await english.textContent("#dayTitle")) === require("../content.es.js").esTracks.core.days[0][0]);
+      await english.close();
     }
 
     // The Prayer Book in the app: from the library, listed like the days, with

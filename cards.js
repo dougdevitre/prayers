@@ -29,6 +29,10 @@ const { rosary, setById, mysteryRef, daysLabel } = require("./rosary.js");
 
 // Bump when the card's layout or wording changes, so every address changes.
 const TEMPLATE_VERSION = 1;
+// The same, for the Rosary's cards alone, so a fix to their layout gives new
+// addresses to those cards (and their pages) without touching the others.
+// 2: a long mystery no longer squeezes its number out of line.
+const ROSARY_LAYOUT = 2;
 const FORMATS = { post: { width: 1080, height: 1350 }, og: { width: 1200, height: 630 } };
 const LANGS = ["en", "es"];
 const SITE_LABEL = "prayers.dougdevitre.org";
@@ -153,7 +157,7 @@ function rosaryCardFor(lang, setId = null) {
     prayerLead: rosary.sets.map(s => `${s.name[lang]}: ${daysLabel(s, lang)}`).join(" · "), site: SITE_LABEL
   };
   const hash = crypto.createHash("sha256")
-    .update(JSON.stringify({ v: TEMPLATE_VERSION, ...fields }))
+    .update(JSON.stringify({ v: TEMPLATE_VERSION, layout: ROSARY_LAYOUT, ...fields }))
     .digest("hex").slice(0, 8);
   return { ...fields, slug: set ? set.slug[lang] : ROSARY_SLUG[lang], hash };
 }

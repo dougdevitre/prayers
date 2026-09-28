@@ -4,7 +4,7 @@
 //   npm run test:unit
 
 const assert = require("assert");
-const { rosary, setById, setForDate, rosarySteps, mysteryRef } = require("../rosary.js");
+const { rosary, setById, setForDate, rosarySteps, mysteryRef, daysLabel } = require("../rosary.js");
 const { prayerCorpus } = require("../prayers.js");
 
 let failures = 0;
@@ -88,6 +88,14 @@ test("an unknown set gives nothing, and only the Assumption and Coronation carry
   const noted = rosary.sets.flatMap(s => s.mysteries).filter(m => m.note).map(m => m.id);
   assert.deepStrictEqual(noted, ["assumption", "coronation"]);
   for (const m of rosary.sets.flatMap(s => s.mysteries).filter(m => m.note)) filled(m.note, `${m.id} note`);
+});
+
+test("each set names its days, Monday first, in both languages", () => {
+  assert.strictEqual(daysLabel(setById("joyful"), "en"), "Mondays and Saturdays");
+  assert.strictEqual(daysLabel(setById("glorious"), "en"), "Wednesdays and Sundays");
+  assert.strictEqual(daysLabel(setById("luminous"), "es"), "jueves");
+  assert.strictEqual(daysLabel(setById("sorrowful"), "es"), "martes y viernes");
+  for (const l of LANGS) assert.strictEqual(rosary.dayNames[l].length, 7);
 });
 
 test("Spanish references name the books as the Spanish days do", () => {

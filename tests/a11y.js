@@ -58,7 +58,7 @@ const PAGES = [
   ["/"], ["/es"], ["/fears"], ["/es/fears"],
   ["/day/01-stand"], ["/es/day/01-firmeza"], ["/track/wall/04-fifty-two-days"],
   ["/privacy"], ["/es/terms"], ["/no-such-page"],
-  ["/prayers"], ["/es/oraciones/catolicas"], ["/prayers/st-michael"], ["/es/oraciones/angelus"], ["/app?prayer=memorare&lang=es"], ["/app", "#libraryButton > #bookEntry"], ["/app", "#bookButton > #rosaryEntry"], ["/app?rosary=sorrowful&lang=es", "#rosaryNext > #rosaryNext > #rosaryNext > #rosaryNext"],
+  ["/prayers"], ["/es/oraciones/catolicas"], ["/prayers/rosary"], ["/es/oraciones/rosario/gozosos"], ["/prayers/st-michael"], ["/es/oraciones/angelus"], ["/app?prayer=memorare&lang=es"], ["/app", "#libraryButton > #bookEntry"], ["/app", "#bookButton > #rosaryEntry"], ["/app?rosary=sorrowful&lang=es", "#rosaryNext > #rosaryNext > #rosaryNext > #rosaryNext"],
   ["/app", "welcome"], ["/app", "day"], ["/app", "#sosButton"], ["/app", "#prayerButton"],
   ["/app", "#journalButton"], ["/app", "#shareButton"], ["/app", "#libraryButton"], ["/app", "es"]
 ];

@@ -55,6 +55,21 @@
 .day-card{position:relative}
 .day-card .fav-mark{position:absolute;top:12px;right:12px;color:var(--gold-text)}
 .empty-note{margin:6px 0;color:var(--muted)}
+/* The Prayer Book in the app: an entry under the journeys in the library,
+   and a dialog that lists the prayers like days and reads one like a day. */
+.book-entry{width:100%;margin:0 0 20px}
+#bookSections .section-kicker{margin-top:22px}
+#bookSections .section-kicker:first-child{margin-top:0}
+.book-grid{margin:12px 0 4px}
+.book-back{margin:0 0 14px;padding:0}
+.book-reader .title-row{margin:6px 0 8px}
+.book-title{margin:4px 0 0;font:500 clamp(1.9rem,6vw,2.6rem)/1.08 Georgia,serif;letter-spacing:-.02em;text-wrap:balance}
+.book-reader .tradition-note{margin:0 0 4px}
+.book-player{margin:22px 0}
+.book-reader .prayer-panel p{margin:0;font:1.12rem/1.8 Georgia,serif}
+.book-reader .prayer-panel .book-other{margin-top:18px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-style:italic}
+.book-reader .day-nav{gap:16px}
+.book-reader .day-nav button:last-child{text-align:right;margin-left:auto}
 .title-actions{display:flex;gap:2px;align-items:flex-start}
 .share-button{font-size:1.45rem;padding-top:8px}
 .journal-entry{padding:18px 0;border-bottom:1px solid var(--line)}

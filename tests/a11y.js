@@ -58,7 +58,7 @@ const PAGES = [
   ["/"], ["/es"], ["/fears"], ["/es/fears"],
   ["/day/01-stand"], ["/es/day/01-firmeza"], ["/track/wall/04-fifty-two-days"],
   ["/privacy"], ["/es/terms"], ["/no-such-page"],
-  ["/prayers"], ["/es/oraciones/catolicas"], ["/prayers/st-michael"], ["/es/oraciones/angelus"], ["/app?prayer=memorare&lang=es"],
+  ["/prayers"], ["/es/oraciones/catolicas"], ["/prayers/st-michael"], ["/es/oraciones/angelus"], ["/app?prayer=memorare&lang=es"], ["/app", "#libraryButton > #bookEntry"],
   ["/app", "welcome"], ["/app", "day"], ["/app", "#sosButton"], ["/app", "#prayerButton"],
   ["/app", "#journalButton"], ["/app", "#shareButton"], ["/app", "#libraryButton"], ["/app", "es"]
 ];
@@ -80,9 +80,12 @@ async function open(browser, scheme, url, mode) {
     await page.click("#themeButton");
     await page.waitForTimeout(200);
   }
+  // "#a > #b" clicks one, then the other: a dialog opened from a dialog.
   if (mode.startsWith("#")) {
-    await page.click(mode);
-    await page.waitForTimeout(500);
+    for (const selector of mode.split(" > ")) {
+      await page.click(selector);
+      await page.waitForTimeout(500);
+    }
   }
   return page;
 }

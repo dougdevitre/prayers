@@ -236,6 +236,16 @@ test("days outside the journey are dropped", () => {
   assert.deepStrictEqual(clean.favorites, [5]);
 });
 
+test("Prayer Book favorites keep only known prayers, each once, and default to none", () => {
+  const deps = { ...DEPS, prayerIds: ["our-father", "memorare"] };
+  const clean = sanitizeBackup(validBackup({ prayerFavorites: ["memorare", "nope", "memorare", 3, null, "our-father"] }), deps);
+  assert.deepStrictEqual(clean.prayerFavorites, ["memorare", "our-father"]);
+  assert.deepStrictEqual(sanitizeBackup(validBackup({ prayerFavorites: "memorare" }), deps).prayerFavorites, []);
+  assert.deepStrictEqual(sanitizeBackup(validBackup(), deps).prayerFavorites, []);
+  // A build that passes no prayer ids keeps none rather than trusting the file.
+  assert.deepStrictEqual(sanitizeBackup(validBackup({ prayerFavorites: ["memorare"] }), DEPS).prayerFavorites, []);
+});
+
 test("notes survive only for real days and real text", () => {
   const clean = sanitizeBackup(validBackup({ notes: { 0: "kept", 99: "dropped", 1: 42 } }), DEPS);
   assert.deepStrictEqual(clean.notes, { 0: "kept" });

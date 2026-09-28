@@ -76,7 +76,7 @@ for (const m of js.matchAll(/\bt\(\s*"([^"]+)"/g)) {
   if (!(m[1] in appUi.en)) problems.push(`the app calls t("${m[1]}") but ui.js has no such key`);
 }
 // Keys reached through a variable rather than a literal.
-for (const m of js.matchAll(/"((?:sos|audio|notes|day|ledger|library|progress|reminder|backup|journal|share|checkin|section|welcome|install|brand|topbar|erase)\.[a-zA-Z]+)"/g)) used.add(m[1]);
+for (const m of js.matchAll(/"((?:sos|audio|notes|day|ledger|library|progress|reminder|backup|journal|share|checkin|section|welcome|install|brand|topbar|erase|book)\.[a-zA-Z]+)"/g)) used.add(m[1]);
 for (const key of enKeys) if (!used.has(key)) problems.push(`${key} is never used — remove it or wire it up`);
 
 if (problems.length) {

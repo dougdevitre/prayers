@@ -66,7 +66,7 @@ function tdata() {
 /* ---------- Persistent state ---------- */
 
 function loadState() {
-  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, checkins: [], sos: [], track: "core", tracks: {}, theme: null, lang: "en", bilingual: false, welcomed: false, installHintDismissed: false };
+  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, checkins: [], sos: [], track: "core", tracks: {}, prayerFavorites: [], theme: null, lang: "en", bilingual: false, welcomed: false, installHintDismissed: false };
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!raw || typeof raw !== "object") return fallback;
@@ -180,6 +180,9 @@ function recordedUrl(id) {
 const player = { status: "idle", keepAlive: 0, repeat: false, sleepTimer: 0, mode: "tts" };
 // Composer narration state; declared here because stopAudio() runs on first render.
 const prayerAudio = { timer: 0, playing: false, recorded: false };
+// The Prayer Book reader: its list filter, the prayer open in it, and the
+// prayer it is playing (see "Prayer Book" below).
+const book = { filter: "all", open: null, playing: null };
 let narrationVoice = null;
 
 // Recorded narration (preferred when a file exists for the day).
@@ -192,8 +195,14 @@ audioEl.addEventListener("timeupdate", () => {
   if (player.mode === "rec" && audioEl.duration) {
     $("audioProgress").style.width = `${Math.min(100, (audioEl.currentTime / audioEl.duration) * 100)}%`;
   }
+  if (book.playing && prayerAudio.recorded) paintBookProgress();
   updatePositionState();
 });
+// The Prayer Book's play button follows the element, so a pause from the
+// lock screen shows as a pause in the reader too.
+for (const event of ["play", "pause"]) {
+  audioEl.addEventListener(event, () => { if (book.playing && prayerAudio.recorded) paintBookPlay(); });
+}
 
 audioEl.addEventListener("ended", () => {
   if (player.repeat && player.status === "playing") {
@@ -804,7 +813,7 @@ function openTrack(id) {
     state.track = id;
     save();
     libraryFilter = "all";
-    document.querySelectorAll(".filter-tab").forEach(t => t.classList.toggle("active", t.dataset.filter === "all"));
+    document.querySelectorAll("#libraryDialog .filter-tab").forEach(t => t.classList.toggle("active", t.dataset.filter === "all"));
     $("libraryDialog").close();
     go(firstIncompleteDay());
   } else {
@@ -855,10 +864,10 @@ function renderTrackPicker() {
   }
 }
 
-document.querySelectorAll(".filter-tab").forEach(tab => {
+document.querySelectorAll("#libraryDialog .filter-tab").forEach(tab => {
   tab.onclick = () => {
     libraryFilter = tab.dataset.filter;
-    document.querySelectorAll(".filter-tab").forEach(t => t.classList.toggle("active", t === tab));
+    document.querySelectorAll("#libraryDialog .filter-tab").forEach(t => t.classList.toggle("active", t === tab));
     renderGrid();
   };
 });
@@ -1112,7 +1121,7 @@ $("notes").oninput = event => {
 
 $("prevButton").onclick = () => go(day - 1);
 $("nextButton").onclick = () => go(day + 1);
-$("libraryButton").onclick = () => { renderFearFinder(); renderTrackPicker(); renderOfflineRow(); $("libraryDialog").showModal(); };
+$("libraryButton").onclick = () => { renderFearFinder(); renderTrackPicker(); renderOfflineRow(); renderBookEntry(); $("libraryDialog").showModal(); };
 $("closeLibrary").onclick = () => $("libraryDialog").close();
 
 /* ---------- Journal ---------- */
@@ -1174,7 +1183,8 @@ function restoreFromBackup(raw) {
   return sanitizeBackup(raw, {
     coreDays: themes.length,
     tracks,
-    langs: Object.keys(prayerUi)
+    langs: Object.keys(prayerUi),
+    prayerIds: prayerCorpus.traditional.map(p => p.id)
   });
 }
 
@@ -1835,6 +1845,9 @@ function stopPrayerNarration() {
   }
   prayerAudio.playing = false;
   for (const id of ["prayerListen", "traditionalListen"]) updatePrayerButton($(id), false);
+  book.playing = null;
+  paintBookPlay();
+  $("bookProgress").style.width = "0";
 }
 
 // Plays a prayer's recording through the shared audio element. The day
@@ -1953,6 +1966,222 @@ $("prayerCopy").onclick = async () => {
   reset();
 };
 
+/* ---------- Prayer Book ----------
+   The traditional prayers as a book to read and pray from, in the order and
+   sections prayerbook.js gives them (the same as the Prayer Book pages): a
+   list with the library's filter tabs, and a reader with a player, a
+   favorite and share, like a day. The words are the corpus's; only the
+   chrome is here. Playback goes through the composer's prayer narration, so
+   one prayer plays at a time and the lock screen controls work the same. */
+
+const prayerFavorites = () => (state.prayerFavorites = Array.isArray(state.prayerFavorites) ? state.prayerFavorites : []);
+
+/** A prayer's recorded length in seconds, or null when it will not play a
+ * recording (none in the manifest, or recordings switched off). */
+function bookSeconds(id) {
+  const item = audioManifest.items[prayerItemId(state.lang, id)];
+  return item && item.seconds && recordedUrl(prayerItemId(state.lang, id)) ? item.seconds : null;
+}
+const clockTime = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+
+function renderBookEntry() {
+  $("bookEntryMeta").textContent = t("book.entryMeta", { n: prayerBook.prayers().length });
+}
+
+function renderBookList() {
+  const el = $("bookSections");
+  el.textContent = "";
+  const favorites = prayerFavorites();
+  const sections = book.filter === "favorites" ? [null]
+    : prayerBook.sections.filter(s => book.filter === "all" || s === book.filter);
+  for (const tradition of sections) {
+    const items = prayerBook.prayers().filter(p => tradition ? p.tradition === tradition : favorites.includes(p.id));
+    if (tradition) {
+      const heading = document.createElement("p");
+      heading.className = "section-kicker";
+      heading.textContent = prayerBook.label(tradition, state.lang).toLocaleUpperCase(state.lang);
+      const note = document.createElement("p");
+      note.className = "tradition-note";
+      note.textContent = prayerBook.note(tradition, state.lang);
+      el.append(heading, note);
+    }
+    if (!items.length) {
+      const empty = document.createElement("p");
+      empty.className = "empty-note";
+      empty.textContent = t("book.emptyFavorites");
+      el.append(empty);
+      continue;
+    }
+    const grid = document.createElement("div");
+    grid.className = "day-grid book-grid";
+    for (const item of items) {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "day-card";
+      card.dataset.prayer = item.id;
+      if (favorites.includes(item.id)) {
+        const mark = document.createElement("span");
+        mark.className = "fav-mark";
+        mark.setAttribute("aria-hidden", "true");
+        mark.textContent = "♥";
+        card.append(mark);
+      }
+      const seconds = bookSeconds(item.id);
+      const small = document.createElement("small");
+      small.textContent = seconds ? clockTime(seconds) : prayerBook.label(item.tradition, state.lang);
+      const name = document.createElement("strong");
+      name.textContent = item.name[state.lang];
+      card.append(small, name);
+      card.onclick = () => showBookPrayer(item.id);
+      grid.append(card);
+    }
+    el.append(grid);
+  }
+  $("bookWeb").href = prayerBook.bookPath(state.lang);
+}
+
+function paintBookPlay() {
+  const playing = Boolean(book.playing) && book.playing === book.open && (!prayerAudio.recorded || !audioEl.paused);
+  $("bookPlayIcon").textContent = playing ? "❚❚" : "▶";
+  $("bookPlay").setAttribute("aria-label", t(playing ? "book.pause" : "book.play"));
+}
+
+function paintBookProgress() {
+  if (!audioEl.duration || book.playing !== book.open) return;
+  $("bookProgress").style.width = `${Math.min(100, (audioEl.currentTime / audioEl.duration) * 100)}%`;
+  $("bookPlayInfo").textContent = t("book.recorded", { time: `${clockTime(audioEl.currentTime)} / ${clockTime(audioEl.duration)}` });
+}
+
+function paintBookFavorite() {
+  const fav = prayerFavorites().includes(book.open);
+  $("bookFavorite").textContent = fav ? "♥" : "♡";
+  $("bookFavorite").classList.toggle("active", fav);
+  $("bookFavorite").setAttribute("aria-pressed", String(fav));
+  $("bookFavorite").setAttribute("aria-label", t(fav ? "book.unfavorite" : "book.favorite"));
+}
+
+function showBookPrayer(id) {
+  const item = prayerBook.byId(id);
+  if (!item) return;
+  if (book.playing && book.playing !== id) stopPrayerNarration();
+  book.open = id;
+  $("bookList").hidden = true;
+  $("bookReader").hidden = false;
+  $("bookSection").textContent = prayerBook.label(item.tradition, state.lang).toLocaleUpperCase(state.lang);
+  $("bookTitle").textContent = item.name[state.lang];
+  $("bookNote").textContent = prayerBook.note(item.tradition, state.lang);
+  const text = $("bookText");
+  text.textContent = "";
+  const own = document.createElement("p");
+  own.textContent = item.text[state.lang].trim();
+  text.append(own);
+  // "Show both languages" in the composer applies here too, as in a
+  // bilingual prayer book: the other language beneath, marked as such.
+  if (state.bilingual) {
+    const other = document.createElement("p");
+    other.className = "book-other";
+    other.lang = otherLang();
+    other.textContent = item.text[otherLang()].trim();
+    text.append(other);
+  }
+  const seconds = bookSeconds(id);
+  $("bookPlayInfo").textContent = seconds ? t("book.recorded", { time: clockTime(seconds) }) : canSpeak ? t("book.deviceVoice") : t("book.unsupported");
+  if (book.playing !== id) $("bookProgress").style.width = "0";
+  $("bookStatus").textContent = "";
+  const all = prayerBook.prayers();
+  const i = all.findIndex(p => p.id === id);
+  for (const [button, target, label] of [[$("bookPrev"), all[i - 1], n => `← ${n}`], [$("bookNext"), all[i + 1], n => `${n} →`]]) {
+    button.hidden = !target;
+    if (target) {
+      button.textContent = label(target.name[state.lang]);
+      button.onclick = () => showBookPrayer(target.id);
+    }
+  }
+  paintBookPlay();
+  paintBookFavorite();
+  $("bookDialog").scrollTop = 0;
+}
+
+function showBookList() {
+  book.open = null;
+  $("bookReader").hidden = true;
+  $("bookList").hidden = false;
+  document.querySelectorAll("#bookDialog .filter-tab").forEach(tab => tab.classList.toggle("active", tab.dataset.bookFilter === book.filter));
+  renderBookList();
+}
+
+/** Open the Prayer Book, at one prayer when `id` names one. */
+function openBook(id) {
+  if ($("libraryDialog").open) $("libraryDialog").close();
+  if (id && prayerBook.byId(id)) showBookPrayer(id);
+  else showBookList();
+  if (!$("bookDialog").open) $("bookDialog").showModal();
+}
+
+$("bookEntry").onclick = () => openBook();
+$("closeBook").onclick = () => $("bookDialog").close();
+$("bookDialog").addEventListener("close", stopPrayerNarration);
+$("bookBack").onclick = showBookList;
+document.querySelectorAll("#bookDialog .filter-tab").forEach(tab => {
+  tab.onclick = () => { book.filter = tab.dataset.bookFilter; showBookList(); };
+});
+
+$("bookPlay").onclick = () => {
+  const item = prayerBook.byId(book.open);
+  if (!item) return;
+  // The prayer already playing here pauses and resumes in place (a
+  // recording), or stops (the device voice, which cannot pause reliably).
+  if (book.playing === item.id) {
+    if (prayerAudio.recorded) {
+      if (audioEl.paused) audioEl.play().then(() => { setMediaPlaybackState("playing"); paintBookPlay(); }).catch(stopPrayerNarration);
+      else { audioEl.pause(); setMediaPlaybackState("paused"); paintBookPlay(); }
+    } else stopPrayerNarration();
+    return;
+  }
+  // Both ways of playing stop whatever was playing first, which clears
+  // book.playing, so it is set after them.
+  const speak = () => {
+    speakPrayer(narrationSegments(item.text[state.lang], item.audio, state.lang), null);
+    book.playing = item.id;
+    paintBookPlay();
+  };
+  const src = recordedUrl(prayerItemId(state.lang, item.id));
+  if (!src && !canSpeak) { $("bookPlayInfo").textContent = t("book.unsupported"); return; }
+  if (prayerAudio.playing) stopPrayerNarration();
+  if (src) {
+    playPrayerRecording(src, null, speak, item.name[state.lang]);
+    book.playing = item.id;
+    paintBookPlay();
+  } else speak();
+};
+
+$("bookFavorite").onclick = () => {
+  const favorites = prayerFavorites();
+  const i = favorites.indexOf(book.open);
+  i < 0 ? favorites.push(book.open) : favorites.splice(i, 1);
+  save();
+  scheduleProtect();
+  paintBookFavorite();
+};
+
+// Shares the prayer's page on the site, which carries its own card: the
+// device's share sheet where there is one, else the link is copied.
+$("bookShare").onclick = async () => {
+  const item = prayerBook.byId(book.open);
+  if (!item) return;
+  const url = `${location.origin}${prayerBook.prayerPath(state.lang, item.id)}`;
+  const title = `${item.name[state.lang]} — Stand`;
+  if (navigator.share) {
+    try { await navigator.share({ title, url }); return; } catch (e) { if (e && e.name === "AbortError") return; }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    $("bookStatus").textContent = t("book.copied");
+  } catch {
+    $("bookStatus").textContent = t("book.manual", { url });
+  }
+};
+
 /* ---------- Startup ----------
    Everything above is declarations and handler wiring; this is the only code
    that runs on load, and it runs last — after the whole file has evaluated.
@@ -1972,18 +2201,15 @@ function start() {
   if (new URLSearchParams(location.search).has("checkin")) {
     $("dayCheckin").scrollIntoView({ block: "center" });
   }
-  // A Prayer Book page links here with ?prayer=<id>: open that prayer, ready
-  // to read or play. The welcome waits for a later visit.
+  // A Prayer Book page links here with ?prayer=<id>: open that prayer in the
+  // reader, ready to play. The welcome waits for a later visit.
   const prayer = prayerCorpus.traditional.find(t => t.id === new URLSearchParams(location.search).get("prayer"));
   if (new URLSearchParams(location.search).has("sos")) {
     state.welcomed = true;
     save();
     openSos();
   } else if (prayer) {
-    prayerState.openTraditional = prayer.id;
-    renderPrayerSurface();
-    $("prayerDialog").showModal();
-    $("traditionalCard").scrollIntoView({ block: "start" });
+    openBook(prayer.id);
   } else if (!state.welcomed) {
     $("welcomeDialog").showModal();
   }

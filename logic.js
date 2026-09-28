@@ -94,10 +94,10 @@ function sanitizeTrackData(raw, length) {
  * newer build can name journeys or days this one does not have, and those are
  * dropped rather than trusted.
  *
- * deps: { coreDays, tracks, langs }
+ * deps: { coreDays, tracks, langs, prayerIds }
  */
 function sanitizeBackup(raw, deps) {
-  const { coreDays, tracks, langs } = deps;
+  const { coreDays, tracks, langs, prayerIds = [] } = deps;
   if (!raw || typeof raw !== "object") return null;
   // The legacy top-level fields identify a Stand backup.
   if (!Array.isArray(raw.completed) || !Array.isArray(raw.favorites) || !raw.notes || typeof raw.notes !== "object") return null;
@@ -133,6 +133,10 @@ function sanitizeBackup(raw, deps) {
     sos: sosSessions,
     track: tracks[raw.track] ? raw.track : "core",
     tracks: trackData,
+    // The Prayer Book's favorites: known prayer ids only, each once.
+    prayerFavorites: Array.isArray(raw.prayerFavorites)
+      ? [...new Set(raw.prayerFavorites.filter(id => prayerIds.includes(id)))]
+      : [],
     theme: raw.theme === "light" || raw.theme === "dark" ? raw.theme : null,
     lang: langs.includes(raw.lang) ? raw.lang : "en",
     bilingual: raw.bilingual === true,

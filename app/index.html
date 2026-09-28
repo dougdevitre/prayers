@@ -126,6 +126,7 @@
       <label for="fearFinder" data-i18n="library.finder">Where are you right now?</label>
       <select id="fearFinder"><option value="" data-i18n="library.finderPlaceholder">Choose what fits…</option></select>
     </div>
+    <button type="button" class="track-chip book-entry" id="bookEntry"><strong data-i18n="book.entry">Prayer Book</strong><small id="bookEntryMeta">13 traditional prayers, each with a recording</small></button>
     <div class="track-picker" id="trackPicker" aria-label="Choose a journey" data-i18n-aria="library.chooseJourney"></div>
     <div class="filter-tabs" aria-label="Filter days" data-i18n-aria="library.filters">
       <button class="filter-tab active" data-filter="all" data-i18n="library.all">All</button>
@@ -183,6 +184,40 @@
     <p class="prayer-meta" id="prayerMeta"></p>
     <div class="traditional-list" id="traditionalList"></div>
     <div class="prayer-card" id="traditionalCard" aria-live="polite" hidden></div>
+  </dialog>
+
+  <dialog id="bookDialog" aria-labelledby="bookHeading">
+    <div class="dialog-header"><div><p class="eyebrow" data-i18n="book.kicker">PRAYER BOOK</p><h2 id="bookHeading" data-i18n="book.title">Traditional prayers</h2></div><button class="icon-button" id="closeBook" aria-label="Close the Prayer Book" data-i18n-aria="book.close">×</button></div>
+    <div id="bookList">
+      <div class="filter-tabs" aria-label="Filter prayers" data-i18n-aria="book.filters">
+        <button class="filter-tab active" data-book-filter="all" data-i18n="book.all">All</button>
+        <button class="filter-tab" data-book-filter="roman-catholic" data-i18n="book.catholic">Roman Catholic</button>
+        <button class="filter-tab" data-book-filter="favorites" data-i18n="library.favorites">Favorites</button>
+      </div>
+      <div id="bookSections"></div>
+      <p class="library-about"><a class="text-button" id="bookWeb" href="/prayers" data-i18n="book.web">The Prayer Book on the web</a></p>
+    </div>
+    <article class="book-reader" id="bookReader" hidden>
+      <button type="button" class="text-button book-back" id="bookBack" data-i18n="book.back">← All prayers</button>
+      <div class="title-row">
+        <div><p class="day-number" id="bookSection"></p><h3 class="book-title" id="bookTitle"></h3></div>
+        <div class="title-actions">
+          <button class="favorite-button share-button" id="bookShare" aria-label="Share this prayer" data-i18n-aria="book.share">↗</button>
+          <button class="favorite-button" id="bookFavorite" aria-label="Save this prayer to favorites" aria-pressed="false">♡</button>
+        </div>
+      </div>
+      <p class="tradition-note" id="bookNote"></p>
+      <section class="audio-card book-player" aria-label="Listen" data-i18n-aria="book.player">
+        <button class="play-button" id="bookPlay" aria-label="Play this prayer"><span id="bookPlayIcon" aria-hidden="true">▶</span></button>
+        <div class="audio-main">
+          <div class="audio-labels"><strong data-i18n="book.listen">Pray along</strong><span id="bookPlayInfo"></span></div>
+          <div class="audio-track"><span id="bookProgress"></span></div>
+        </div>
+      </section>
+      <section class="prayer-panel" id="bookText"></section>
+      <p class="save-status" id="bookStatus" role="status" aria-live="polite"></p>
+      <nav class="day-nav" aria-label="Prayer navigation" data-i18n-aria="book.nav"><button type="button" id="bookPrev"></button><button type="button" id="bookNext"></button></nav>
+    </article>
   </dialog>
 
   <dialog id="shareDialog" aria-labelledby="shareHeading">
@@ -259,6 +294,7 @@
   <script src="/content.js"></script>
   <script src="/content.es.js"></script>
   <script src="/prayers.js"></script>
+  <script src="/prayerbook.js"></script>
   <script src="/compose.js"></script>
   <script src="/logic.js"></script>
   <script src="/reminder.js"></script>

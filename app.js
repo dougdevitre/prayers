@@ -2633,9 +2633,17 @@ function playRosaryStep(onEnd) {
       prayerAudio.onEnd = onEnd;
     } else speak(segments);
   } else {
+    // The mysteries and the Fatima Prayer have their own recordings
+    // (narration.js, rosaryItemId); the device voice reads them until then.
+    const mystery = step.kind === "mystery" ? setById(rosaryRun.set).mysteries[step.decade - 1] : null;
     const parts = [$("rosaryStepTitle").textContent, $("rosaryStepText").textContent];
-    if (step.kind === "mystery") parts.push(setById(rosaryRun.set).mysteries[step.decade - 1].verse[lang]);
-    speak(parts.map(text => ({ text, pause: 0.6 })));
+    if (mystery) parts.push(mystery.verse[lang]);
+    const segments = parts.map(text => ({ text, pause: 0.6 }));
+    const src = recordedUrl(rosaryItemId(lang, mystery ? mystery.id : "fatima"));
+    if (src) {
+      playPrayerRecording(src, button, () => speak(segments), $("rosaryStepTitle").textContent);
+      prayerAudio.onEnd = onEnd;
+    } else speak(segments);
   }
 }
 

@@ -1135,6 +1135,14 @@ const server = http.createServer((req, res) => {
       await reader.click("#rosaryAlong");
       await reader.evaluate(() => stopAudio());
       check("…as does any other audio starting", await reader.evaluate(() => !along.on));
+      // Once a mystery has its own recording, Listen and praying along play it.
+      await reader.evaluate(() => {
+        rosaryRun.index = 5; rosaryRun.bead = 0; renderRosary();
+        audioManifest.items[rosaryItemId("en", setById(rosaryRun.set).mysteries[0].id)] = { key: "tests/fixtures/silence.mp3?mystery", hash: "0".repeat(64), bytes: 15846, seconds: 1 };
+      });
+      await reader.click("#rosaryListen");
+      check("a mystery with its own recording plays it", await reader.evaluate(() => prayerAudio.recorded && audioEl.src.endsWith("/tests/fixtures/silence.mp3?mystery")));
+      await reader.click("#rosaryListen");
       await reader.evaluate(n => { stopAlong(); rosaryRun.index = n - 1; rosaryRun.bead = 0; renderRosary(); }, rosarySteps("glorious").length);
       await reader.click("#rosaryAlong");
       const finished = await reader.waitForFunction(() => rosaryRun.done, null, { timeout: 10000 }).then(() => true).catch(() => false);

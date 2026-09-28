@@ -930,6 +930,33 @@ const server = http.createServer((req, res) => {
     check("the favorites tab lists it, marked", (await reader.$$eval("#bookSections .day-card", els => els.map(e => e.dataset.prayer))).join() === "angelus"
       && (await reader.$$("#bookSections .day-card .fav-mark")).length === 1);
 
+    // A prayer shares the way a day does: the share dialog on a desktop, with
+    // the prayer's page and its card from the site.
+    await reader.click('#bookSections .day-card[data-prayer="angelus"]');
+    await reader.click("#bookShare");
+    await reader.waitForSelector("#shareDialog[open]");
+    check("a prayer opens the share dialog, named for the prayer", (await reader.textContent("#shareHeading")) === "Share this prayer"
+      && (await reader.textContent("#shareSaveCard")) === "Save the prayer's card"
+      && (await reader.textContent("#shareCaption")) === "“The Angel of the Lord declared unto Mary.”");
+    check("…linking to the prayer's page", (await reader.$$eval("#shareSheet .share-link", as => as.map(a => a.getAttribute("href"))))
+      .every(h => h.includes(encodeURIComponent("http://localhost:8123/prayers/angelus"))));
+    await reader.evaluate(() => { cardFetch = null; });
+    const [prayerCard, prayerReq] = await Promise.all([reader.waitForEvent("download"),
+      reader.waitForRequest(r => r.url().endsWith("/cards/en/prayers/angelus.latest.post.png"), { timeout: 5000 }).catch(() => null),
+      reader.click("#shareSaveCard")]);
+    const prayerPng = fs.readFileSync(await prayerCard.path());
+    check("…and saving the prayer's card from the site", prayerCard.suggestedFilename() === "stand-prayer-angelus.png" && Boolean(prayerReq)
+      && prayerPng.readUInt32BE(16) === 1080 && prayerPng.readUInt32BE(20) === 1350);
+    await reader.click("#closeShare");
+    await reader.click("#closeBook");
+    await reader.click("#shareButton");
+    check("a day's share afterwards is the day's again", (await reader.textContent("#shareHeading")) === "Share this day"
+      && (await reader.textContent("#shareSaveCard")) === "Save the day's card");
+    await reader.click("#closeShare");
+    await reader.click("#libraryButton");
+    await reader.click("#bookEntry");
+    await reader.click('#bookDialog .filter-tab[data-book-filter="favorites"]');
+
     // The player: a recording plays, pauses and resumes in place, and resets
     // when it ends; the day player stays idle throughout.
     await reader.evaluate(() => {

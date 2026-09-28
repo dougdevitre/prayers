@@ -1029,19 +1029,19 @@ function buildVerseCard() {
 const sharePageUrl = () => location.origin + dayPagePath(state.track || "core", activeTrack(), day, state.lang);
 const shareCardName = () => `stand-day-${String(day + 1).padStart(2, "0")}.png`;
 
-// The day's share card from the site (api/card.js): verse, reflection and
-// prayer, the same image the day's page shows. The ".latest." address
-// redirects to the current card, since the app knows the day but not the
-// card's hash. Offline, slow or failing, the verse card is drawn here instead.
-// A share sheet must open soon after the tap, so the fetch starts on
-// pointerdown and the click reuses it.
+// The share card from the site (api/card.js): for a day, its verse,
+// reflection and prayer, the same image the day's page shows; for a Prayer
+// Book prayer, the whole prayer. The ".latest." address redirects to the
+// current card, since the app knows the page but not the card's hash.
+// Offline, slow or failing, a day's verse card is drawn here instead, and a
+// prayer is shared as a link. A share sheet must open soon after the tap, so
+// the fetch starts on pointerdown and the click reuses it.
 let cardFetch = null;
 function shareCardUrl() {
   const slug = dayPagePath(state.track || "core", activeTrack(), day, state.lang).split("/").pop();
   return `/cards/${state.lang === "es" ? "es" : "en"}/${state.track || "core"}/${slug}.latest.post.png`;
 }
-function fetchShareCard() {
-  const url = shareCardUrl();
+function fetchShareCard(url = shareCardUrl()) {
   if (cardFetch && cardFetch.url === url) return cardFetch.blob;
   const controller = typeof AbortController === "function" ? new AbortController() : null;
   const timer = controller && setTimeout(() => controller.abort(), 4000);
@@ -1054,23 +1054,47 @@ function fetchShareCard() {
   blob.then(b => { if (!b && cardFetch && cardFetch.url === url) cardFetch = null; });
   return blob;
 }
-async function shareCardBlob() {
-  return (await fetchShareCard()) || buildVerseCard();
+async function shareCardBlob(item = dayShare()) {
+  return (await fetchShareCard(item.cardUrl)) || (item.fallbackCard ? item.fallbackCard() : null);
 }
-$("shareButton").addEventListener("pointerdown", () => { fetchShareCard(); });
 
-$("shareButton").onclick = async () => {
+// What a share carries, for the day open now or for a Prayer Book prayer:
+// the page to link to, the title and caption, and the card.
+function dayShare() {
   const [title, ref, verse] = activeTrack().days[day];
-  const caption = t("share.caption", { verse, ref });
-  const url = sharePageUrl();
-  const heading = t("share.title", { n: day + 1, title });
+  return {
+    kind: "day", url: sharePageUrl(), heading: t("share.title", { n: day + 1, title }),
+    caption: t("share.caption", { verse, ref }),
+    cardUrl: shareCardUrl(), cardName: shareCardName(), fallbackCard: buildVerseCard
+  };
+}
+function prayerShare(id) {
+  const item = prayerBook.byId(id);
+  const lang = state.lang === "es" ? "es" : "en";
+  const slug = prayerBook.prayerSlug(lang, id);
+  const text = item.text[lang].trim();
+  const lead = (text.match(/^.+?[.!?](?=\s|$)/) || [text])[0];
+  return {
+    kind: "prayer", url: location.origin + prayerBook.prayerPath(lang, id), heading: `${item.name[lang]} — Stand`,
+    caption: `“${lead}”`,
+    cardUrl: `/cards/${lang}/prayers/${slug}.latest.post.png`, cardName: `stand-${lang === "es" ? "oracion" : "prayer"}-${slug}.png`, fallbackCard: null
+  };
+}
+// The item the share dialog is showing, for its Save button.
+let sharing = null;
+
+$("shareButton").addEventListener("pointerdown", () => { fetchShareCard(); });
+$("shareButton").onclick = () => shareItem(dayShare());
+
+async function shareItem(item) {
+  const { url, heading, caption } = item;
   try {
-    // A phone that can share files gets the verse card with the link in the
-    // text; one that can share only links gets the link; everything else
-    // (most desktops) gets the dialog below.
+    // A phone that can share files gets the card with the link in the text;
+    // one that can share only links gets the link; everything else (most
+    // desktops) gets the dialog below.
     if (navigator.share) {
-      const blob = await shareCardBlob();
-      const file = blob ? new File([blob], shareCardName(), { type: "image/png" }) : null;
+      const blob = await shareCardBlob(item);
+      const file = blob ? new File([blob], item.cardName, { type: "image/png" }) : null;
       if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file], title: heading, text: `${caption}\n${url}` });
       } else {
@@ -1083,14 +1107,16 @@ $("shareButton").onclick = async () => {
     // through to the dialog so the share still happens.
     if (e && e.name === "AbortError") return;
   }
-  openShareDialog({ url, heading, caption });
-};
+  openShareDialog(item);
+}
 
 // The desktop share sheet: copy the link, save the verse card, or hand the
 // page to a platform through its intent URL. No platform scripts, no
 // tracking parameters; the links and icons come from share.js, the same
 // ones every day page carries.
-function openShareDialog({ url, heading, caption }) {
+function openShareDialog(item) {
+  const { url, heading, caption } = item;
+  sharing = item;
   const links = shareLinks({ url, title: heading, text: caption });
   const set = (id, name) => { const a = $(id); a.href = links[name]; a.innerHTML = shareIcons[name]; a.title = t(`share.${name}`); };
   set("shareX", "x");
@@ -1100,6 +1126,8 @@ function openShareDialog({ url, heading, caption }) {
   $("shareCopyIcon").innerHTML = shareIcons.link;
   $("shareCopyLabel").textContent = t("share.copy");
   $("shareCaption").textContent = caption;
+  $("shareHeading").textContent = t(item.kind === "prayer" ? "book.share" : "share.heading");
+  $("shareSaveCard").textContent = t(item.kind === "prayer" ? "book.saveCard" : "share.saveCard");
   $("shareUrl").value = url;
   $("shareUrl").hidden = true;
   $("shareStatus").textContent = "";
@@ -1124,8 +1152,10 @@ $("shareCopy").onclick = async () => {
 };
 
 $("shareSaveCard").onclick = async () => {
-  const blob = await shareCardBlob();
-  if (blob) downloadFile(shareCardName(), blob, "image/png");
+  const item = sharing || dayShare();
+  const blob = await shareCardBlob(item);
+  if (blob) downloadFile(item.cardName, blob, "image/png");
+  else $("shareStatus").textContent = t("share.cardOffline");
 };
 
 $("closeShare").onclick = () => $("shareDialog").close();
@@ -2128,7 +2158,6 @@ function showBookPrayer(id) {
   const seconds = bookSeconds(id);
   $("bookPlayInfo").textContent = seconds ? t("book.recorded", { time: clockTime(seconds) }) : canSpeak ? t("book.deviceVoice") : t("book.unsupported");
   if (book.playing !== id) $("bookProgress").style.width = "0";
-  $("bookStatus").textContent = "";
   const all = prayerBook.prayers();
   const i = all.findIndex(p => p.id === id);
   for (const [button, target, label] of [[$("bookPrev"), all[i - 1], n => `← ${n}`], [$("bookNext"), all[i + 1], n => `${n} →`]]) {
@@ -2207,23 +2236,10 @@ $("bookFavorite").onclick = () => {
   scheduleOfflineSync();
 };
 
-// Shares the prayer's page on the site, which carries its own card: the
-// device's share sheet where there is one, else the link is copied.
-$("bookShare").onclick = async () => {
-  const item = prayerBook.byId(book.open);
-  if (!item) return;
-  const url = `${location.origin}${prayerBook.prayerPath(state.lang, item.id)}`;
-  const title = `${item.name[state.lang]} — Stand`;
-  if (navigator.share) {
-    try { await navigator.share({ title, url }); return; } catch (e) { if (e && e.name === "AbortError") return; }
-  }
-  try {
-    await navigator.clipboard.writeText(url);
-    $("bookStatus").textContent = t("book.copied");
-  } catch {
-    $("bookStatus").textContent = t("book.manual", { url });
-  }
-};
+// A prayer shares the way a day does: its card and the link to its page on
+// a phone that can, else the share dialog (copy, save the card, platforms).
+$("bookShare").addEventListener("pointerdown", () => { if (book.open) fetchShareCard(prayerShare(book.open).cardUrl); });
+$("bookShare").onclick = () => { if (book.open) shareItem(prayerShare(book.open)); };
 
 /* ---------- Startup ----------
    Everything above is declarations and handler wiring; this is the only code

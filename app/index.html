@@ -212,6 +212,10 @@
         <div><label for="rosarySet" data-i18n="rosary.setLabel">Mysteries</label><select id="rosarySet"></select></div>
         <label class="rosary-fatima" for="rosaryFatima"><input type="checkbox" id="rosaryFatima" checked /> <span data-i18n="rosary.fatima">Include the Fatima Prayer after each decade</span></label>
       </div>
+      <div class="rosary-along">
+        <button type="button" class="rosary-along-button" id="rosaryAlong" aria-pressed="false" aria-describedby="rosaryAlongHint" data-i18n="rosary.along">▶ Pray along</button>
+        <p class="rosary-along-hint" id="rosaryAlongHint" data-i18n="rosary.alongHint">Each prayer is read aloud in turn, bead by bead, with a pause on each mystery. The screen stays on.</p>
+      </div>
       <p class="rosary-progress" id="rosaryProgress"></p>
       <div class="rosary-decades" id="rosaryDecades" aria-hidden="true"></div>
       <article class="prayer-panel rosary-step" id="rosaryStep">
@@ -220,13 +224,14 @@
         <p id="rosaryStepText"></p>
         <p class="rosary-verse" id="rosaryStepVerse" hidden></p>
         <p class="tradition-note" id="rosaryStepNote" hidden></p>
+        <p class="book-other" id="rosaryStepOther" hidden></p>
         <div class="rosary-beads" id="rosaryBeads" hidden></div>
         <p class="rosary-count" id="rosaryCount" role="status" aria-live="polite"></p>
       </article>
       <div class="rosary-actions">
-        <button type="button" class="text-button" id="rosaryPrev" data-i18n="rosary.back">← Back</button>
+        <button type="button" class="text-button" id="rosaryPrev" aria-keyshortcuts="ArrowLeft" data-i18n="rosary.back">← Back</button>
         <button type="button" class="text-button" id="rosaryListen">▶ Listen</button>
-        <button type="button" class="complete-button rosary-next" id="rosaryNext" data-i18n="rosary.next">Next</button>
+        <button type="button" class="complete-button rosary-next" id="rosaryNext" aria-keyshortcuts="ArrowRight" data-i18n="rosary.next">Next</button>
       </div>
       <div class="rosary-done" id="rosaryDone" hidden>
         <p class="section-kicker" data-i18n="rosary.doneKicker">AMEN</p>

@@ -1,0 +1,8 @@
+# Stand: how to report a security problem.
+# If you find a vulnerability in prayers.dougdevitre.org, please write to the
+# contact below before disclosing it publicly. Stand keeps no accounts and
+# stores readers' data only on their own devices; see /privacy.
+Contact: mailto:dougdevitre@gmail.com
+Expires: 2027-09-28T00:00:00.000Z
+Preferred-Languages: en, es
+Canonical: https://prayers.dougdevitre.org/.well-known/security.txt

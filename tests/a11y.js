@@ -63,8 +63,8 @@ const PAGES = [
   ["/app", "#journalButton"], ["/app", "#shareButton"], ["/app", "#libraryButton"], ["/app", "es"]
 ];
 
-async function open(browser, scheme, url, mode) {
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, colorScheme: scheme });
+async function open(browser, scheme, url, mode, width = 390) {
+  const page = await browser.newPage({ viewport: { width, height: width === 390 ? 844 : 640 }, colorScheme: scheme });
   await page.goto(`http://localhost:${PORT}${url}`, { waitUntil: "networkidle" });
   if (!mode) return page;
   if (mode === "es") {
@@ -112,8 +112,39 @@ async function open(browser, scheme, url, mode) {
       await page.close();
     }
   }
+
+  // Reflow (WCAG 1.4.10): every screen at 320 CSS pixels wide, which is also
+  // what 1280 pixels looks like at 400% zoom, must read without scrolling
+  // sideways, the page and any open dialog alike. Axe does not test this.
+  // Anything wider than the screen is named, unless it sits inside its own
+  // horizontally scrolling box (the one sanctioned way to show a wide thing).
+  const reflow = [];
+  for (const [url, mode] of PAGES) {
+    const page = await open(browser, "light", url, mode, 320);
+    const wide = await page.evaluate(() => {
+      const limit = window.innerWidth + 1;
+      const scrollsSideways = el => { for (let e = el.parentElement; e; e = e.parentElement) { const o = getComputedStyle(e).overflowX; if (o === "auto" || o === "scroll") return true; } return false; };
+      const visible = el => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== "hidden"; };
+      const out = [];
+      if (document.documentElement.scrollWidth > limit) out.push(`page is ${document.documentElement.scrollWidth}px wide`);
+      for (const d of document.querySelectorAll("dialog[open]")) if (d.scrollWidth > d.clientWidth + 1) out.push(`dialog#${d.id} scrolls sideways (${d.scrollWidth}px)`);
+      for (const el of document.querySelectorAll("body *")) {
+        if (!visible(el) || scrollsSideways(el)) continue;
+        const r = el.getBoundingClientRect();
+        if (r.right > limit && !el.closest("dialog:not([open])")) out.push(`${el.tagName.toLowerCase()}${el.id ? "#" + el.id : ""}${el.className && typeof el.className === "string" ? "." + el.className.trim().split(/\s+/).join(".") : ""} ends at ${Math.round(r.right)}px`);
+      }
+      return out.slice(0, 5);
+    });
+    const where = `320px ${url}${mode ? ` [${mode}]` : ""}`;
+    checked++;
+    if (wide.length) reflow.push({ where, wide });
+    console.log(`${wide.length ? "FAIL" : "PASS"} ${where}`);
+    await page.close();
+  }
+
   await browser.close();
   server.close();
+  for (const r of reflow) console.log(`\n${r.where} does not reflow:\n  ${r.wide.join("\n  ")}`);
   for (const f of failures) {
     console.log(`\n${f.where}`);
     for (const v of f.violations) {
@@ -121,6 +152,6 @@ async function open(browser, scheme, url, mode) {
       for (const n of v.nodes) console.log(`    ${n}`);
     }
   }
-  if (failures.length) { console.log(`\n${failures.length} of ${checked} screens have accessibility violations`); process.exit(1); }
+  if (failures.length || reflow.length) { console.log(`\n${failures.length + reflow.length} of ${checked} screens fail`); process.exit(1); }
   console.log(`\nNo accessibility violations on ${checked} screens.`);
 })().catch(e => { console.error(e); process.exit(1); });

@@ -31,7 +31,7 @@ const FILES = [
   ["sw.js", "/sw.js"], ["share.js", "/share.js"], ["report.js", "/report.js"], ["offline-audio.js", "/offline-audio.js"], ["app.js", "/app.js"], ["ui.js", "/ui.js"], ["logic.js", "/logic.js"],
   ["reminder.js", "/reminder.js"], ["narration.js", "/narration.js"], ["audio-manifest.js", "/audio-manifest.js"], ["compose.js", "/compose.js"], ["prayers.js", "/prayers.js"], ["prayerbook.js", "/prayerbook.js"],
   ["content.js", "/content.js"], ["content.es.js", "/content.es.js"], ["styles.css", "/styles.css"],
-  ["manifest.webmanifest", "/manifest.webmanifest"], ["robots.txt", "/robots.txt"], ["sitemap.xml", "/sitemap.xml"]
+  ["manifest.webmanifest", "/manifest.webmanifest"], ["robots.txt", "/robots.txt"], ["sitemap.xml", "/sitemap.xml"], [".well-known/security.txt", "/.well-known/security.txt"]
 ];
 
 /**

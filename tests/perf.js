@@ -38,8 +38,9 @@ const BUDGET = { fcp: 2500, lcp: 3000, tbt: 500 };
 
 // A first visit to each kind of page a reader arrives on: the landing page,
 // the app in each language (the Spanish one fetches its journeys on demand),
-// a day page and a Prayer Book page.
-const PAGES = ["/", "/app", "/app?lang=es", "/day/01-stand", "/es/day/01-firmeza", "/prayers/angelus"];
+// a day page, a Prayer Book page, and a set of the Rosary's mysteries (the
+// longest page on the site).
+const PAGES = ["/", "/app", "/app?lang=es", "/day/01-stand", "/es/day/01-firmeza", "/prayers/angelus", "/prayers/rosary/joyful"];
 
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp", ".webmanifest": "application/manifest+json" };
 const TEXT = new Set([".html", ".js", ".css", ".svg", ".webmanifest"]);
@@ -117,13 +118,13 @@ const median = values => [...values].sort((a, b) => a - b)[Math.floor(values.len
   await new Promise(r => server.listen(PORT, r));
   const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
   const failures = [];
-  console.log("page                      FCP ms   LCP ms   TBT ms     KB");
+  console.log("page                          FCP ms   LCP ms   TBT ms     KB");
   for (const url of PAGES) {
     const runs = [];
     for (let i = 0; i < RUNS; i++) runs.push(await measure(browser, url));
     const m = Object.fromEntries(["fcp", "lcp", "tbt", "kb"].map(k => [k, median(runs.map(r => r[k]))]));
     const over = Object.keys(BUDGET).filter(k => m[k] > BUDGET[k]);
-    console.log(`${over.length ? "FAIL" : "PASS"} ${url.padEnd(20)} ${String(Math.round(m.fcp)).padStart(6)} ${String(Math.round(m.lcp)).padStart(8)} ${String(Math.round(m.tbt)).padStart(8)} ${m.kb.toFixed(0).padStart(6)}`);
+    console.log(`${over.length ? "FAIL" : "PASS"} ${url.padEnd(24)} ${String(Math.round(m.fcp)).padStart(6)} ${String(Math.round(m.lcp)).padStart(8)} ${String(Math.round(m.tbt)).padStart(8)} ${m.kb.toFixed(0).padStart(6)}`);
     if (!m.fcp || !m.lcp) failures.push(`${url}: no paint was measured`);
     for (const k of over) failures.push(`${url}: ${k.toUpperCase()} ${Math.round(m[k])} ms, budget ${BUDGET[k]} ms`);
   }

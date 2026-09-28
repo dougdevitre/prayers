@@ -208,7 +208,9 @@ function recordedUrl(id) {
 
 const player = { status: "idle", keepAlive: 0, repeat: false, sleepTimer: 0, mode: "tts" };
 // Composer narration state; declared here because stopAudio() runs on first render.
-const prayerAudio = { timer: 0, playing: false, recorded: false };
+// onEnd, when set, is told how the prayer playing now ended: true when it
+// played to its end, false when it was stopped (praying the Rosary along).
+const prayerAudio = { timer: 0, playing: false, recorded: false, onEnd: null };
 // The Prayer Book reader: its list filter, the prayer open in it, and the
 // prayer it is playing (see "Prayer Book" below).
 const book = { filter: "all", open: null, playing: null };
@@ -238,7 +240,10 @@ audioEl.addEventListener("ended", () => {
     audioEl.currentTime = 0;
     audioEl.play().catch(stopAudio);
   } else {
+    const then = prayerAudio.recorded ? prayerAudio.onEnd : null;
+    prayerAudio.onEnd = null;
     stopAudio();
+    if (then) then(true);
   }
 });
 
@@ -1917,6 +1922,8 @@ function updatePrayerButton(button, playing) {
 }
 
 function stopPrayerNarration() {
+  const then = prayerAudio.onEnd;
+  prayerAudio.onEnd = null;
   clearTimeout(prayerAudio.timer);
   if (prayerAudio.playing && canSpeak) speechSynthesis.cancel();
   if (prayerAudio.recorded) {
@@ -1930,6 +1937,16 @@ function stopPrayerNarration() {
   book.playing = null;
   paintBookPlay();
   $("bookProgress").style.width = "0";
+  if (then) then(false);
+}
+
+// A prayer read to its end by the device voice: whatever asked to hear when
+// it ended is told it finished, not that it was stopped.
+function finishPrayerNarration() {
+  const then = prayerAudio.onEnd;
+  prayerAudio.onEnd = null;
+  stopPrayerNarration();
+  if (then) then(true);
 }
 
 // Plays a prayer's recording through the shared audio element. The day
@@ -1954,6 +1971,9 @@ function playPrayerRecording(src, button, fallback, title) {
     if (!prayerAudio.recorded) return;
     prayerAudio.recorded = false;
     prayerAudio.playing = false;
+    // The fallback starts afresh (and sets its own onEnd), so starting it is
+    // not a stop.
+    prayerAudio.onEnd = null;
     fallback();
   });
 }
@@ -1969,7 +1989,7 @@ function speakPrayer(segments, button) {
   let i = 0;
   const next = () => {
     if (!prayerAudio.playing) return;
-    if (i >= segments.length) { stopPrayerNarration(); return; }
+    if (i >= segments.length) { finishPrayerNarration(); return; }
     const segment = segments[i++];
     const utterance = new SpeechSynthesisUtterance(segment.text);
     utterance.rate = Number($("voiceRate").value) * 0.95;
@@ -2155,10 +2175,12 @@ function paintBookFavorite() {
 function showBookPrayer(id) {
   const item = prayerBook.byId(id);
   if (!item) return;
+  stopAlong();
   if (book.playing && book.playing !== id) stopPrayerNarration();
   book.open = id;
   $("bookList").hidden = true;
   $("rosaryView").hidden = true;
+  syncWakeLock();
   $("bookReader").hidden = false;
   $("bookSection").textContent = prayerBook.label(item.tradition, state.lang).toLocaleUpperCase(state.lang);
   $("bookTitle").textContent = item.name[state.lang];
@@ -2196,8 +2218,10 @@ function showBookPrayer(id) {
 
 function showBookList() {
   book.open = null;
+  stopAlong();
   $("bookReader").hidden = true;
   $("rosaryView").hidden = true;
+  syncWakeLock();
   $("bookList").hidden = false;
   renderRosaryEntry();
   document.querySelectorAll("#bookDialog .filter-tab").forEach(tab => tab.classList.toggle("active", tab.dataset.bookFilter === book.filter));
@@ -2342,6 +2366,7 @@ async function openRosary(setId) {
   $("rosaryView").hidden = false;
   if (!$("bookDialog").open) $("bookDialog").showModal();
   renderRosary();
+  syncWakeLock();
   $("bookDialog").scrollTop = 0;
 }
 
@@ -2377,7 +2402,8 @@ function renderRosary() {
     decades.append(mark);
   }
 
-  let kicker, title, text = "", verse = "", note = "";
+  let kicker, title, text = "", verse = "", note = "", other = "";
+  const o = otherLang();
   const where = step.decade ? t("rosary.decade", { n: step.decade }) : t(rosaryRun.index < 5 ? "rosary.opening" : "rosary.closing");
   if (step.kind === "mystery") {
     const m = set.mysteries[step.decade - 1];
@@ -2387,15 +2413,18 @@ function renderRosary() {
     text = m.name[lang];
     verse = `“${m.verse[lang]}” (${mysteryRef(m, lang)})`;
     note = m.note ? m.note[lang] : "";
+    other = `${m.name[o]}. “${m.verse[o]}” (${mysteryRef(m, o)})`;
   } else if (step.kind === "fatima") {
     kicker = where;
     title = rosary.fatima.name[lang];
     text = rosary.fatima.text[lang];
+    other = rosary.fatima.text[o];
   } else {
     const item = prayerBook.byId(step.prayer);
     kicker = step.label === "virtues" ? `${where} · ${rosary.virtues[lang]}` : where;
     title = item.name[lang];
     text = item.text[lang].trim();
+    other = item.text[o].trim();
   }
   $("rosaryStepKicker").textContent = kicker;
   $("rosaryStepTitle").textContent = title;
@@ -2405,6 +2434,11 @@ function renderRosary() {
   $("rosaryStepVerse").textContent = verse;
   $("rosaryStepNote").hidden = !note;
   $("rosaryStepNote").textContent = note;
+  // "Show both languages" applies here as in the reader: the other language
+  // beneath, marked as such.
+  $("rosaryStepOther").hidden = !state.bilingual;
+  $("rosaryStepOther").lang = o;
+  $("rosaryStepOther").textContent = state.bilingual ? other : "";
 
   // The bead counter: one bead per Hail Mary of this step, filled as they
   // are prayed, and a count a screen reader announces.
@@ -2426,6 +2460,7 @@ function renderRosary() {
   $("rosaryNext").textContent = t(moreBeads ? "rosary.nextBead" : last ? "rosary.finish" : "rosary.next");
   $("rosaryPrev").disabled = rosaryRun.index === 0 && rosaryRun.bead === 0;
   updatePrayerButton($("rosaryListen"), false);
+  paintAlong();
 }
 
 function rosaryNext() {
@@ -2466,35 +2501,143 @@ function setRosaryFatima(on) {
   renderRosary();
 }
 
+// Next and Back while praying along move the place and carry on from there.
+function rosaryMove(move) {
+  const again = along.on;
+  stopAlong();
+  move();
+  if (again && !rosaryRun.done) startAlong();
+}
+
 $("rosaryEntry").onclick = () => openRosary();
-$("rosaryBack").onclick = () => { stopPrayerNarration(); showBookList(); };
-$("rosaryNext").onclick = rosaryNext;
-$("rosaryPrev").onclick = rosaryPrev;
-$("rosarySet").onchange = () => { stopPrayerNarration(); startRosary($("rosarySet").value); renderRosary(); };
+$("rosaryBack").onclick = () => { stopAlong(); stopPrayerNarration(); showBookList(); };
+$("rosaryNext").onclick = () => rosaryMove(rosaryNext);
+$("rosaryPrev").onclick = () => rosaryMove(rosaryPrev);
+$("rosarySet").onchange = () => { stopAlong(); stopPrayerNarration(); startRosary($("rosarySet").value); renderRosary(); };
 $("rosaryFatima").onchange = () => setRosaryFatima($("rosaryFatima").checked);
 $("rosaryAgain").onclick = () => { startRosary(rosaryRun.set); renderRosary(); $("rosaryNext").focus(); };
 $("rosaryToBook").onclick = showBookList;
+$("rosaryAlong").onclick = () => (along.on ? stopAlong() : startAlong());
+
+// ← and → move a bead or a step, for a keyboard or a switch, whatever has
+// focus in the Rosary (except its own menu and checkbox).
+$("bookDialog").addEventListener("keydown", event => {
+  if ($("rosaryView").hidden || rosaryRun.done || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+  if (event.target.closest("input, select, textarea")) return;
+  if (event.key === "ArrowRight") { event.preventDefault(); $("rosaryNext").click(); }
+  else if (event.key === "ArrowLeft") { event.preventDefault(); if (!$("rosaryPrev").disabled) $("rosaryPrev").click(); }
+});
+
+/* ---------- Praying the Rosary along ----------
+   Each step is read aloud in turn, as Listen reads it, and when it ends the
+   Rosary moves on by itself: bead by bead through the Hail Marys, with a
+   longer pause after each mystery to dwell on it. A stop from anywhere (the
+   button, Listen, other audio, closing the book) ends it; Next and Back carry
+   on from the new place. */
+const along = { on: false, timer: 0 };
+const alongPause = { step: 800, mystery: 5000 };
+
+function paintAlong() {
+  const button = $("rosaryAlong");
+  button.textContent = t(along.on ? "rosary.alongStop" : "rosary.along");
+  button.setAttribute("aria-pressed", String(along.on));
+}
+
+function startAlong() {
+  if (rosaryRun.done || along.on) return;
+  along.on = true;
+  paintAlong();
+  alongPlay();
+}
+
+function stopAlong() {
+  if (!along.on) return;
+  along.on = false;
+  clearTimeout(along.timer);
+  stopPrayerNarration();
+  paintAlong();
+}
+
+function alongPlay() {
+  playRosaryStep(finished => {
+    if (!along.on) return;
+    if (!finished) { stopAlong(); return; }
+    const step = rosaryRun.steps[rosaryRun.index];
+    along.timer = setTimeout(() => {
+      if (!along.on) return;
+      rosaryNext();
+      if (rosaryRun.done) { stopAlong(); return; }
+      alongPlay();
+    }, step.kind === "mystery" ? alongPause.mystery : alongPause.step);
+  });
+}
+
+/* ---------- Keeping the screen on ----------
+   A Rosary takes twenty minutes, prayed a bead at a time with the phone in
+   hand or set down beside you; the screen stays on while it is open, and the
+   lock is let go when it closes or the page is hidden (the browser drops it
+   then anyway, and it is taken again on return). Where the Screen Wake Lock
+   API is missing or refused, the screen behaves as it always has. */
+const wake = { lock: null, asking: false };
+async function syncWakeLock() {
+  const want = () => $("bookDialog").open && !$("rosaryView").hidden && document.visibilityState === "visible";
+  if (want() && !wake.lock && !wake.asking && navigator.wakeLock) {
+    wake.asking = true;
+    try {
+      const lock = await navigator.wakeLock.request("screen");
+      lock.addEventListener("release", () => { if (wake.lock === lock) wake.lock = null; });
+      wake.lock = lock;
+    } catch { /* refused (battery saver, no permission): nothing to hold */ }
+    wake.asking = false;
+  }
+  if (!want() && wake.lock) {
+    const lock = wake.lock;
+    wake.lock = null;
+    lock.release().catch(() => {});
+  }
+}
+document.addEventListener("visibilitychange", syncWakeLock);
+$("bookDialog").addEventListener("close", () => { stopAlong(); syncWakeLock(); });
 
 // Listen to the step open now: a Prayer Book prayer plays its recording (or
 // the device voice, as in the reader); the mystery and the Fatima Prayer are
 // read by the device voice until they are recorded.
 $("rosaryListen").onclick = () => {
-  const button = $("rosaryListen");
+  if (along.on) { stopAlong(); return; }
   if (prayerAudio.playing) { stopPrayerNarration(); return; }
+  playRosaryStep(null);
+};
+
+// Reads the step open now aloud. onEnd, if given, hears how it ended (see
+// prayerAudio). With no device voice, a step with no recording is given the
+// time it takes to pray it silently, so praying along still moves on.
+function playRosaryStep(onEnd) {
+  const button = $("rosaryListen");
   const lang = rosaryLang();
   const step = rosaryRun.steps[rosaryRun.index];
+  const speak = segments => {
+    if (canSpeak) {
+      speakPrayer(segments, button);
+      prayerAudio.onEnd = onEnd;
+    } else if (onEnd) {
+      const words = segments.map(s => s.text).join(" ").split(/\s+/).length;
+      along.timer = setTimeout(() => onEnd(true), Math.max(2500, words * 400));
+    }
+  };
   if (step.kind === "prayer") {
     const item = prayerBook.byId(step.prayer);
-    const speak = () => speakPrayer(narrationSegments(item.text[lang], item.audio, lang), button);
+    const segments = narrationSegments(item.text[lang], item.audio, lang);
     const src = recordedUrl(prayerItemId(lang, item.id));
-    if (src) playPrayerRecording(src, button, speak, item.name[lang]);
-    else speak();
+    if (src) {
+      playPrayerRecording(src, button, () => speak(segments), item.name[lang]);
+      prayerAudio.onEnd = onEnd;
+    } else speak(segments);
   } else {
     const parts = [$("rosaryStepTitle").textContent, $("rosaryStepText").textContent];
     if (step.kind === "mystery") parts.push(setById(rosaryRun.set).mysteries[step.decade - 1].verse[lang]);
-    speakPrayer(parts.map(text => ({ text, pause: 0.6 })), button);
+    speak(parts.map(text => ({ text, pause: 0.6 })));
   }
-};
+}
 
 /* ---------- Startup ----------
    Everything above is declarations and handler wiring; this is the only code

@@ -1,0 +1,24 @@
+# Sends every page in the sitemap to IndexNow (Bing and the other search
+# engines that share it; not Google). The Deploy check sends only the pages a
+# deploy changed; this is for a first submission, or a retry after IndexNow
+# refused a list (the Deploy check then shows a warning with its reason).
+# Run by hand: Actions -> IndexNow -> Run workflow. The key is public by
+# design (the <32 hex>.txt file at the site's root), so no secret is needed.
+name: IndexNow
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Send every sitemap page
+        run: node scripts/indexnow.js https://prayers.dougdevitre.org --all

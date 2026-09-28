@@ -912,6 +912,22 @@ const server = http.createServer((req, res) => {
       && (await reader.getAttribute("#bookPlay", "aria-label")) === "Play this prayer");
     await reader.click("#bookPlay");
     await reader.waitForFunction(() => prayerAudio.playing, null, { timeout: 5000 }).catch(() => {});
+    // The composer's traditional prayers lead to the book, at the prayer open there.
+    await reader.click("#closeBook");
+    await reader.waitForFunction(() => !prayerAudio.playing, null, { timeout: 3000 }).catch(() => {});
+    await reader.click("#prayerButton");
+    await reader.click('.traditional-chip[data-prayer="hail-mary"]');
+    await reader.click("#traditionalBook");
+    check("the composer opens the Prayer Book at its open prayer", await reader.evaluate(() =>
+      document.getElementById("bookDialog").open && !document.getElementById("prayerDialog").open)
+      && (await reader.textContent("#bookTitle")) === "Hail Mary");
+    // A favorite is kept for offline listening with the week and SOS sets.
+    check("a favorite prayer is saved for offline listening", await reader.evaluate(() =>
+      offlineIds({ lang: "en", track: "core", day: 0, days: 30, sosCount: 4, prayers: prayerFavorites() }).includes("en/prayer/angelus")));
+    // Back to the prayer with a recording, playing, for the close check.
+    await reader.evaluate(() => showBookPrayer("angelus"));
+    await reader.click("#bookPlay");
+    await reader.waitForFunction(() => prayerAudio.playing, null, { timeout: 5000 }).catch(() => {});
     await reader.click("#closeBook");
     // The dialog's close event is queued, so the stop lands a moment later.
     await reader.waitForFunction(() => !prayerAudio.playing, null, { timeout: 3000 }).catch(() => {});

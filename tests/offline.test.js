@@ -22,6 +22,20 @@ test("a week from the current day, then every SOS set in the reader's language",
   ]);
 });
 
+test("the reader's favorite prayers come last, in the reader's language", () => {
+  const ids = offlineIds({ lang: "es", track: "core", day: 0, days: 30, sosCount: 4, prayers: ["memorare", "our-father"] });
+  assert.deepStrictEqual(ids.slice(-2), ["es/prayer/memorare", "es/prayer/our-father"]);
+  assert.strictEqual(offlineIds({ lang: "en", track: "core", day: 0, days: 30, sosCount: 4 }).filter(id => id.includes("/prayer/")).length, 0);
+});
+
+test("against the committed library: a favorite prayer has a recording to keep in both languages", () => {
+  for (const lang of ["en", "es"]) {
+    const plan = offlinePlan(audioManifest, offlineIds({ lang, track: "core", day: 0, days: 30, sosCount: 4, prayers: ["angelus"] }));
+    assert.strictEqual(plan.keep.length, 12, `${lang}: ${plan.keep.length} files`);
+    assert.ok(plan.keep[11].url.startsWith(`${audioManifest.base}/${lang}/prayer/angelus`), plan.keep[11].url);
+  }
+});
+
 test("the window stops at the journey's last day rather than wrapping", () => {
   const ids = offlineIds({ lang: "es", track: "unknown", day: 3, days: 5, sosCount: 4 });
   assert.deepStrictEqual(ids.filter(id => id.includes("/day/")), ["es/day/unknown/3", "es/day/unknown/4"]);

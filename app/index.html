@@ -202,8 +202,12 @@
     </div>
     <section class="rosary-view" id="rosaryView" hidden aria-labelledby="rosaryHeading">
       <button type="button" class="text-button book-back" id="rosaryBack" data-i18n="book.back">← All prayers</button>
-      <p class="eyebrow" data-i18n="rosary.kicker">THE ROSARY</p>
-      <h3 class="book-title" id="rosaryHeading"></h3>
+      <div class="title-row">
+        <div><p class="eyebrow" data-i18n="rosary.kicker">THE ROSARY</p><h3 class="book-title" id="rosaryHeading"></h3></div>
+        <div class="title-actions">
+          <button class="favorite-button share-button" id="rosaryShare" aria-label="Share these mysteries" data-i18n-aria="rosary.share">↗</button>
+        </div>
+      </div>
       <div class="rosary-options">
         <div><label for="rosarySet" data-i18n="rosary.setLabel">Mysteries</label><select id="rosarySet"></select></div>
         <label class="rosary-fatima" for="rosaryFatima"><input type="checkbox" id="rosaryFatima" checked /> <span data-i18n="rosary.fatima">Include the Fatima Prayer after each decade</span></label>

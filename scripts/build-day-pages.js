@@ -35,7 +35,7 @@ const { shareLinks, shareIcons: ICON } = require("../share.js");
 // Each day page previews with its own card (api/card.js renders it); the
 // address carries a hash of what the card shows, so an edit is a new URL.
 const { cardFor, prayerCardFor, rosaryCardFor, cardPath } = require("../cards.js");
-const { rosary, rosarySteps, mysteryRef, daysLabel } = require("../rosary.js");
+const { rosary, rosarySteps, mysteryRef, daysLabel, rosaryPagePath } = require("../rosary.js");
 const { prayerBook } = require("../prayerbook.js");
 const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 // Meta descriptions are cut to 155 characters; at a word, with an ellipsis,
@@ -645,7 +645,7 @@ function prayerStructuredData({ L, item, title, description, relPath, altPath, i
 
 // The Rosary's pages sit inside the book: /prayers/rosary and one page per set
 // of mysteries (/prayers/rosary/joyful), /es/oraciones/rosario/gozosos.
-const rosaryPath = (code, set) => `${prayerBook.bookPath(code)}/${code === "es" ? "rosario" : "rosary"}${set ? `/${set.slug[code]}` : ""}`;
+const rosaryPath = (code, set) => rosaryPagePath(code, set && set.id);
 
 function rosaryTeaser(L) {
   const R = L.rosary;

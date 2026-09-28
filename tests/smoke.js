@@ -1011,6 +1011,23 @@ const server = http.createServer((req, res) => {
         && (await reader.textContent("#rosaryStepTitle")) === "Sign of the Cross"
         && (await reader.textContent("#rosaryProgress")) === "Step 1 of 32"
         && (await reader.textContent("#rosaryHeading")) === today.name.en);
+      // The mysteries share like a prayer: their page on the site and their card.
+      await reader.click("#rosaryShare");
+      await reader.waitForSelector("#shareDialog[open]");
+      check("the Rosary's share names the mysteries and links to their page", (await reader.textContent("#shareHeading")) === "Share these mysteries"
+        && (await reader.textContent("#shareSaveCard")) === "Save the mysteries' card"
+        && (await reader.textContent("#shareCaption")) === today.mysteries.map(m => m.name.en).join(" · ")
+        && (await reader.$$eval("#shareSheet .share-link", as => as.map(a => a.getAttribute("href"))))
+          .every(h => h.includes(encodeURIComponent(`http://localhost:8123/prayers/rosary/${today.slug.en}`))));
+      await reader.evaluate(() => { cardFetch = null; });
+      const [rosaryCard, rosaryReq] = await Promise.all([reader.waitForEvent("download"),
+        reader.waitForRequest(r => r.url().endsWith(`/cards/en/rosary/${today.slug.en}.latest.post.png`), { timeout: 5000 }).catch(() => null),
+        reader.click("#shareSaveCard")]);
+      const rosaryPng = fs.readFileSync(await rosaryCard.path());
+      check("…and saves their card from the site", rosaryCard.suggestedFilename() === `stand-rosary-${today.slug.en}.png` && Boolean(rosaryReq)
+        && rosaryPng.readUInt32BE(16) === 1080 && rosaryPng.readUInt32BE(20) === 1350);
+      await reader.click("#closeShare");
+      check("…and the Rosary is where it was", await reader.isVisible("#rosaryView") && (await reader.textContent("#rosaryProgress")) === "Step 1 of 32");
       for (let i = 0; i < 3; i++) await reader.click("#rosaryNext");
       check("the three Hail Marys are counted, with their intention", (await reader.textContent("#rosaryCount")) === "Hail Mary 1 of 3"
         && (await reader.textContent("#rosaryStepKicker")).includes("For faith, hope and charity")

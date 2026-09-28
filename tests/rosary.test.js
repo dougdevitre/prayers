@@ -4,7 +4,7 @@
 //   npm run test:unit
 
 const assert = require("assert");
-const { rosary, setById, setForDate, rosarySteps, mysteryRef, daysLabel } = require("../rosary.js");
+const { rosary, setById, setForDate, rosarySteps, mysteryRef, daysLabel, rosaryPagePath } = require("../rosary.js");
 const { prayerCorpus } = require("../prayers.js");
 
 let failures = 0;
@@ -106,6 +106,18 @@ test("Spanish references name the books as the Spanish days do", () => {
     assert.strictEqual(mysteryRef(m, "en"), m.ref);
   }
   assert.strictEqual(mysteryRef(setById("joyful").mysteries[0], "es"), "Lucas 1:38");
+});
+
+test("the Rosary's pages sit inside the Prayer Book, one per set, at the addresses the app shares", () => {
+  const { prayerBook } = require("../prayerbook.js");
+  assert.strictEqual(rosaryPagePath("en"), `${prayerBook.bookPath("en")}/rosary`);
+  assert.strictEqual(rosaryPagePath("es"), `${prayerBook.bookPath("es")}/rosario`);
+  assert.strictEqual(rosaryPagePath("es", "joyful"), "/es/oraciones/rosario/gozosos");
+  assert.strictEqual(rosaryPagePath("en", "nope"), "/prayers/rosary");
+  const fs = require("fs"), path = require("path");
+  for (const l of LANGS) for (const s of rosary.sets) {
+    assert.ok(fs.existsSync(path.join(__dirname, "..", `${rosaryPagePath(l, s.id)}.html`)), `${l} ${s.id}`);
+  }
 });
 
 if (failures) { console.log(`\n${failures} failing`); process.exit(1); }

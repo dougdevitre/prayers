@@ -145,6 +145,18 @@
     return names.length > 1 ? `${names.slice(0, -1).join(", ")} ${rosary.and[lang]} ${names[names.length - 1]}` : names[0];
   }
 
+  /**
+   * The Rosary's web page (the overview, or one set of mysteries), inside the
+   * Prayer Book: /prayers/rosary/joyful, /es/oraciones/rosario/gozosos. The
+   * page generator and the app's share button both use it.
+   */
+  const PAGE_BASE = { en: "/prayers/rosary", es: "/es/oraciones/rosario" };
+  function rosaryPagePath(lang, setId) {
+    const code = lang === "es" ? "es" : "en";
+    const set = setId ? setById(setId) : null;
+    return set ? `${PAGE_BASE[code]}/${set.slug[code]}` : PAGE_BASE[code];
+  }
+
   /** The mysteries prayed on a date's weekday (Rosarium Virginis Mariae §38). */
   const setForDate = date => rosary.sets.find(s => s.days.includes(date.getDay()));
 
@@ -180,7 +192,7 @@
     return steps;
   }
 
-  const api = { rosary, setById, setForDate, rosarySteps, mysteryRef, daysLabel };
+  const api = { rosary, setById, setForDate, rosarySteps, mysteryRef, daysLabel, rosaryPagePath };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else Object.assign(root, api);
 })(typeof window !== "undefined" ? window : globalThis);

@@ -61,6 +61,7 @@ function collect(root = ROOT) {
   const c = require(path.join(root, "content.js"));
   const e = require(path.join(root, "content.es.js"));
   const { prayerCorpus: p } = require(path.join(root, "prayers.js"));
+  const { rosary: r } = require(path.join(root, "rosary.js"));
 
   const items = [];
   function add(item) {
@@ -143,7 +144,28 @@ function collect(root = ROOT) {
     });
   }
 
-  // 5. The fear finder: the sentences a reader picks to start.
+  // 5. The Rosary: what is new in it. Its other prayers are the Prayer Book's,
+  // reviewed above; the order it is prayed in is in rosary.js.
+  add({
+    id: "rosary.fatima", section: "rosary", group: "The Rosary", groupEs: r.name.es,
+    label: r.fatima.name.en, labelEs: r.fatima.name.es, tags: ["Roman Catholic", "New in the Rosary"],
+    fields: [{ label: "Text", en: r.fatima.text.en, es: r.fatima.text.es }, { label: "Before the first decade", en: r.virtues.en, es: r.virtues.es }]
+  });
+  for (const set of r.sets) {
+    set.mysteries.forEach((m, i) => {
+      const fields = [
+        { label: "Mystery", en: m.name.en, es: m.name.es },
+        { label: "Scripture", en: `${m.verse.en} (${m.ref})`, es: m.verse.es, scripture: true }
+      ];
+      if (m.note) fields.push({ label: "Note", en: m.note.en, es: m.note.es });
+      add({
+        id: `rosary.${set.id}.${i + 1}`, section: "rosary", group: set.name.en, groupEs: set.name.es,
+        label: `${i + 1}. ${m.name.en}`, labelEs: `${i + 1}. ${m.name.es}`, tags: ["Roman Catholic"], fields
+      });
+    });
+  }
+
+  // 6. The fear finder: the sentences a reader picks to start.
   add({
     id: "finder.phrases", section: "finder", group: "Fear finder", groupEs: "Buscador de miedos",
     label: "“Where are you right now?” phrases", labelEs: "",

@@ -107,5 +107,20 @@ test("the page carries every item, and text cannot close its script tag", () => 
   assert.ok(/<title>[^<]+<\/title>/.test(html.slice(0, 8192)), "no title in the first 8 KB");
 });
 
+test("the Rosary's new text is in the workbook: the Fatima Prayer and all twenty mysteries", () => {
+  const { rosary } = require("../rosary.js");
+  const all = collect().items.filter(i => i.section === "rosary");
+  assert.strictEqual(all.length, 21);
+  const fatima = all.find(i => i.id === "rosary.fatima");
+  assert.strictEqual(fatima.fields[0].en, rosary.fatima.text.en);
+  assert.strictEqual(fatima.fields[0].es, rosary.fatima.text.es);
+  for (const set of rosary.sets) set.mysteries.forEach((m, i) => {
+    const item = all.find(x => x.id === `rosary.${set.id}.${i + 1}`);
+    assert.ok(item, `rosary.${set.id}.${i + 1} missing`);
+    assert.strictEqual(item.fields[0].es, m.name.es);
+    assert.ok(item.fields[1].en.startsWith(m.verse.en) && item.fields[1].scripture);
+  });
+});
+
 if (failures) { console.log(`\n${failures} failing`); process.exit(1); }
 console.log("\nAll review workbook tests passed.");

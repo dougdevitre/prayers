@@ -1261,7 +1261,7 @@ $("exportButton").onclick = () => {
     lines.push(`${t("day.number", { n: String(d + 1).padStart(2, "0") })} · ${activeTrack().days[d][0]}`,
       tdata().notes[d].trim(), "");
   }
-  downloadFile("stand-reflections.txt", lines.join("\n"), "text/plain");
+  downloadFile("stand-notes.txt", lines.join("\n"), "text/plain");
 };
 
 /* ---------- Backup, restore, erase ---------- */

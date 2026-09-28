@@ -28,7 +28,7 @@
   <title>Stand — 30 Days of Spiritual Combat</title>
 </head>
 <body>
-  <noscript><p class="noscript-note">Stand needs JavaScript to play audio, save notes, and track your journey. Please enable JavaScript and reload.</p></noscript>
+  <noscript><p class="noscript-note">Stand needs JavaScript to play audio, save notes, and keep your place in your journey. Please enable JavaScript and reload.</p></noscript>
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="#" aria-label="Stand home" data-i18n-aria="brand.home"><span class="brand-mark">✦</span><span>STAND</span></a>
@@ -97,7 +97,7 @@
         </section>
 
         <section class="action-panel">
-          <div class="action-icon">→</div><div><p class="section-kicker" data-i18n="section.practice">TODAY'S PRACTICE</p><p id="action"></p></div>
+          <div class="action-icon">→</div><div><p class="section-kicker" data-i18n="section.practice">TODAY’S PRACTICE</p><p id="action"></p></div>
         </section>
 
         <section class="checkin-section">
@@ -110,7 +110,7 @@
         </section>
 
         <section class="notes-section">
-          <label for="notes" data-i18n="notes.label">My reflection</label>
+          <label for="notes" data-i18n="notes.label">My notes</label>
           <textarea id="notes" rows="4" placeholder="What is God showing me today?" data-i18n-placeholder="notes.placeholder"></textarea>
           <p class="save-status" id="saveStatus" aria-live="polite" data-i18n="notes.saved">Saved on this device</p>
         </section>
@@ -122,7 +122,7 @@
   </div>
 
   <dialog id="libraryDialog">
-    <div class="dialog-header"><div><p class="eyebrow" data-i18n="library.kicker">YOUR JOURNEYS</p><h2 data-i18n="library.title">Choose your path</h2></div><button class="icon-button" id="closeLibrary" aria-label="Close library" data-i18n-aria="library.close">×</button></div>
+    <div class="dialog-header"><div><p class="eyebrow" data-i18n="library.kicker">YOUR JOURNEYS</p><h2 data-i18n="library.title">Choose your journey</h2></div><button class="icon-button" id="closeLibrary" aria-label="Close library" data-i18n-aria="library.close">×</button></div>
     <div class="fear-finder">
       <label for="fearFinder" data-i18n="library.finder">Where are you right now?</label>
       <select id="fearFinder"><option value="" data-i18n="library.finderPlaceholder">Choose what fits…</option></select>
@@ -252,7 +252,7 @@
       <section class="audio-card book-player" aria-label="Listen" data-i18n-aria="book.player">
         <button class="play-button" id="bookPlay" aria-label="Play this prayer"><span id="bookPlayIcon" aria-hidden="true">▶</span></button>
         <div class="audio-main">
-          <div class="audio-labels"><strong data-i18n="book.listen">Pray along</strong><span id="bookPlayInfo"></span></div>
+          <div class="audio-labels"><strong data-i18n="book.listen">Listen</strong><span id="bookPlayInfo"></span></div>
           <div class="audio-track"><span id="bookProgress"></span></div>
         </div>
       </section>
@@ -266,7 +266,7 @@
     <p class="share-caption" id="shareCaption"></p>
     <div class="share-sheet" id="shareSheet">
       <button type="button" class="share-copy" id="shareCopy"><span id="shareCopyIcon"></span><span id="shareCopyLabel" data-i18n="share.copy">Copy link</span></button>
-      <button type="button" id="shareSaveCard" data-i18n="share.saveCard">Save the day's card</button>
+      <button type="button" id="shareSaveCard" data-i18n="share.saveCard">Save the day’s card</button>
       <a class="share-link" id="shareX" target="_blank" rel="noopener noreferrer" aria-label="Share on X" data-i18n-aria="share.x"></a>
       <a class="share-link" id="shareFacebook" target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook" data-i18n-aria="share.facebook"></a>
       <a class="share-link" id="shareWhatsapp" target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp" data-i18n-aria="share.whatsapp"></a>
@@ -277,10 +277,10 @@
   </dialog>
 
   <dialog id="journalDialog">
-    <div class="dialog-header"><div><p class="eyebrow" data-i18n="journal.kicker">MY REFLECTIONS</p><h2 data-i18n="journal.title">Journal</h2></div><button class="icon-button" id="closeJournal" aria-label="Close journal" data-i18n-aria="journal.close">×</button></div>
+    <div class="dialog-header"><div><p class="eyebrow" data-i18n="journal.kicker">MY NOTES</p><h2 data-i18n="journal.title">Journal</h2></div><button class="icon-button" id="closeJournal" aria-label="Close journal" data-i18n-aria="journal.close">×</button></div>
     <div class="ledger" id="ledger"></div>
     <div id="journalList"></div>
-    <button class="complete-button" id="exportButton" data-i18n="journal.download">Download my reflections (.txt)</button>
+    <button class="complete-button" id="exportButton" data-i18n="journal.download">Download my notes (.txt)</button>
     <div class="data-actions">
       <button class="text-button" id="backupButton" data-i18n="journal.backup">Back up all data (.json)</button>
       <label class="text-button" for="restoreInput"><span data-i18n="journal.restore">Restore from backup</span><input type="file" id="restoreInput" accept="application/json,.json" hidden /></label>
@@ -295,12 +295,12 @@
     <ul class="welcome-list">
       <li data-i18n="welcome.point1">Press ▶ to hear the guided prayer, or read at your own pace.</li>
       <li data-i18n="welcome.point2">Save favorites with ♡ and keep private notes with ✎ — everything stays on your device.</li>
-      <li data-i18n="welcome.point3">Mark each day complete to track progress and build a daily streak.</li>
+      <li data-i18n="welcome.point3">Mark each day complete to see your progress and build a daily streak.</li>
     </ul>
     <p class="section-kicker" data-i18n="welcome.begin">WHERE WOULD YOU LIKE TO BEGIN?</p>
     <div class="welcome-paths">
-      <button class="path-button" id="beginButton" data-track="core"><strong data-i18n="welcome.core">The 30-day journey</strong><small data-i18n="welcome.coreNote">The full path from fear to faith</small></button>
-      <button class="path-button" data-track="unknown"><strong data-i18n="welcome.unknown">Fear of the unknown</strong><small data-i18n="welcome.unknownNote">A focused five-day track</small></button>
+      <button class="path-button" id="beginButton" data-track="core"><strong data-i18n="welcome.core">The 30-day journey</strong><small data-i18n="welcome.coreNote">The full journey from fear to faith</small></button>
+      <button class="path-button" data-track="unknown"><strong data-i18n="welcome.unknown">Fear of the unknown</strong><small data-i18n="welcome.unknownNote">A focused five-day journey</small></button>
       <button class="path-button" data-track="night"><strong data-i18n="welcome.night">Fear at night</strong><small data-i18n="welcome.nightNote">Five days toward rest</small></button>
       <button class="path-button" data-track="giant"><strong data-i18n="welcome.courage">A courage story</strong><small data-i18n="welcome.courageNote">Four days in one heroic account</small></button>
     </div>
@@ -319,14 +319,14 @@
     <div class="sos-footer">
       <button class="text-button" id="sosSupport" aria-expanded="false" data-i18n="sos.support">Fear feels unmanageable? Get support</button>
       <div class="sos-resources" id="sosResources" hidden>
-        <p data-i18n="sos.supportIntro">If fear feels bigger than you can carry right now, you don't have to carry it alone:</p>
+        <p data-i18n="sos.supportIntro">If fear feels bigger than you can carry right now, you don’t have to carry it alone:</p>
         <ul>
           <li><a href="tel:988"><strong>988</strong></a> <span data-i18n="sos.lifeline">— Suicide &amp; Crisis Lifeline (call or text, 24/7)</span></li>
           <li><span data-i18n="sos.textVerb">Text</span> <strong data-i18n="sos.textKeyword">HOME</strong> <span data-i18n="sos.textTo">to</span> <a href="sms:741741"><strong>741741</strong></a> <span data-i18n="sos.textLine">— Crisis Text Line</span></li>
           <li><a href="tel:911"><strong>911</strong></a> <span data-i18n="sos.emergency">— if you are in immediate physical danger</span></li>
           <li><span data-i18n="sos.outsideUs">Outside the US:</span> <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer"><strong>findahelpline.com</strong></a> <span data-i18n="sos.findHelpline">— free, verified helplines in 175+ countries</span></li>
         </ul>
-        <p data-i18n="sos.disclaimer">Stand offers spiritual encouragement. It isn't medical or crisis care, and reaching out for more help is its own act of courage.</p>
+        <p data-i18n="sos.disclaimer">Stand offers spiritual encouragement. It isn’t medical or crisis care, and reaching out for more help is its own act of courage.</p>
       </div>
     </div>
   </dialog>

@@ -246,6 +246,19 @@ test("Prayer Book favorites keep only known prayers, each once, and default to n
   assert.deepStrictEqual(sanitizeBackup(validBackup({ prayerFavorites: ["memorare"] }), DEPS).prayerFavorites, []);
 });
 
+test("a Rosary in progress survives a backup only when it is a sound one", () => {
+  const deps = { ...DEPS, rosarySets: ["joyful", "sorrowful"] };
+  const good = { set: "joyful", step: 12, bead: 4, fatima: false, started: 1790000000000 };
+  assert.deepStrictEqual(sanitizeBackup(validBackup({ rosary: good }), deps).rosary, good);
+  for (const bad of [{ ...good, set: "nope" }, { ...good, step: 40 }, { ...good, step: -1 }, { ...good, bead: 10 }, { ...good, step: 1.5 },
+    { ...good, started: "yesterday" }, "joyful", null]) {
+    assert.strictEqual(sanitizeBackup(validBackup({ rosary: bad }), deps).rosary, null, JSON.stringify(bad));
+  }
+  assert.strictEqual(sanitizeBackup(validBackup(), deps).rosaryFatima, true);
+  assert.strictEqual(sanitizeBackup(validBackup({ rosaryFatima: false }), deps).rosaryFatima, false);
+  assert.strictEqual(sanitizeBackup(validBackup({ rosary: good }), DEPS).rosary, null, "no sets known, nothing kept");
+});
+
 test("notes survive only for real days and real text", () => {
   const clean = sanitizeBackup(validBackup({ notes: { 0: "kept", 99: "dropped", 1: 42 } }), DEPS);
   assert.deepStrictEqual(clean.notes, { 0: "kept" });

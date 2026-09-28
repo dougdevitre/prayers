@@ -54,10 +54,14 @@ test(`no single file is over ${FILE_BUDGET_KB} KB gzipped`, () => {
   assert.deepStrictEqual(over, []);
 });
 
-test("the Spanish journeys load on demand, and are still precached for offline", () => {
-  assert.ok(!assets.includes("content.es.js"), "app/index.html loads content.es.js up front again");
-  assert.ok(/script\.src = "\/content\.es\.js"/.test(fs.readFileSync(path.join(ROOT, "app.js"), "utf8")), "app.js no longer loads it on demand");
-  assert.ok(fs.readFileSync(path.join(ROOT, "sw.js"), "utf8").includes('"/content.es.js"'), "sw.js no longer precaches it");
+test("the Spanish journeys and the Rosary load on demand, and are still precached for offline", () => {
+  const app = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+  const sw = fs.readFileSync(path.join(ROOT, "sw.js"), "utf8");
+  for (const file of ["content.es.js", "rosary.js"]) {
+    assert.ok(!assets.includes(file), `app/index.html loads ${file} up front again`);
+    assert.ok(app.includes(`loadScript("/${file}"`), `app.js no longer loads ${file} on demand`);
+    assert.ok(sw.includes(`"/${file}"`), `sw.js no longer precaches ${file}`);
+  }
 });
 
 if (failures) { console.log(`\n${failures} failing`); process.exit(1); }

@@ -36,7 +36,8 @@
         <button class="icon-button" id="themeButton" aria-label="Toggle dark mode" data-i18n-aria="topbar.theme">◐</button>
         <button class="icon-button" id="journalButton" aria-label="Open my reflections journal" data-i18n-aria="topbar.journal">✎</button>
         <button class="icon-button" id="prayerButton" aria-label="Open the prayer composer" data-i18n-aria="topbar.prayer">✛</button>
-        <button class="icon-button" id="libraryButton" aria-label="Open the 30-day library" data-i18n-aria="topbar.library">☰</button>
+        <button class="icon-button" id="bookButton" aria-label="Open the Prayer Book and the Rosary" data-i18n-aria="topbar.book"><svg class="icon-svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5Zm0 0v13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></button>
+        <button class="icon-button" id="libraryButton" aria-label="Journeys and settings" data-i18n-aria="topbar.library">☰</button>
       </div>
     </header>
 
@@ -190,6 +191,7 @@
   <dialog id="bookDialog" aria-labelledby="bookHeading">
     <div class="dialog-header"><div><p class="eyebrow" data-i18n="book.kicker">PRAYER BOOK</p><h2 id="bookHeading" data-i18n="book.title">Traditional prayers</h2></div><button class="icon-button" id="closeBook" aria-label="Close the Prayer Book" data-i18n-aria="book.close">×</button></div>
     <div id="bookList">
+      <button type="button" class="track-chip rosary-entry" id="rosaryEntry"><strong data-i18n="rosary.entryTitle">Pray the Rosary</strong><small id="rosaryEntryMeta"></small></button>
       <div class="filter-tabs" aria-label="Filter prayers" data-i18n-aria="book.filters">
         <button class="filter-tab active" data-book-filter="all" data-i18n="book.all">All</button>
         <button class="filter-tab" data-book-filter="roman-catholic" data-i18n="book.catholic">Roman Catholic</button>
@@ -198,6 +200,36 @@
       <div id="bookSections"></div>
       <p class="library-about"><a class="text-button" id="bookWeb" href="/prayers" data-i18n="book.web">The Prayer Book on the web</a></p>
     </div>
+    <section class="rosary-view" id="rosaryView" hidden aria-labelledby="rosaryHeading">
+      <button type="button" class="text-button book-back" id="rosaryBack" data-i18n="book.back">← All prayers</button>
+      <p class="eyebrow" data-i18n="rosary.kicker">THE ROSARY</p>
+      <h3 class="book-title" id="rosaryHeading"></h3>
+      <div class="rosary-options">
+        <div><label for="rosarySet" data-i18n="rosary.setLabel">Mysteries</label><select id="rosarySet"></select></div>
+        <label class="rosary-fatima" for="rosaryFatima"><input type="checkbox" id="rosaryFatima" checked /> <span data-i18n="rosary.fatima">Include the Fatima Prayer after each decade</span></label>
+      </div>
+      <p class="rosary-progress" id="rosaryProgress"></p>
+      <div class="rosary-decades" id="rosaryDecades" aria-hidden="true"></div>
+      <article class="prayer-panel rosary-step" id="rosaryStep">
+        <p class="section-kicker" id="rosaryStepKicker"></p>
+        <h4 class="rosary-step-title" id="rosaryStepTitle"></h4>
+        <p id="rosaryStepText"></p>
+        <p class="rosary-verse" id="rosaryStepVerse" hidden></p>
+        <p class="tradition-note" id="rosaryStepNote" hidden></p>
+        <div class="rosary-beads" id="rosaryBeads" hidden></div>
+        <p class="rosary-count" id="rosaryCount" role="status" aria-live="polite"></p>
+      </article>
+      <div class="rosary-actions">
+        <button type="button" class="text-button" id="rosaryPrev" data-i18n="rosary.back">← Back</button>
+        <button type="button" class="text-button" id="rosaryListen">▶ Listen</button>
+        <button type="button" class="complete-button rosary-next" id="rosaryNext" data-i18n="rosary.next">Next</button>
+      </div>
+      <div class="rosary-done" id="rosaryDone" hidden>
+        <p class="section-kicker" data-i18n="rosary.doneKicker">AMEN</p>
+        <p class="rosary-done-title" data-i18n="rosary.doneTitle">You have prayed the Rosary.</p>
+        <div class="rosary-actions"><button type="button" class="text-button" id="rosaryAgain" data-i18n="rosary.again">Pray it again</button><button type="button" class="complete-button" id="rosaryToBook" data-i18n="rosary.toBook">Back to the Prayer Book</button></div>
+      </div>
+    </section>
     <article class="book-reader" id="bookReader" hidden>
       <button type="button" class="text-button book-back" id="bookBack" data-i18n="book.back">← All prayers</button>
       <div class="title-row">

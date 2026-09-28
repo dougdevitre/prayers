@@ -12,7 +12,7 @@
  *   3. every data-i18n* attribute in the markup names a real key
  *   4. the markup's inline English matches ui.js's English, character for
  *      character (after collapsing whitespace and decoding entities)
- *   5. no key is dead — each one is used by the markup or by app.js
+ *   5. no key is dead — each one is used by the markup or by the scripts
  */
 
 const fs = require("fs");
@@ -22,7 +22,7 @@ const root = path.join(__dirname, "..");
 const { appUi } = require(path.join(root, "ui.js"));
 const html = fs.readFileSync(path.join(root, "app", "index.html"), "utf8");
 // reminder.js builds the calendar file and asks for its own strings.
-const js = ["app.js", "reminder.js"].map(f => fs.readFileSync(path.join(root, f), "utf8")).join("\n");
+const js = ["app.js", "rosary-ui.js", "reminder.js"].map(f => fs.readFileSync(path.join(root, f), "utf8")).join("\n");
 
 const problems = [];
 const langs = Object.keys(appUi);
@@ -70,7 +70,7 @@ for (const m of html.matchAll(/<(\w+)([^>]*\sdata-i18n="([^"]+)"[^>]*)>([\s\S]*?
   }
 }
 
-// 5: keys app.js and reminder.js ask for, and keys nobody asks for.
+// 5: keys the scripts ask for, and keys nobody asks for.
 for (const m of js.matchAll(/\bt\(\s*"([^"]+)"/g)) {
   used.add(m[1]);
   if (!(m[1] in appUi.en)) problems.push(`the app calls t("${m[1]}") but ui.js has no such key`);

@@ -57,7 +57,7 @@ test(`no single file is over ${FILE_BUDGET_KB} KB gzipped`, () => {
 test("the Spanish journeys and the Rosary load on demand, and are still precached for offline", () => {
   const app = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
   const sw = fs.readFileSync(path.join(ROOT, "sw.js"), "utf8");
-  for (const file of ["content.es.js", "rosary.js"]) {
+  for (const file of ["content.es.js", "rosary.js", "rosary-ui.js"]) {
     assert.ok(!assets.includes(file), `app/index.html loads ${file} up front again`);
     assert.ok(app.includes(`loadScript("/${file}"`), `app.js no longer loads ${file} on demand`);
     assert.ok(sw.includes(`"/${file}"`), `sw.js no longer precaches ${file}`);

@@ -336,7 +336,7 @@ h2.section-kicker,.landing-section h2.section-kicker{margin:0;font-family:inheri
 .text-button{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px}
 .filter-tab,.traditional-chip{min-height:44px}
 .reminder-option select,.reminder-option input[type=time],.reminder-row input[type=time]{min-height:44px}
-.prayer-both label,.reminder-option label:has(input[type=checkbox]){min-height:44px}
+.prayer-both label,.rosary-fatima,.reminder-option label:has(input[type=checkbox]){min-height:44px}
 .reminder-option label:has(input[type=checkbox]){display:inline-flex;align-items:center;gap:8px}
 .brand{display:inline-flex;align-items:center;min-height:44px}
 .nav-cta,.nav-menu>summary{display:inline-flex;align-items:center;min-height:44px}
@@ -358,3 +358,5 @@ h2.section-kicker,.landing-section h2.section-kicker{margin:0;font-family:inheri
    site, so "Steady me now" looks the same wherever it is offered. */
 .sos-cta{border:0;border-radius:99px;background:var(--gold);color:var(--on-gold);letter-spacing:.04em}
 .sos-cta:hover,.sos-cta:focus-visible{background:var(--gold);color:var(--on-gold);box-shadow:0 0 0 3px var(--gold-soft)}
+/* "Show both languages", offered in the Prayer Book reader and the Rosary. */
+.book-both{display:flex;gap:8px;align-items:center;font-weight:400;min-height:44px}

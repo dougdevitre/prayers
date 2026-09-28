@@ -36,6 +36,28 @@ test("against the committed library: a favorite prayer has a recording to keep i
   }
 });
 
+test("favorite days outside the week are kept too, once, and only real days", () => {
+  const ids = offlineIds({ lang: "en", track: "core", day: 4, days: 30, sosCount: 0, favoriteDays: [0, 5, 20, 20.5, -1, 30] });
+  assert.deepStrictEqual(ids.filter(id => id.startsWith("en/day/")).slice(7), ["en/day/core/0", "en/day/core/20"]);
+});
+
+test("today's Rosary: its prayers once each, then its mysteries and the Fatima Prayer", () => {
+  const ids = offlineIds({ lang: "es", track: "core", day: 0, days: 30, sosCount: 0,
+    prayers: ["hail-mary", "our-father", "hail-mary"], rosary: ["annunciation", "fatima"] });
+  assert.deepStrictEqual(ids.slice(7), ["es/prayer/hail-mary", "es/prayer/our-father", "es/rosary/annunciation", "es/rosary/fatima"]);
+});
+
+test("against the committed library: today's Rosary has every recording it needs, in both languages", () => {
+  const { rosarySteps, setForDate } = require("../rosary.js");
+  const set = setForDate(new Date());
+  const prayers = rosarySteps(set.id, { fatima: true }).filter(step => step.kind === "prayer").map(step => step.prayer);
+  for (const lang of ["en", "es"]) {
+    const ids = offlineIds({ lang, track: "core", day: 0, days: 30, sosCount: 0, prayers, rosary: [...set.mysteries.map(m => m.id), "fatima"] }).slice(7);
+    const plan = offlinePlan(audioManifest, ids);
+    assert.strictEqual(plan.keep.length, 12, `${lang}: ${plan.keep.length} of 12 files`);
+  }
+});
+
 test("the window stops at the journey's last day rather than wrapping", () => {
   const ids = offlineIds({ lang: "es", track: "unknown", day: 3, days: 5, sosCount: 4 });
   assert.deepStrictEqual(ids.filter(id => id.includes("/day/")), ["es/day/unknown/3", "es/day/unknown/4"]);

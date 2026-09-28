@@ -2,7 +2,7 @@
 // else. Pure, so the tests can run it in Node; app.js does the caching.
 //
 // A browser global (loaded before app.js) and a CommonJS module, like
-// logic.js. It needs dayItemId, sosItemId and prayerItemId from narration.js,
+// logic.js. It needs the item ids (dayItemId and the rest) from narration.js,
 // which is a global in the browser and a require here.
 
 const OFFLINE_CACHE = "stand-audio-offline-v1";
@@ -11,22 +11,28 @@ const OFFLINE_DAYS = 7;
 
 const offlineIdsFor = (typeof module !== "undefined" && module.exports)
   ? require("./narration.js")
-  : { dayItemId: (...a) => dayItemId(...a), sosItemId: (...a) => sosItemId(...a), prayerItemId: (...a) => prayerItemId(...a) };
+  : { dayItemId: (...a) => dayItemId(...a), sosItemId: (...a) => sosItemId(...a), prayerItemId: (...a) => prayerItemId(...a), rosaryItemId: (...a) => rosaryItemId(...a) };
 
 /**
  * Manifest ids to keep offline: the current day and the six after it in the
- * reader's journey and language (not wrapping past the last day), every SOS
- * set in that language, since fear does not wait for a connection, and the
- * Prayer Book prayers the reader has marked as favorites. Only the favorites:
- * all thirteen would nearly double the download, and the favorites are the
- * ones a reader returns to.
+ * reader's journey and language (not wrapping past the last day), the days
+ * the reader has marked as favorites in that journey, every SOS set in that
+ * language, since fear does not wait for a connection, the Prayer Book
+ * prayers given (the reader's favorites, and today's Rosary's prayers), and
+ * the Rosary's own recordings given (today's mysteries and the Fatima
+ * Prayer). Only favorites and today's mysteries: everything would nearly
+ * triple the download, and these are what a reader returns to.
  */
-function offlineIds({ lang, track, day, days, sosCount, prayers = [] }) {
+function offlineIds({ lang, track, day, days, sosCount, prayers = [], favoriteDays = [], rosary = [] }) {
   const ids = [];
   const last = Math.min(days, day + OFFLINE_DAYS);
   for (let d = Math.max(0, day); d < last; d++) ids.push(offlineIdsFor.dayItemId(lang, track, d));
+  for (const d of favoriteDays) {
+    if (Number.isInteger(d) && d >= 0 && d < days && (d < day || d >= last)) ids.push(offlineIdsFor.dayItemId(lang, track, d));
+  }
   for (let i = 0; i < sosCount; i++) ids.push(offlineIdsFor.sosItemId(lang, i));
-  for (const id of prayers) ids.push(offlineIdsFor.prayerItemId(lang, id));
+  for (const id of new Set(prayers)) ids.push(offlineIdsFor.prayerItemId(lang, id));
+  for (const id of rosary) ids.push(offlineIdsFor.rosaryItemId(lang, id));
   return ids;
 }
 

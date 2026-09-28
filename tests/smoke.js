@@ -21,7 +21,8 @@ const SITE = "https://prayers.dougdevitre.org";
 const SITE_ORIGIN = "http://localhost:8123";
 const DAY_PAGE_COUNT = Object.values(tracks).reduce((n, t) => n + t.days.length, 0);
 // Per language: one page per traditional prayer, the book, and the Roman Catholic page.
-const PRAYER_BOOK_PAGE_COUNT = (require("../prayers.js").prayerCorpus.traditional.length + 2) * 2;
+// Plus the Rosary: its overview and one page per set of mysteries.
+const PRAYER_BOOK_PAGE_COUNT = (require("../prayers.js").prayerCorpus.traditional.length + 2 + 1 + require("../rosary.js").rosary.sets.length) * 2;
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp", ".xml": "application/xml", ".txt": "text/plain", ".webmanifest": "application/manifest+json", ".mp3": "audio/mpeg" };
 
 // Mirrors the redirects in vercel.json, so the suite covers old links too.
@@ -804,7 +805,7 @@ const server = http.createServer((req, res) => {
     check("prayer book loads", (await page.title()) === "Prayer Book — Stand");
     check("prayer book lists every traditional prayer", (await page.$$(".feature-card")).length === all.length);
     check("prayer book names both traditions", (await page.$$eval(".landing-section h2.section-kicker", els => els.map(e => e.textContent)))
-      .join("|") === "TRADITIONAL PRAYERS|ROMAN CATHOLIC PRAYERS");
+      .join("|") === "THE ROSARY|TRADITIONAL PRAYERS|ROMAN CATHOLIC PRAYERS");
     check("prayer book heading levels do not skip", !(await headingsSkip()));
     check("prayer book has no horizontal scroll", !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)));
     check("menu links to the prayer book", (await page.$$('.nav-menu a[href="/prayers"]')).length === 0
@@ -830,6 +831,37 @@ const server = http.createServer((req, res) => {
     check("a prayer page links to the next prayer", await page.isVisible('.day-nav a[href="/prayers/memorare"]'));
     check("a prayer page has no horizontal scroll", !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)));
     check("a prayer page offers its translation", (await page.$$('.nav-menu a[href="/es/oraciones/angelus"][hreflang="es"]')).length === 1);
+
+    // The Rosary's pages: how it is prayed, the mysteries by day, and a page
+    // per set with its verses and its own card, each opening the app's Rosary.
+    {
+      const { rosary } = require("../rosary.js");
+      await page.goto("http://localhost:8123/prayers/rosary", { waitUntil: "networkidle" });
+      check("the Rosary page loads", (await page.title()) === "The Rosary — Prayer Book — Stand" && (await page.textContent("h1")) === "The Rosary");
+      check("it gives the order of prayer, linking each prayer to its page", (await page.$$("#order .rosary-order a[href='/prayers/hail-mary']")).length === 2
+        && (await page.$$("#order .rosary-order a[href='/prayers/hail-holy-queen']")).length === 1);
+      check("it shows the Fatima Prayer", (await page.textContent("#fatima")).includes(rosary.fatima.text.en));
+      check("it lists the four sets with their days", (await page.$$("#days .feature-card")).length === 4
+        && (await page.textContent("#days")).includes("Prayed on Mondays and Saturdays."));
+      check("it opens today's Rosary in the app", (await page.$$('.landing-hero a.complete-button[href="/app?rosary=today"]')).length === 1);
+      const overviewCard = await page.getAttribute("#share .share-card img", "src");
+      check("it has a share row and its own share card", (await page.$$("#share .share-row")).length === 1
+        && /^\/cards\/en\/rosary\/rosary\.[0-9a-f]{8}\.post\.png$/.test(overviewCard)
+        && (await page.request.get(`http://localhost:8123${overviewCard}`)).ok());
+      check("the menu offers the Rosary", (await page.$$('.nav-menu a[href="/prayers/rosary"]')).length === 0
+        && (await page.$$('.footer-links a[href="/prayers"]')).length === 1);
+      await page.goto("http://localhost:8123/es/oraciones/rosario/gozosos", { waitUntil: "networkidle" });
+      check("a set's page gives its five mysteries with their verses, in Spanish", (await page.$$(".rosary-mystery")).length === 5
+        && (await page.textContent(".rosary-mystery .section-kicker")) === "PRIMER MISTERIO GOZOSO"
+        && (await page.textContent(".rosary-mystery cite")) === "Lucas 1:38");
+      const setCard = await page.getAttribute(".share-card img", "src");
+      const setCardRes = await page.request.get("http://localhost:8123" + setCard);
+      check("…with its own share card", /^\/cards\/es\/rosary\/gozosos\.[0-9a-f]{8}\.post\.png$/.test(setCard) && setCardRes.ok()
+        && setCardRes.headers()["content-type"] === "image/png");
+      check("…opening those mysteries in the app, in Spanish", (await page.getAttribute(".rosary-page .complete-button", "href")) === "/app?rosary=joyful&lang=es");
+      check("…and links to the next set", await page.isVisible('.day-nav a[href="/es/oraciones/rosario/luminosos"]'));
+      check("the Prayer Book leads to the Rosary", (await (await page.request.get("http://localhost:8123/prayers")).text()).includes('href="/prayers/rosary"'));
+    }
 
     // The page's button opens the prayer in the app, in the page's language:
     // a fresh visitor, so no welcome in the way and nothing already chosen.
@@ -979,6 +1011,23 @@ const server = http.createServer((req, res) => {
         && (await reader.textContent("#rosaryStepTitle")) === "Sign of the Cross"
         && (await reader.textContent("#rosaryProgress")) === "Step 1 of 32"
         && (await reader.textContent("#rosaryHeading")) === today.name.en);
+      // The mysteries share like a prayer: their page on the site and their card.
+      await reader.click("#rosaryShare");
+      await reader.waitForSelector("#shareDialog[open]");
+      check("the Rosary's share names the mysteries and links to their page", (await reader.textContent("#shareHeading")) === "Share these mysteries"
+        && (await reader.textContent("#shareSaveCard")) === "Save the mysteries' card"
+        && (await reader.textContent("#shareCaption")) === today.mysteries.map(m => m.name.en).join(" · ")
+        && (await reader.$$eval("#shareSheet .share-link", as => as.map(a => a.getAttribute("href"))))
+          .every(h => h.includes(encodeURIComponent(`http://localhost:8123/prayers/rosary/${today.slug.en}`))));
+      await reader.evaluate(() => { cardFetch = null; });
+      const [rosaryCard, rosaryReq] = await Promise.all([reader.waitForEvent("download"),
+        reader.waitForRequest(r => r.url().endsWith(`/cards/en/rosary/${today.slug.en}.latest.post.png`), { timeout: 5000 }).catch(() => null),
+        reader.click("#shareSaveCard")]);
+      const rosaryPng = fs.readFileSync(await rosaryCard.path());
+      check("…and saves their card from the site", rosaryCard.suggestedFilename() === `stand-rosary-${today.slug.en}.png` && Boolean(rosaryReq)
+        && rosaryPng.readUInt32BE(16) === 1080 && rosaryPng.readUInt32BE(20) === 1350);
+      await reader.click("#closeShare");
+      check("…and the Rosary is where it was", await reader.isVisible("#rosaryView") && (await reader.textContent("#rosaryProgress")) === "Step 1 of 32");
       for (let i = 0; i < 3; i++) await reader.click("#rosaryNext");
       check("the three Hail Marys are counted, with their intention", (await reader.textContent("#rosaryCount")) === "Hail Mary 1 of 3"
         && (await reader.textContent("#rosaryStepKicker")).includes("For faith, hope and charity")

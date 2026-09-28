@@ -113,6 +113,31 @@ function prayerOgCard(card) {
     footer(card, GOLD, "#d9d4c6"));
 }
 
+/** 1080x1350: a set's five mysteries, or the four sets, as a numbered list. */
+function rosaryPostCard(card) {
+  const item = (line, i) => h("div", { display: "flex", alignItems: "baseline", gap: 22, padding: "18px 0", borderTop: i ? `1px solid #e3d6b8` : "none" },
+    h("div", { display: "flex", fontFamily: "Serif", fontSize: 40, color: GOLD_TEXT, width: 36 }, String(i + 1)),
+    h("div", { display: "flex", flexDirection: "column" },
+      h("div", { display: "flex", fontFamily: "Serif", fontSize: 40, lineHeight: 1.2 }, line.lead),
+      h("div", { display: "flex", fontFamily: "Sans", fontSize: 24, color: MUTED, marginTop: 6 }, line.rest)));
+  return h("div", { display: "flex", width: "100%", height: "100%", padding: 56, backgroundColor: PAPER, color: INK },
+    h("div", { display: "flex", flexDirection: "column", width: "100%", height: "100%", padding: "60px 72px", border: `3px solid ${GOLD}`, backgroundColor: SURFACE },
+      kicker(card.kicker, GOLD_TEXT, 22),
+      h("div", { display: "flex", fontFamily: "Serif", fontSize: prayerTitleSize(card.title), lineHeight: 1.05, letterSpacing: -2, margin: "14px 0 26px" }, card.title),
+      h("div", { display: "flex", flexDirection: "column", justifyContent: "center", flexGrow: 1, paddingBottom: 30 },
+        h("div", { display: "flex", flexDirection: "column", padding: "18px 34px", border: `2px solid ${GOLD}`, backgroundImage: `linear-gradient(135deg, #f3e6c8, ${SURFACE})` }, ...card.lines.map(item))),
+      footer(card, INK, MUTED)));
+}
+
+/** 1200x630: the link preview, with the mysteries' names (or the sets and their days). */
+function rosaryOgCard(card) {
+  return h("div", { display: "flex", flexDirection: "column", width: "100%", height: "100%", padding: "56px 72px", backgroundColor: INK, color: PAPER },
+    kicker(card.kicker, GOLD, 22),
+    h("div", { display: "flex", fontFamily: "Serif", fontSize: Math.min(72, prayerTitleSize(card.title)), lineHeight: 1.05, letterSpacing: -2, margin: "12px 0 24px" }, card.title),
+    h("div", { display: "flex", fontFamily: "Serif", fontStyle: "italic", fontSize: 30, lineHeight: 1.45, color: GOLD_LIGHT }, card.prayerLead),
+    footer(card, GOLD, "#d9d4c6"));
+}
+
 let engines = null;
 function setUp() {
   engines = engines || (async () => {
@@ -135,8 +160,8 @@ function setUp() {
 async function render(card, format) {
   const { satori, Resvg } = await setUp();
   const { width, height } = FORMATS[format];
-  const layout = card.kind === "prayer"
-    ? (format === "og" ? prayerOgCard : prayerPostCard)
+  const layout = card.kind === "prayer" ? (format === "og" ? prayerOgCard : prayerPostCard)
+    : card.kind === "rosary" ? (format === "og" ? rosaryOgCard : rosaryPostCard)
     : (format === "og" ? ogCard : postCard);
   const svg = await satori(layout(card), { width, height, fonts: FONTS });
   return Buffer.from(new Resvg(svg, { fitTo: { mode: "width", value: width } }).render().asPng());

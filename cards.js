@@ -25,6 +25,7 @@ const { tracks } = require("./content.js");
 const { esTracks } = require("./content.es.js");
 const { slugify } = require("./logic.js");
 const { prayerBook } = require("./prayerbook.js");
+const { rosary, setById, mysteryRef, daysLabel } = require("./rosary.js");
 
 // Bump when the card's layout or wording changes, so every address changes.
 const TEMPLATE_VERSION = 1;
@@ -44,6 +45,9 @@ const TEXT_BUDGET = 700;
 const PRAYER_BUDGET = 1320;
 // The track name prayer cards are filed under; never a journey id.
 const PRAYER_TRACK = "prayers";
+// And the Rosary's: one card per set of mysteries, and one for the whole.
+const ROSARY_TRACK = "rosary";
+const ROSARY_SLUG = { en: "rosary", es: "rosario" };
 
 const LABELS = {
   en: { day: "DAY", reflection: "REFLECTION", prayer: "PRAYER" },
@@ -125,8 +129,43 @@ function prayerCardFor(lang, id) {
   return { ...fields, slug: prayerBook.prayerSlug(lang, id), hash };
 }
 
-/** The card for a page slug ("01-stand", or a prayer's "padre-nuestro"), or null. */
+/**
+ * What a Rosary card shows, or null: with a set id ("joyful") that set's five
+ * mysteries and the days it is prayed on; with none, the four sets and their
+ * days, for the Rosary's own page.
+ */
+function rosaryCardFor(lang, setId = null) {
+  if (!LANGS.includes(lang)) return null;
+  const set = setId ? setById(setId) : null;
+  if (setId && !set) return null;
+  const upper = s => s.toLocaleUpperCase(lang);
+  const fields = set ? {
+    kind: "rosary", lang, track: ROSARY_TRACK, id: set.id,
+    kicker: `${upper(rosary.name[lang])} · ${upper(daysLabel(set, lang))}`,
+    title: set.name[lang],
+    lines: set.mysteries.map(m => ({ lead: m.name[lang], rest: mysteryRef(m, lang) })),
+    prayerLead: set.mysteries.map(m => m.name[lang]).join(" · "), site: SITE_LABEL
+  } : {
+    kind: "rosary", lang, track: ROSARY_TRACK, id: "rosary",
+    kicker: `${BOOK[lang]} · ${upper(rosary.name[lang])}`,
+    title: rosary.name[lang],
+    lines: rosary.sets.map(s => ({ lead: s.name[lang], rest: daysLabel(s, lang) })),
+    prayerLead: rosary.sets.map(s => `${s.name[lang]}: ${daysLabel(s, lang)}`).join(" · "), site: SITE_LABEL
+  };
+  const hash = crypto.createHash("sha256")
+    .update(JSON.stringify({ v: TEMPLATE_VERSION, ...fields }))
+    .digest("hex").slice(0, 8);
+  return { ...fields, slug: set ? set.slug[lang] : ROSARY_SLUG[lang], hash };
+}
+
+/** The card for a page slug ("01-stand", a prayer's "padre-nuestro", a set's "gozosos"), or null. */
 function cardForSlug(lang, trackId, slug) {
+  if (trackId === ROSARY_TRACK) {
+    if (!LANGS.includes(lang)) return null;
+    if (slug === ROSARY_SLUG[lang]) return rosaryCardFor(lang);
+    const set = rosary.sets.find(s => s.slug[lang] === slug);
+    return set ? rosaryCardFor(lang, set.id) : null;
+  }
   if (trackId === PRAYER_TRACK) {
     const item = LANGS.includes(lang) && prayerBook.prayerForSlug(lang, slug);
     return item ? prayerCardFor(lang, item.id) : null;
@@ -163,7 +202,11 @@ function allCards() {
     if (track) for (let i = 0; i < track.days.length; i++) out.push(cardFor(lang, id, i));
   }
   for (const lang of LANGS) for (const item of prayerBook.prayers()) out.push(prayerCardFor(lang, item.id));
+  for (const lang of LANGS) {
+    out.push(rosaryCardFor(lang));
+    for (const set of rosary.sets) out.push(rosaryCardFor(lang, set.id));
+  }
   return out;
 }
 
-module.exports = { TEMPLATE_VERSION, FORMATS, TEXT_BUDGET, PRAYER_BUDGET, PRAYER_TRACK, SITE_LABEL, cardFor, prayerCardFor, cardForSlug, cardPath, latestCardPath, parseCardFile, allCards, firstSentence, openingOf };
+module.exports = { TEMPLATE_VERSION, FORMATS, TEXT_BUDGET, PRAYER_BUDGET, PRAYER_TRACK, ROSARY_TRACK, ROSARY_SLUG, SITE_LABEL, cardFor, prayerCardFor, rosaryCardFor, cardForSlug, cardPath, latestCardPath, parseCardFile, allCards, firstSentence, openingOf };

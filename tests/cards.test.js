@@ -36,9 +36,12 @@ const fileOf = (card, format) => path.basename(cardPath(card, format));
 (async () => {
   await test("every day and every prayer in both languages has a card whose slug is a generated page", () => {
     const all = allCards();
-    assert.strictEqual(all.length, 216 + 26);
+    assert.strictEqual(all.length, 216 + 26 + 10);
     for (const c of all) {
-      const page = c.kind === "prayer"
+      const rosaryBase = c.lang === "es" ? "es/oraciones/rosario" : "prayers/rosary";
+      const page = c.kind === "rosary"
+        ? path.join(ROOT, c.id === "rosary" ? `${rosaryBase}/index.html` : `${rosaryBase}/${c.slug}.html`)
+        : c.kind === "prayer"
         ? path.join(ROOT, `${prayerBook.prayerPath(c.lang, c.id).slice(1)}.html`)
         : path.join(ROOT, c.lang === "es" ? "es" : "", c.track === "core" ? "day" : path.join("track", c.track), `${c.slug}.html`);
       assert.ok(fs.existsSync(page), `no page for ${cardPath(c, "post")}`);
@@ -58,6 +61,26 @@ const fileOf = (card, format) => path.basename(cardPath(card, format));
     assert.strictEqual(cardForSlug("en", "prayers", "nope"), null);
     assert.strictEqual(prayerCardFor("en", "nope"), null);
     assert.strictEqual(prayerCardFor("fr", "our-father"), null);
+  });
+
+  await test("a Rosary card lists a set's five mysteries with their references and days, or the four sets", () => {
+    const { rosaryCardFor } = require("../cards.js");
+    const joyful = rosaryCardFor("en", "joyful");
+    assert.strictEqual(joyful.title, "The Joyful Mysteries");
+    assert.strictEqual(joyful.kicker, "THE ROSARY · MONDAYS AND SATURDAYS");
+    assert.deepStrictEqual(joyful.lines[0], { lead: "The Annunciation", rest: "Luke 1:38" });
+    assert.strictEqual(cardPath(joyful, "post"), `/cards/en/rosary/joyful.${joyful.hash}.post.png`);
+    const gozosos = rosaryCardFor("es", "joyful");
+    assert.strictEqual(gozosos.slug, "gozosos");
+    assert.deepStrictEqual(gozosos.lines[0], { lead: "La Anunciación", rest: "Lucas 1:38" });
+    assert.strictEqual(cardForSlug("es", "rosary", "gozosos").hash, gozosos.hash);
+    const whole = rosaryCardFor("es");
+    assert.strictEqual(whole.slug, "rosario");
+    assert.strictEqual(whole.lines.length, 4);
+    assert.strictEqual(cardForSlug("es", "rosary", "rosario").hash, whole.hash);
+    assert.strictEqual(cardForSlug("en", "rosary", "gozosos"), null);
+    assert.strictEqual(rosaryCardFor("en", "nope"), null);
+    assert.strictEqual(rosaryCardFor("fr"), null);
   });
 
   await test(`no prayer is longer than its card was checked for (${PRAYER_BUDGET} characters), and every preview opening is whole sentences`, () => {
@@ -126,7 +149,8 @@ const fileOf = (card, format) => path.basename(cardPath(card, format));
   });
 
   await test("the function renders both formats as PNGs at their sizes, cached for a year", async () => {
-    for (const c of [cardFor("en", "core", 0), cardFor("es", "wall", 3), prayerCardFor("es", "angelus"), prayerCardFor("en", "sign-of-the-cross")]) {
+    const { rosaryCardFor } = require("../cards.js");
+    for (const c of [cardFor("en", "core", 0), cardFor("es", "wall", 3), prayerCardFor("es", "angelus"), prayerCardFor("en", "sign-of-the-cross"), rosaryCardFor("es", "glorious"), rosaryCardFor("en")]) {
       const { lang, track } = c;
       for (const format of Object.keys(FORMATS)) {
         const res = await request("GET", lang, track, fileOf(c, format));

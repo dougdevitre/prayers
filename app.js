@@ -1085,6 +1085,18 @@ function prayerShare(id) {
     cardUrl: `/cards/${lang}/prayers/${slug}.latest.post.png`, cardName: `stand-${lang === "es" ? "oracion" : "prayer"}-${slug}.png`, fallbackCard: null
   };
 }
+// A set of the Rosary's mysteries: its page on the site and its card, which
+// numbers the five mysteries. rosary.js is loaded by then (the button is in
+// the Rosary view).
+function rosaryShare(setId) {
+  const lang = rosaryLang();
+  const set = setById(setId);
+  return {
+    kind: "rosary", url: location.origin + rosaryPagePath(lang, setId), heading: `${set.name[lang]} — Stand`,
+    caption: set.mysteries.map(m => m.name[lang]).join(" · "),
+    cardUrl: `/cards/${lang}/rosary/${set.slug[lang]}.latest.post.png`, cardName: `stand-${lang === "es" ? "rosario" : "rosary"}-${set.slug[lang]}.png`, fallbackCard: null
+  };
+}
 // The item the share dialog is showing, for its Save button.
 let sharing = null;
 
@@ -1131,8 +1143,9 @@ function openShareDialog(item) {
   $("shareCopyIcon").innerHTML = shareIcons.link;
   $("shareCopyLabel").textContent = t("share.copy");
   $("shareCaption").textContent = caption;
-  $("shareHeading").textContent = t(item.kind === "prayer" ? "book.share" : "share.heading");
-  $("shareSaveCard").textContent = t(item.kind === "prayer" ? "book.saveCard" : "share.saveCard");
+  const keys = { prayer: ["book.share", "book.saveCard"], rosary: ["rosary.share", "rosary.saveCard"] }[item.kind] || ["share.heading", "share.saveCard"];
+  $("shareHeading").textContent = t(keys[0]);
+  $("shareSaveCard").textContent = t(keys[1]);
   $("shareUrl").value = url;
   $("shareUrl").hidden = true;
   $("shareStatus").textContent = "";
@@ -2252,6 +2265,8 @@ $("bookFavorite").onclick = () => {
 // a phone that can, else the share dialog (copy, save the card, platforms).
 $("bookShare").addEventListener("pointerdown", () => { if (book.open) fetchShareCard(prayerShare(book.open).cardUrl); });
 $("bookShare").onclick = () => { if (book.open) shareItem(prayerShare(book.open)); };
+$("rosaryShare").addEventListener("pointerdown", () => { if (rosaryRun.set) fetchShareCard(rosaryShare(rosaryRun.set).cardUrl); });
+$("rosaryShare").onclick = () => { if (rosaryRun.set) shareItem(rosaryShare(rosaryRun.set)); };
 
 /* ---------- The Rosary ----------
    A guided Rosary inside the Prayer Book: one step at a time, in the order

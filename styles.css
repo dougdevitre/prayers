@@ -70,6 +70,14 @@
 .book-reader .prayer-panel .book-other{margin-top:18px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-style:italic}
 .book-reader .day-nav{gap:16px}
 .book-reader .day-nav button:last-child{text-align:right;margin-left:auto}
+/* The Rosary's pages: the order of prayer as a numbered list, and one
+   section per mystery on a set's page. */
+.rosary-order{margin:14px 0 22px;padding-left:1.4em;line-height:1.9}
+.rosary-order ol{margin:4px 0;padding-left:1.4em}
+.rosary-page .rosary-mystery{margin:34px 0}
+.rosary-page .rosary-mystery h2{margin:6px 0 14px}
+.rosary-page .rosary-mystery .tradition-note{margin-top:10px}
+#fatima h3.section-kicker{margin:0 0 10px;font-family:inherit;font-size:.75rem;font-weight:800;letter-spacing:.16em}
 /* The top bar holds five buttons beside the brand; at phone width they sit
    closer, and on the narrowest screens the brand keeps its mark only (its
    aria-label still says "Stand"). */

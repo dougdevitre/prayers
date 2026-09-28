@@ -37,6 +37,13 @@
         "es": "Oh Jesús mío, perdona nuestros pecados, líbranos del fuego del infierno, lleva al cielo a todas las almas, especialmente a las más necesitadas de tu misericordia."
       }
     },
+    // Weekday names for "prayed on Mondays and Saturdays", Sunday first as
+    // Date.getDay() counts, and the word that joins the last two.
+    "dayNames": {
+      "en": ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"],
+      "es": ["domingos", "lunes", "martes", "miércoles", "jueves", "viernes", "sábados"]
+    },
+    "and": { "en": "and", "es": "y" },
     // The three Hail Marys after the first Our Father.
     "virtues": { "en": "For faith, hope and charity", "es": "Por la fe, la esperanza y la caridad" },
     // Sunday is 0, as Date.getDay() counts.
@@ -132,6 +139,24 @@
     ? mystery.ref.replace(/^(.*?)(\s+\d+:.*)$/, (_, book, rest) => (BOOKS_ES[book] || book) + rest)
     : mystery.ref;
 
+  /** "Mondays and Saturdays" / "lunes y sábados": the days a set is prayed on, Monday first. */
+  function daysLabel(set, lang) {
+    const names = [...set.days].sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7)).map(d => rosary.dayNames[lang][d]);
+    return names.length > 1 ? `${names.slice(0, -1).join(", ")} ${rosary.and[lang]} ${names[names.length - 1]}` : names[0];
+  }
+
+  /**
+   * The Rosary's web page (the overview, or one set of mysteries), inside the
+   * Prayer Book: /prayers/rosary/joyful, /es/oraciones/rosario/gozosos. The
+   * page generator and the app's share button both use it.
+   */
+  const PAGE_BASE = { en: "/prayers/rosary", es: "/es/oraciones/rosario" };
+  function rosaryPagePath(lang, setId) {
+    const code = lang === "es" ? "es" : "en";
+    const set = setId ? setById(setId) : null;
+    return set ? `${PAGE_BASE[code]}/${set.slug[code]}` : PAGE_BASE[code];
+  }
+
   /** The mysteries prayed on a date's weekday (Rosarium Virginis Mariae §38). */
   const setForDate = date => rosary.sets.find(s => s.days.includes(date.getDay()));
 
@@ -167,7 +192,7 @@
     return steps;
   }
 
-  const api = { rosary, setById, setForDate, rosarySteps, mysteryRef };
+  const api = { rosary, setById, setForDate, rosarySteps, mysteryRef, daysLabel, rosaryPagePath };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else Object.assign(root, api);
 })(typeof window !== "undefined" ? window : globalThis);

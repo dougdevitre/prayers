@@ -90,6 +90,11 @@ Recorded narration for the traditional prayers shipped in both languages, render
 
 Next on this thread: if the composer proves useful, an SOS variant that composes rather than reads a fixed script.
 
+### Prayer Book and the Rosary (shipped)
+The traditional prayers have their own book, in the app and on the site: `/prayers` and the Devocionario at `/es/oraciones`, a page and a share card for each prayer, favorites kept offline, and each prayer read like a day with its recording. The Rosary heads the book (`rosary.js`): the four sets of mysteries on the days *Rosarium Virginis Mariae* §38 gives them, each mystery with one verse drawn exactly from the WEB or the Reina-Valera 1909 and checked in CI, and a guided Rosary in the app, one bead at a time, that keeps its place. Every other prayer in it is the Prayer Book's own. The site has an overview and a page per set in both languages, each with its share card, linked from every page's menu; the app shares a set as its page and card, and "Pray the Rosary" is an install shortcut.
+
+Next on this thread: recorded narration for the Fatima Prayer and the mysteries (about 5,500 characters to render, on approval), so the whole Rosary can be prayed along hands-free; and pastoral review of the Rosary's new text with the rest of the workbook.
+
 ### Landing page (shipped)
 `/` — a hand-written static page describing what Stand does, built from the same stylesheet and the same components as the app and the day pages, so the marketing surface and the product read as one thing. It is in the sitemap, and `/fears` carries the same nav and footer.
 

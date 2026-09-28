@@ -34,7 +34,8 @@ const { slugify } = require("../logic.js");
 const { shareLinks, shareIcons: ICON } = require("../share.js");
 // Each day page previews with its own card (api/card.js renders it); the
 // address carries a hash of what the card shows, so an edit is a new URL.
-const { cardFor, prayerCardFor, cardPath } = require("../cards.js");
+const { cardFor, prayerCardFor, rosaryCardFor, cardPath } = require("../cards.js");
+const { rosary, rosarySteps, mysteryRef, daysLabel, rosaryPagePath } = require("../rosary.js");
 const { prayerBook } = require("../prayerbook.js");
 const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 // Meta descriptions are cut to 155 characters; at a word, with an ellipsis,
@@ -78,6 +79,7 @@ const LOCALES = [
       { href: appLink("en", "sos=1"), label: "Steady me now" },
       { href: "/fears", label: "Start from a fear" },
       { href: "/prayers", label: "Prayer Book" },
+      { href: "/prayers/rosary", label: "Rosary" },
       { href: "/", label: "What Stand does" }
     ],
     legal: [
@@ -125,6 +127,39 @@ const LOCALES = [
       shareLabel: "Share this prayer",
       imageAlt: name => `${name} — the opening of the prayer, from the Stand Prayer Book`,
       cardAlt: name => `Share card for ${name}, with the whole prayer`
+    },
+    // The Rosary's pages. Interface words only: the mysteries, their verses,
+    // the Fatima Prayer and the prayers' names are rosary.js's and prayers.js's.
+    rosary: {
+      title: "The Rosary — Prayer Book — Stand",
+      description: "How to pray the Rosary, step by step: the prayers in order, the Joyful, Luminous, Sorrowful and Glorious Mysteries, and which to pray each day.",
+      lead: "Five decades of prayer, each opening on a moment in the life of Christ and his mother. Here are the order of prayer and the mysteries for each day, in English and in Spanish; the app goes through it with you one bead at a time.",
+      openToday: "Pray today’s Rosary in the app",
+      openSet: name => `Pray ${name.replace(/^The /, "the ")} in the app`,
+      orderHeading: "THE ORDER OF PRAYER",
+      threeHailMarys: virtues => `Three Hail Marys, ${virtues.charAt(0).toLowerCase()}${virtues.slice(1)}`,
+      eachDecade: "Then, for each of the five mysteries:",
+      announce: "Announce the mystery, and pause on its verse",
+      tenHailMarys: "Ten Hail Marys",
+      optional: "(optional)",
+      finally: "To close:",
+      daysHeading: "THE MYSTERIES BY DAY",
+      prayedOn: days => `Prayed on ${days}.`,
+      source: "The mysteries and the days they are prayed on follow St John Paul II’s apostolic letter",
+      sourceTitle: "Rosarium Virginis Mariae",
+      teaser: "The Rosary, step by step, with the mysteries for each day of the week.",
+      teaserLink: "Pray the Rosary",
+      ordinals: ["first", "second", "third", "fourth", "fifth"],
+      mysteryHeading: (ordinal, adjective) => `The ${ordinal} ${adjective} Mystery`,
+      setTitle: name => `${name} — The Rosary — Stand`,
+      setDescribe: (name, days) => `${name} of the Rosary, prayed on ${days}: each of the five with a verse of scripture, in English and Spanish, to read and pray.`,
+      setNav: "Mysteries navigation",
+      shareLabel: "Share these mysteries",
+      imageAlt: name => `${name}: the five mysteries of the Rosary, from Stand`,
+      cardAlt: name => `Share card for ${name}, with the five mysteries and their references`,
+      overviewImageAlt: "The Rosary: the four sets of mysteries and the days they are prayed on, from Stand",
+      overviewShareLabel: "Share the Rosary",
+      overviewCardAlt: "Share card for the Rosary, with the four sets of mysteries and the days they are prayed on"
     }
   },
   {
@@ -134,6 +169,7 @@ const LOCALES = [
       { href: appLink("es", "sos=1"), label: "Calma ahora" },
       { href: "/es/fears", label: "Empieza por un miedo" },
       { href: "/es/oraciones", label: "Devocionario" },
+      { href: "/es/oraciones/rosario", label: "Rosario" },
       { href: "/es", label: "Qué hace Stand" }
     ],
     legal: [
@@ -179,6 +215,37 @@ const LOCALES = [
       shareLabel: "Compartir esta oración",
       imageAlt: name => `${name}: el comienzo de la oración, del Devocionario de Stand`,
       cardAlt: name => `Tarjeta para compartir de ${name}, con la oración completa`
+    },
+    rosary: {
+      title: "El Santo Rosario — Devocionario — Stand",
+      description: "Cómo rezar el Rosario paso a paso: las oraciones en orden, los misterios gozosos, luminosos, dolorosos y gloriosos, y cuáles rezar cada día.",
+      lead: "Cinco decenas de oración, cada una abierta a un momento de la vida de Cristo y de su madre. Aquí están el orden de las oraciones y los misterios de cada día, en español y en inglés; la app te acompaña cuenta por cuenta.",
+      openToday: "Reza el Rosario de hoy en la app",
+      openSet: name => `Reza los ${name.toLocaleLowerCase("es")} en la app`,
+      orderHeading: "EL ORDEN DE LAS ORACIONES",
+      threeHailMarys: virtues => `Tres avemarías, ${virtues.charAt(0).toLowerCase()}${virtues.slice(1)}`,
+      eachDecade: "Después, por cada uno de los cinco misterios:",
+      announce: "Anuncia el misterio y detente en su versículo",
+      tenHailMarys: "Diez avemarías",
+      optional: "(opcional)",
+      finally: "Para terminar:",
+      daysHeading: "LOS MISTERIOS DE CADA DÍA",
+      prayedOn: days => `Se rezan los ${days}.`,
+      source: "Los misterios y los días en que se rezan siguen la carta apostólica de san Juan Pablo II",
+      sourceTitle: "Rosarium Virginis Mariae",
+      teaser: "El Rosario paso a paso, con los misterios de cada día de la semana.",
+      teaserLink: "Rezar el Rosario",
+      ordinals: ["Primer", "Segundo", "Tercer", "Cuarto", "Quinto"],
+      mysteryHeading: (ordinal, adjective) => `${ordinal} misterio ${adjective}`,
+      setTitle: name => `${name} — El Santo Rosario — Stand`,
+      setDescribe: (name, days) => `Los ${name.toLowerCase()} del Rosario, que se rezan los ${days}: cada uno con un versículo de la Escritura, en español y en inglés.`,
+      setNav: "Navegación de misterios",
+      shareLabel: "Compartir estos misterios",
+      imageAlt: name => `${name}: los cinco misterios del Rosario, de Stand`,
+      cardAlt: name => `Tarjeta para compartir de los ${name.toLowerCase()}, con los cinco misterios y sus citas`,
+      overviewImageAlt: "El Santo Rosario: los cuatro misterios y los días en que se rezan, de Stand",
+      overviewShareLabel: "Compartir el Rosario",
+      overviewCardAlt: "Tarjeta para compartir del Santo Rosario, con los cuatro misterios y los días en que se rezan"
     }
   }
 ];
@@ -576,6 +643,18 @@ function prayerStructuredData({ L, item, title, description, relPath, altPath, i
   return JSON.stringify({ "@context": "https://schema.org", "@graph": [article, breadcrumb] }, null, 2).replace(/<\//g, "<\\/");
 }
 
+// The Rosary's pages sit inside the book: /prayers/rosary and one page per set
+// of mysteries (/prayers/rosary/joyful), /es/oraciones/rosario/gozosos.
+const rosaryPath = (code, set) => rosaryPagePath(code, set && set.id);
+
+function rosaryTeaser(L) {
+  const R = L.rosary;
+  return `      <section class="landing-section" id="rosary">
+        <h2 class="section-kicker">${esc(rosary.name[L.code].toLocaleUpperCase(L.code))}</h2>
+        <p>${esc(R.teaser)} <a href="${rosaryPath(L.code)}">${esc(R.teaserLink)} →</a></p>
+      </section>`;
+}
+
 for (const L of LOCALES) {
   const other = L.code === "en" ? "es" : "en";
   const B = L.book;
@@ -629,6 +708,7 @@ ${prayerStructuredData({ L, item, title, description, relPath, altPath, image })
         <p class="landing-lead">${esc(B.lead(all.length))}</p>
         <a class="complete-button" href="${appLink(L.code)}">${L.openApp}</a>
       </section>
+${rosaryTeaser(L)}
 ${sections}`;
     fs.writeFileSync(path.join(dir, "index.html"), bookPage({ L, title: B.title, description: B.description, relPath, altPath, main }));
     bookPaths.push(relPath);
@@ -646,11 +726,128 @@ ${sections}`;
         <p class="landing-lead">${esc(B.catholicLead(count))}</p>
         <a class="complete-button" href="${appLink(L.code)}">${L.openApp}</a>
       </section>
+${rosaryTeaser(L)}
 ${bookSection(L, tradition)}
 ${rest}`;
     fs.writeFileSync(path.join(root, `${relPath.slice(1)}.html`), bookPage({ L, title: B.catholicTitle, description: B.catholicDescription, relPath, altPath, main }));
     bookPaths.push(relPath);
   }
+}
+
+// The Rosary: how it is prayed and the mysteries for each day, then one page
+// per set of mysteries, each with its verses, its own card, and a link that
+// opens that set in the app's guided Rosary.
+function rosaryStructuredData({ L, set, title, description, relPath, altPath, image }) {
+  const url = `${SITE_URL}${relPath}`;
+  const bookUrl = `${SITE_URL}${prayerBook.bookPath(L.code)}`;
+  const overviewUrl = `${SITE_URL}${rosaryPath(L.code)}`;
+  const article = {
+    "@type": "Article", "@id": `${url}#article`, headline: set.name[L.code], name: set.name[L.code], description, url,
+    mainEntityOfPage: url, inLanguage: L.code, image, isAccessibleForFree: true,
+    citation: set.mysteries.map(m => mysteryRef(m, L.code)),
+    isPartOf: { "@type": "CreativeWork", "@id": `${overviewUrl}#rosary`, name: rosary.name[L.code], url: overviewUrl, inLanguage: L.code },
+    publisher: { "@type": "Organization", name: "Stand", url: `${SITE_URL}/` }
+  };
+  article[L.code === "en" ? "workTranslation" : "translationOfWork"] = { "@type": "Article", "@id": `${SITE_URL}${altPath}#article`, inLanguage: L.code === "en" ? "es" : "en" };
+  const trail = [["Stand", `${SITE_URL}${L.brandHome}`], [L.book.heading, bookUrl], [rosary.name[L.code], overviewUrl], [set.name[L.code], url]];
+  const breadcrumb = { "@type": "BreadcrumbList", itemListElement: trail.map(([name, item], i) => ({ "@type": "ListItem", position: i + 1, name, item })) };
+  return JSON.stringify({ "@context": "https://schema.org", "@graph": [article, breadcrumb] }, null, 2).replace(/<\//g, "<\\/");
+}
+
+for (const L of LOCALES) {
+  const other = L.code === "en" ? "es" : "en";
+  const B = L.book;
+  const R = L.rosary;
+  const code = L.code;
+  fs.mkdirSync(path.join(root, rosaryPath(code).slice(1)), { recursive: true });
+  const prayerLink = id => `<a href="${prayerBook.prayerPath(code, id)}">${esc(prayerBook.byId(id).name[code])}</a>`;
+
+  // The overview: the order of prayer, the Fatima Prayer, the sets by day.
+  {
+    const relPath = rosaryPath(code);
+    const altPath = rosaryPath(other);
+    const card = rosaryCardFor(code);
+    const image = `${SITE_URL}${cardPath(card, "og")}`;
+    const main = `      <section class="landing-hero">
+        <p class="eyebrow"><a href="${prayerBook.bookPath(code)}">${B.eyebrow}</a></p>
+        <h1>${esc(rosary.name[code])}</h1>
+        <p class="landing-lead">${esc(R.lead)}</p>
+        <a class="complete-button" href="${appLink(code, "rosary=today")}">${esc(R.openToday)}</a>
+      </section>
+      <section class="landing-section" id="order">
+        <h2 class="section-kicker">${R.orderHeading}</h2>
+        <ol class="rosary-order">
+          <li>${prayerLink("sign-of-the-cross")}</li>
+          <li>${prayerLink("apostles-creed")}</li>
+          <li>${prayerLink("our-father")}</li>
+          <li>${esc(R.threeHailMarys(rosary.virtues[code]))} (${prayerLink("hail-mary")})</li>
+          <li>${prayerLink("glory-be")}</li>
+          <li>${esc(R.eachDecade)}
+            <ol>
+              <li>${esc(R.announce)}</li>
+              <li>${prayerLink("our-father")}</li>
+              <li>${esc(R.tenHailMarys)} (${prayerLink("hail-mary")})</li>
+              <li>${prayerLink("glory-be")}</li>
+              <li><a href="#fatima">${esc(rosary.fatima.name[code])}</a> ${esc(R.optional)}</li>
+            </ol>
+          </li>
+          <li>${esc(R.finally)} ${prayerLink("hail-holy-queen")}, ${prayerLink("sign-of-the-cross")}</li>
+        </ol>
+        <section class="prayer-panel" id="fatima"><h3 class="section-kicker">${esc(rosary.fatima.name[code].toLocaleUpperCase(code))}</h3><p>${esc(rosary.fatima.text[code])}</p></section>
+      </section>
+      <section class="landing-section" id="days">
+        <h2 class="section-kicker">${R.daysHeading}</h2>
+        <div class="feature-grid">
+${rosary.sets.map(set => `          <div class="feature-card">
+            <h3><a href="${rosaryPath(code, set)}">${esc(set.name[code])}</a></h3>
+            <p>${esc(R.prayedOn(daysLabel(set, code)))} ${esc(set.mysteries.map(m => m.name[code]).join(" · "))}</p>
+          </div>`).join("\n")}
+        </div>
+        <p class="landing-fineprint">${esc(R.source)} <a href="https://www.vatican.va/content/john-paul-ii/${code}/apost_letters/2002/documents/hf_jp-ii_apl_20021016_rosarium-virginis-mariae.html"><cite>${R.sourceTitle}</cite></a> (2002).</p>
+      </section>
+      <section class="landing-section" id="share">
+${shareRow({ L, url: `${SITE_URL}${relPath}`, title: R.title, text: R.description, label: R.overviewShareLabel })}
+${shareCard({ L, card, fileName: `stand-${code === "es" ? "rosario" : "rosary"}.png`, alt: R.overviewCardAlt })}
+      </section>`;
+    fs.writeFileSync(path.join(root, relPath.slice(1), "index.html"), bookPage({ L, title: R.title, description: R.description, relPath, altPath, image, imageAlt: R.overviewImageAlt, main }));
+    bookPaths.push(relPath);
+  }
+
+  // One page per set of mysteries.
+  rosary.sets.forEach((set, i) => {
+    const name = set.name[code];
+    const days = daysLabel(set, code);
+    const relPath = rosaryPath(code, set);
+    const altPath = rosaryPath(other, set);
+    const title = R.setTitle(name);
+    const description = clip(R.setDescribe(name, days), 160);
+    const card = rosaryCardFor(code, set.id);
+    const image = `${SITE_URL}${cardPath(card, "og")}`;
+    const link = (s, arrowFirst) => `<a href="${rosaryPath(code, s)}">${arrowFirst ? "← " : ""}${esc(s.name[code])}${arrowFirst ? "" : " →"}</a>`;
+    const prev = i > 0 ? link(rosary.sets[i - 1], true) : "<span></span>";
+    const next = i < rosary.sets.length - 1 ? link(rosary.sets[i + 1], false) : "<span></span>";
+    const mysteries = set.mysteries.map((m, n) => `        <section class="content-section rosary-mystery" id="${m.id}">
+          <p class="section-kicker">${esc(R.mysteryHeading(R.ordinals[n], set.adjective[code]).toLocaleUpperCase(code))}</p>
+          <h2>${esc(m.name[code])}</h2>
+          <blockquote class="scripture"><p>“${esc(m.verse[code])}”</p><cite>${esc(mysteryRef(m, code))}</cite></blockquote>${m.note ? `
+          <p class="tradition-note">${esc(m.note[code])}</p>` : ""}
+        </section>`).join("\n");
+    const main = `      <article class="devotional prayer-page rosary-page">
+        <p class="eyebrow"><a href="${rosaryPath(code)}">${esc(rosary.name[code].toLocaleUpperCase(code))}</a></p>
+        <div class="title-row"><div><p class="day-number">${esc(R.prayedOn(days).replace(/\.$/, "").toLocaleUpperCase(code))}</p><h1>${esc(name)}</h1></div></div>
+${mysteries}
+${shareRow({ L, url: `${SITE_URL}${relPath}`, title, text: card.prayerLead, label: R.shareLabel })}
+${shareCard({ L, card, fileName: `stand-${code === "es" ? "rosario" : "rosary"}-${card.slug}.png`, alt: R.cardAlt(name) })}
+        <a class="complete-button" href="${appLink(code, `rosary=${set.id}`)}">${esc(R.openSet(name))}</a>
+        <nav class="day-nav" aria-label="${R.setNav}">${prev}${next}</nav>
+      </article>`;
+    const head = `  <script type="application/ld+json">
+${rosaryStructuredData({ L, set, title, description, relPath, altPath, image })}
+  </script>
+`;
+    fs.writeFileSync(path.join(root, `${relPath.slice(1)}.html`), bookPage({ L, title, description, relPath, altPath, type: "article", image, imageAlt: R.imageAlt(name), head, main }));
+    bookPaths.push(relPath);
+  });
 }
 
 // ---------------------------------------------------------------------

@@ -206,7 +206,7 @@ const server = http.createServer((req, res) => {
 
   // tracks: switch to Fear of the Unknown, verify isolation, switch back
   await page.click("#libraryButton");
-  check("track picker lists every journey", (await page.$$(".track-chip")).length === TRACK_COUNT);
+  check("track picker lists every journey", (await page.$$("#trackPicker .track-chip")).length === TRACK_COUNT);
   check("track picker groups journeys", (await page.$$(".track-group-label")).length === GROUP_COUNT);
   await page.click('.track-chip[data-track="unknown"]');
   check("track day 1 title", (await page.textContent("#dayTitle")) === "The Unwritten Page");
@@ -834,17 +834,88 @@ const server = http.createServer((req, res) => {
     // The page's button opens the prayer in the app, in the page's language:
     // a fresh visitor, so no welcome in the way and nothing already chosen.
     const reader = await browser.newPage();
+    reader.on("pageerror", e => errors.push("pageerror (Prayer Book reader): " + e.message));
     await reader.goto("http://localhost:8123/es/oraciones/memorare", { waitUntil: "networkidle" });
     await reader.click(".prayer-page .complete-button");
-    await reader.waitForSelector("#prayerDialog[open]");
-    check("a Spanish prayer page opens the prayer in the app", await reader.isVisible("#traditionalCard")
-      && (await reader.textContent("#traditionalCard")).includes(prayerBook.byId("memorare").name.es));
+    await reader.waitForSelector("#bookDialog[open]");
+    check("a Spanish prayer page opens the prayer in the app's Prayer Book", await reader.isVisible("#bookReader")
+      && (await reader.textContent("#bookTitle")) === prayerBook.byId("memorare").name.es);
     check("…in Spanish, and the app keeps the choice", await reader.evaluate(() => state.lang === "es"
       && JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}").lang === "es" && document.documentElement.lang === "es"));
     check("…without the welcome in the way", !(await reader.evaluate(() => document.getElementById("welcomeDialog").open)));
-    check("…ready to play", await reader.isVisible("#traditionalListen"));
+    check("…ready to play", await reader.isVisible("#bookPlay"));
     await reader.goto("http://localhost:8123/app?prayer=no-such-prayer", { waitUntil: "networkidle" });
-    check("an unknown prayer opens the app as usual", !(await reader.evaluate(() => document.getElementById("prayerDialog").open)));
+    check("an unknown prayer opens the app as usual", !(await reader.evaluate(() => document.getElementById("bookDialog").open)));
+
+    // The Prayer Book in the app: from the library, listed like the days, with
+    // the same filter tabs, and each prayer read like a day.
+    await reader.evaluate(() => { state.lang = "en"; state.welcomed = true; save(); });
+    await reader.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
+    await reader.click("#libraryButton");
+    check("the library offers the Prayer Book", (await reader.textContent("#bookEntryMeta")).startsWith(`${all.length} traditional prayers`));
+    await reader.click("#bookEntry");
+    check("the Prayer Book replaces the library", await reader.evaluate(() => document.getElementById("bookDialog").open && !document.getElementById("libraryDialog").open));
+    check("it lists every prayer", (await reader.$$("#bookSections .day-card")).length === all.length);
+    check("…shared prayers first, then the Roman Catholic ones", (await reader.$$eval("#bookSections .day-card", els => els.map(e => e.dataset.prayer)))
+      .join() === all.map(p => p.id).join());
+    await reader.click('#bookDialog .filter-tab[data-book-filter="roman-catholic"]');
+    check("the Roman Catholic tab lists only those", (await reader.$$eval("#bookSections .day-card", els => els.map(e => e.dataset.prayer)))
+      .join() === catholic.map(p => p.id).join());
+    await reader.click('#bookDialog .filter-tab[data-book-filter="favorites"]');
+    check("no favorites yet says how to add one", (await reader.$$("#bookSections .day-card")).length === 0
+      && (await reader.textContent("#bookSections")).includes("Tap the heart"));
+    check("the library's own tabs are untouched", await reader.evaluate(() =>
+      document.querySelector('#libraryDialog .filter-tab[data-filter="all"]').classList.contains("active")));
+    await reader.click('#bookDialog .filter-tab[data-book-filter="all"]');
+    await reader.click('#bookSections .day-card[data-prayer="angelus"]');
+    check("a prayer opens in the reader", await reader.isVisible("#bookReader") && !(await reader.isVisible("#bookList"))
+      && (await reader.textContent("#bookTitle")) === "Angelus"
+      && (await reader.textContent("#bookText")) === prayerBook.byId("angelus").text.en.trim());
+    check("it names its tradition", (await reader.textContent("#bookSection")) === "ROMAN CATHOLIC PRAYERS");
+    check("…and opens at the top, close button in view", await reader.evaluate(() => document.getElementById("bookDialog").scrollTop === 0));
+    await reader.click("#bookFavorite");
+    check("a prayer can be a favorite", (await reader.getAttribute("#bookFavorite", "aria-pressed")) === "true"
+      && await reader.evaluate(() => JSON.parse(localStorage.getItem(STORAGE_KEY)).prayerFavorites.join() === "angelus"));
+    check("favorites survive a backup and restore", await reader.evaluate(() =>
+      restoreFromBackup(JSON.parse(JSON.stringify(state))).prayerFavorites.join() === "angelus"));
+    await reader.click("#bookNext");
+    check("next goes to the following prayer", (await reader.textContent("#bookTitle")) === "Memorare"
+      && (await reader.getAttribute("#bookFavorite", "aria-pressed")) === "false");
+    await reader.click("#bookBack");
+    await reader.click('#bookDialog .filter-tab[data-book-filter="favorites"]');
+    check("the favorites tab lists it, marked", (await reader.$$eval("#bookSections .day-card", els => els.map(e => e.dataset.prayer))).join() === "angelus"
+      && (await reader.$$("#bookSections .day-card .fav-mark")).length === 1);
+
+    // The player: a recording plays, pauses and resumes in place, and resets
+    // when it ends; the day player stays idle throughout.
+    await reader.evaluate(() => {
+      audioManifest.base = location.origin;
+      audioManifest.items[prayerItemId("en", "angelus")] = { key: "tests/fixtures/silence.mp3", hash: "0".repeat(64), bytes: 15846, seconds: 1 };
+    });
+    await reader.click('#bookSections .day-card[data-prayer="angelus"]');
+    check("the player shows the recording's length", (await reader.textContent("#bookPlayInfo")).includes("0:01"));
+    await reader.click("#bookPlay");
+    await reader.waitForFunction(() => prayerAudio.playing && !audioEl.paused, null, { timeout: 5000 }).catch(() => {});
+    check("the prayer plays its recording", await reader.evaluate(() => book.playing === "angelus" && prayerAudio.recorded
+      && audioEl.src.endsWith("/tests/fixtures/silence.mp3") && player.status === "idle"));
+    check("…and the button offers to pause", (await reader.getAttribute("#bookPlay", "aria-label")) === "Pause this prayer");
+    // The fixture is one second long: slowed, it cannot end mid-check.
+    await reader.evaluate(() => { audioEl.playbackRate = 0.1; });
+    await reader.click("#bookPlay");
+    check("pausing keeps its place", await reader.evaluate(() => audioEl.paused && prayerAudio.playing && book.playing === "angelus")
+      && (await reader.getAttribute("#bookPlay", "aria-label")) === "Play this prayer");
+    await reader.evaluate(() => { audioEl.playbackRate = 1; });
+    await reader.click("#bookPlay");
+    await reader.waitForFunction(() => !prayerAudio.playing, null, { timeout: 10000 }).catch(() => {});
+    check("it resumes and, at the end, the player resets", await reader.evaluate(() => !prayerAudio.playing && book.playing === null
+      && document.getElementById("bookProgress").style.width === "0px")
+      && (await reader.getAttribute("#bookPlay", "aria-label")) === "Play this prayer");
+    await reader.click("#bookPlay");
+    await reader.waitForFunction(() => prayerAudio.playing, null, { timeout: 5000 }).catch(() => {});
+    await reader.click("#closeBook");
+    // The dialog's close event is queued, so the stop lands a moment later.
+    await reader.waitForFunction(() => !prayerAudio.playing, null, { timeout: 3000 }).catch(() => {});
+    check("closing the Prayer Book stops the prayer", await reader.evaluate(() => !prayerAudio.playing && audioEl.paused && book.playing === null));
     await reader.close();
   }
 

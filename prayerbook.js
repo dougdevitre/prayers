@@ -13,12 +13,15 @@
 // English slugs are the prayer ids. Spanish slugs are the Spanish names with
 // accents folded to ASCII, the way the Spanish day pages are named.
 //
-// A browser global and a CommonJS module, like prayers.js.
+// A browser global and a CommonJS module, like prayers.js; the app loads it
+// after prayers.js for its Prayer Book reader.
 
 (function (root) {
+  // prayers.js declares prayerCorpus with const: a global binding in the
+  // browser, but not a property of window.
   const corpus = typeof module !== "undefined" && module.exports
     ? require("./prayers.js").prayerCorpus
-    : root.prayerCorpus;
+    : prayerCorpus;
 
   // The order the app lists them in (meta.traditionLabels): the prayers shared
   // across the wider Christian tradition, then the Roman Catholic ones, each

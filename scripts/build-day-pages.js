@@ -53,6 +53,15 @@ const pageName = (track, i) => `${String(i + 1).padStart(2, "0")}-${slugify(trac
 // A search visitor lands on day 14 of a courage story far more often than on
 // the landing page, and those pages used to be dead ends.
 const APP = "/app";
+// A link into the app from a page in `code`'s language, ready to go in an
+// href (a query's & is written &amp;). The app keeps the language a reader
+// chose, so a Spanish page asks for Spanish: a first visit, or a reader
+// pressing "Calma ahora" in a hard moment, opens in the language they were
+// reading. English pages leave a reader's choice alone.
+const appLink = (code, query = "", hash = "") => {
+  const q = [query, code === "es" ? "lang=es" : ""].filter(Boolean).join("&amp;");
+  return `${APP}${q ? `?${q}` : ""}${hash}`;
+};
 
 // The one public contact address, used by the privacy policy and the terms.
 // It is published on those pages, so change it here (and rebuild) if a
@@ -65,8 +74,8 @@ const LOCALES = [
   {
     code: "en", prefix: "", tracks, fearIndex, groups: null,
     nav: [
-      { href: APP, label: "Open the app" },
-      { href: `${APP}?sos=1`, label: "Steady me now" },
+      { href: appLink("en"), label: "Open the app", app: true },
+      { href: appLink("en", "sos=1"), label: "Steady me now" },
       { href: "/fears", label: "Start from a fear" },
       { href: "/prayers", label: "Prayer Book" },
       { href: "/", label: "What Stand does" }
@@ -121,8 +130,8 @@ const LOCALES = [
   {
     code: "es", prefix: "/es", tracks: esTracks, fearIndex: esFearIndex, groups: esGroups,
     nav: [
-      { href: APP, label: "Abrir la app" },
-      { href: `${APP}?sos=1`, label: "Calma ahora" },
+      { href: appLink("es"), label: "Abrir la app", app: true },
+      { href: appLink("es", "sos=1"), label: "Calma ahora" },
       { href: "/es/fears", label: "Empieza por un miedo" },
       { href: "/es/oraciones", label: "Devocionario" },
       { href: "/es", label: "Qué hace Stand" }
@@ -184,7 +193,7 @@ function siteNav(L, current, alt) {
     .concat(alt ? [`            <li><a href="${alt}" hreflang="${L.code === "en" ? "es" : "en"}">${L.switchLabel}</a></li>`] : [])
     .join("\n");
   return `      <nav class="site-nav" aria-label="${L.navLabel}">
-        <a class="nav-cta" href="${APP}">${L.openApp}</a>
+        <a class="nav-cta" href="${appLink(L.code)}">${L.openApp}</a>
         <details class="nav-menu">
           <summary>${L.menu}</summary>
           <ul>
@@ -197,11 +206,11 @@ ${items}
 // The privacy policy and terms close the list on every page, after the
 // ways onward.
 function siteFooter(L, current) {
-  const links = L.nav.filter(l => l.href !== current && l.href !== APP)
+  const links = L.nav.filter(l => l.href !== current && !l.app)
     .concat(L.legal.filter(l => l.href !== current))
     .map(l => `<a href="${l.href}">${l.label}</a>`).join(" \u00b7 ");
   return `    <footer class="landing-footer">
-      <a class="complete-button" href="${APP}">${L.openApp}</a>
+      <a class="complete-button" href="${appLink(L.code)}">${L.openApp}</a>
       <p class="footer-links">${links}</p>
       <p>${L.footerNote}</p>
     </footer>`;
@@ -350,7 +359,7 @@ for (const L of LOCALES) {
     const track = trackFor(L, id);
     const dirRel = id === "core" ? path.join(L.prefix.slice(1), "day") : path.join(L.prefix.slice(1), "track", id);
     const urlBase = urlBaseFor(L, id);
-    const appQuery = id === "core" ? "" : `?track=${id}`;
+    const appQuery = id === "core" ? "" : `track=${id}`;
     fs.mkdirSync(path.join(root, dirRel), { recursive: true });
 
     for (let i = 0; i < track.days.length; i++) {
@@ -398,7 +407,7 @@ ${siteNav(L, relPath, altPath)}
         <section class="action-panel" id="practice"><div class="action-icon">→</div><div><p class="section-kicker">${L.practice}</p><p>${esc(action)}</p></div></section>
 ${shareRow({ L, url: `${SITE_URL}${relPath}`, title: pageTitle, text: `“${verse}” — ${ref}` })}
 ${shareCard({ L, card, fileName: `stand-${id === "core" ? "" : `${id}-`}${slugs[L.code][id][i]}.png`, alt: L.share.cardAlt(i + 1, title) })}
-        <a class="complete-button" href="${APP}${appQuery}#${i + 1}">${L.openDay(i + 1)}</a>
+        <a class="complete-button" href="${appLink(L.code, appQuery, `#${i + 1}`)}">${L.openDay(i + 1)}</a>
         <nav class="day-nav" aria-label="${L.code === "es" ? "Navegación de días" : "Day navigation"}">${prev}${next}</nav>
       </article>
     </main>
@@ -434,7 +443,7 @@ ${siteFooter(L, relPath)}
         <div class="feature-grid">
 ${group.rows.map(row => `          <div class="feature-card">
             <h3><a href="${row.href}">${esc(row.label)}</a></h3>
-            <p>${esc(row.track.name)} \u00b7 ${L.daysWord(row.track.days.length)} \u00b7 <a href="${APP}${row.id === "core" ? "" : `?track=${row.id}`}">${L.openInApp}</a></p>
+            <p>${esc(row.track.name)} \u00b7 ${L.daysWord(row.track.days.length)} \u00b7 <a href="${appLink(L.code, row.id === "core" ? "" : `track=${row.id}`)}">${L.openInApp}</a></p>
           </div>`).join("\n")}
         </div>
       </section>`).join("\n");
@@ -462,13 +471,13 @@ ${siteNav(L, relPath, altPath)}
         <p class="eyebrow">${esc(L.fearsEyebrow)}</p>
         <h1>${esc(L.fearsHeading)}</h1>
         <p class="landing-lead">${esc(L.fearsLead)}</p>
-        <a class="complete-button" href="${APP}">${L.openApp}</a>
+        <a class="complete-button" href="${appLink(L.code)}">${L.openApp}</a>
       </section>
 ${sections}
       <section class="landing-section landing-close">
         <h2>${esc(L.fearsCloseHeading)}</h2>
         <p>${esc(L.fearsCloseBody)}</p>
-        <a class="complete-button" href="${APP}?sos=1">${L.sosLabel}</a>
+        <a class="complete-button" href="${appLink(L.code, "sos=1")}">${L.sosLabel}</a>
       </section>
     </main>
 ${siteFooter(L, relPath)}
@@ -521,14 +530,14 @@ ${type === "article" ? `  <script src="/share.js" defer></script>\n` : ""}</body
 
 // Each language's own app link: the prayer opens in the app, in the page's
 // language (app.js reads ?prayer= and ?lang=).
-const appPrayerLink = (L, id) => `${APP}?prayer=${id}${L.code === "en" ? "" : `&lang=${L.code}`}`;
+const appPrayerLink = (L, id) => appLink(L.code, `prayer=${id}`);
 
 // A section of prayer cards, as on the fear index.
 function bookSection(L, tradition, { id, more } = {}) {
   const B = L.book;
   const cards = prayerBook.prayers().filter(p => p.tradition === tradition).map(p => `          <div class="feature-card">
             <h3><a href="${prayerBook.prayerPath(L.code, p.id)}">${esc(p.name[L.code])}</a></h3>
-            <p>${esc(clip(p.text[L.code].trim(), 110))} · <a href="${esc(appPrayerLink(L, p.id))}">${B.openShort}</a></p>
+            <p>${esc(clip(p.text[L.code].trim(), 110))} · <a href="${appPrayerLink(L, p.id)}">${B.openShort}</a></p>
           </div>`).join("\n");
   return `      <section class="landing-section"${id ? ` id="${id}"` : ""}>
         <h2 class="section-kicker">${esc(prayerBook.label(tradition, L.code).toLocaleUpperCase(L.code))}</h2>
@@ -594,7 +603,7 @@ for (const L of LOCALES) {
         <section class="prayer-panel"><p class="section-kicker">${B.pray}</p><p>${esc(text)}</p></section>
 ${shareRow({ L, url: `${SITE_URL}${relPath}`, title, text: card.prayerLead, label: B.shareLabel })}
 ${shareCard({ L, card, fileName: `stand-${L.code === "en" ? "prayer" : "oracion"}-${card.slug}.png`, alt: B.cardAlt(name) })}
-        <a class="complete-button" href="${esc(appPrayerLink(L, item.id))}">${B.open}</a>
+        <a class="complete-button" href="${appPrayerLink(L, item.id)}">${B.open}</a>
         <nav class="day-nav" aria-label="${B.prayerNav}">${prev}${next}</nav>
       </article>`;
     const head = `  <script type="application/ld+json">
@@ -618,7 +627,7 @@ ${prayerStructuredData({ L, item, title, description, relPath, altPath, image })
         <p class="eyebrow">${B.eyebrow}</p>
         <h1>${esc(B.heading)}</h1>
         <p class="landing-lead">${esc(B.lead(all.length))}</p>
-        <a class="complete-button" href="${APP}">${L.openApp}</a>
+        <a class="complete-button" href="${appLink(L.code)}">${L.openApp}</a>
       </section>
 ${sections}`;
     fs.writeFileSync(path.join(dir, "index.html"), bookPage({ L, title: B.title, description: B.description, relPath, altPath, main }));
@@ -635,7 +644,7 @@ ${sections}`;
         <p class="eyebrow"><a href="${prayerBook.bookPath(L.code)}">${B.eyebrow}</a></p>
         <h1>${esc(prayerBook.label(tradition, L.code))}</h1>
         <p class="landing-lead">${esc(B.catholicLead(count))}</p>
-        <a class="complete-button" href="${APP}">${L.openApp}</a>
+        <a class="complete-button" href="${appLink(L.code)}">${L.openApp}</a>
       </section>
 ${bookSection(L, tradition)}
 ${rest}`;
@@ -928,8 +937,8 @@ ${siteNav(en, null, "/es")}
         <h1>This page isn’t here.</h1>
         <p class="landing-lead">The link may be old, or a letter may have slipped — it happens. You can open the app, take ninety steady seconds, or start again from the home page.</p>
         <div class="hero-actions">
-          <a class="complete-button" href="${APP}">${en.openApp}</a>
-          <a class="complete-button hero-secondary" href="${APP}?sos=1">${en.sosLabel}</a>
+          <a class="complete-button" href="${appLink("en")}">${en.openApp}</a>
+          <a class="complete-button hero-secondary" href="${appLink("en", "sos=1")}">${en.sosLabel}</a>
         </div>
         <p class="landing-fineprint"><a href="/">Go to the home page</a></p>
       </section>
@@ -938,8 +947,8 @@ ${siteNav(en, null, "/es")}
         <h2>Esta página no está aquí.</h2>
         <p>Puede que el enlace sea antiguo o que se haya colado una letra; son cosas que pasan. Puedes abrir la app, tomarte noventa segundos para recuperar la calma o empezar de nuevo desde la página de inicio.</p>
         <div class="hero-actions">
-          <a class="complete-button" href="${APP}">${es.openApp}</a>
-          <a class="complete-button hero-secondary" href="${APP}?sos=1">${es.sosLabel}</a>
+          <a class="complete-button" href="${appLink("es")}">${es.openApp}</a>
+          <a class="complete-button hero-secondary" href="${appLink("es", "sos=1")}">${es.sosLabel}</a>
         </div>
         <p class="landing-fineprint"><a href="/es">Ir a la página de inicio en español</a></p>
       </section>

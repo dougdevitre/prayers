@@ -167,5 +167,38 @@ test("every internal link and asset reference on every page resolves", () => {
   assert.ok(broken.length === 0, `${broken.length} broken: ${broken.slice(0, 5).join("; ")}`);
 });
 
+test("Spanish pages open the app in Spanish, and English pages leave the reader's choice alone", () => {
+  // The app keeps the language a reader chose; a Spanish page must ask for
+  // Spanish, or a first visit (and "Calma ahora" in a hard moment) opens in
+  // English. Every generated page, by its html lang, plus the Spanish landing.
+  const files = [];
+  (function walk(dir) {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (["node_modules", ".git", "tests", "infra", ".claude", "app"].includes(e.name)) continue;
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (p.endsWith(".html") && !p.endsWith("404.html")) files.push(p);
+    }
+  })(ROOT);
+  let es = 0, en = 0;
+  const wrong = [];
+  for (const file of files) {
+    const html = fs.readFileSync(file, "utf8");
+    const lang = meta(html, /<html[^>]*\blang="([^"]*)"/);
+    for (const m of html.matchAll(/href="(\/app[^"]*)"/g)) {
+      const href = unescape(m[1]);
+      const asksSpanish = /[?&]lang=es(&|#|$)/.test(href);
+      if (lang === "es" ? !asksSpanish : /[?&]lang=/.test(href)) wrong.push(`${path.relative(ROOT, file)}: ${href}`);
+      lang === "es" ? es++ : en++;
+    }
+  }
+  assert.ok(es > 500 && en > 500, `only ${es} Spanish and ${en} English app links`);
+  assert.ok(wrong.length === 0, `${wrong.length} wrong: ${wrong.slice(0, 5).join("; ")}`);
+  // The 404 page carries both languages: its Spanish half asks for Spanish.
+  const notFound = fs.readFileSync(path.join(ROOT, "404.html"), "utf8");
+  const spanishHalf = notFound.slice(notFound.indexOf('lang="es"'));
+  assert.ok(/href="\/app\?lang=es"/.test(spanishHalf) && /href="\/app\?sos=1&amp;lang=es"/.test(spanishHalf));
+});
+
 if (failures) { console.log(`\n${failures} failing`); process.exit(1); }
 console.log("\nAll search and share metadata tests passed.");

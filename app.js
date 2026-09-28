@@ -34,6 +34,10 @@ function applyUi() {
   for (const el of document.querySelectorAll("[data-i18n-placeholder]")) {
     el.setAttribute("placeholder", t(el.dataset.i18nPlaceholder));
   }
+  // The library's links out go to the site's pages in the same language.
+  const es = state.lang === "es";
+  $("libraryFears").href = es ? "/es/fears" : "/fears";
+  $("libraryAbout").href = es ? "/es" : "/";
 }
 
 /* ---------- Tracks ---------- */

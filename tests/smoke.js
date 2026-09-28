@@ -847,6 +847,23 @@ const server = http.createServer((req, res) => {
     await reader.goto("http://localhost:8123/app?prayer=no-such-prayer", { waitUntil: "networkidle" });
     check("an unknown prayer opens the app as usual", !(await reader.evaluate(() => document.getElementById("bookDialog").open)));
 
+    // "Calma ahora" on a Spanish page opens the SOS screen in Spanish for a
+    // first-time visitor, and the library's links out follow the language.
+    {
+      const fresh = await browser.newPage();
+      fresh.on("pageerror", e => errors.push("pageerror (Spanish SOS): " + e.message));
+      await fresh.goto("http://localhost:8123/es/day/01-firmeza", { waitUntil: "networkidle" });
+      await fresh.click('.landing-footer .footer-links a[href^="/app?sos=1"]');
+      await fresh.waitForSelector("#sosDialog[open]");
+      check("Calma ahora on a Spanish page opens the SOS screen in Spanish", await fresh.evaluate(() =>
+        state.lang === "es" && document.documentElement.lang === "es") && /CALMA/.test(await fresh.textContent("#sosDialog")));
+      await fresh.keyboard.press("Escape");
+      await fresh.click("#libraryButton");
+      check("the app's library links to the Spanish pages in Spanish", (await fresh.getAttribute("#libraryFears", "href")) === "/es/fears"
+        && (await fresh.getAttribute("#libraryAbout", "href")) === "/es");
+      await fresh.close();
+    }
+
     // The Prayer Book in the app: from the library, listed like the days, with
     // the same filter tabs, and each prayer read like a day.
     await reader.evaluate(() => { state.lang = "en"; state.welcomed = true; save(); });
@@ -1816,14 +1833,15 @@ const server = http.createServer((req, res) => {
       && await nf.isVisible('main a.complete-button[href="/app?sos=1"]'));
     check("the 404 page offers both home pages", await nf.isVisible('main a[href="/"]') && await nf.isVisible('main a[href="/es"]'));
     check("the 404 page says it in Spanish too", (await nf.textContent('main [lang="es"]')).includes("Esta página no está aquí")
-      && await nf.isVisible('main [lang="es"] a[href="/app?sos=1"]'));
+      && await nf.isVisible('main [lang="es"] a[href="/app?sos=1&lang=es"]'));
     check("the 404 page is not indexed", await nf.getAttribute('meta[name="robots"]', "content") === "noindex");
     check("the 404 page claims no URL of its own", (await nf.$$('link[rel="canonical"], link[rel="alternate"]')).length === 0);
     check("the 404 page ships no script", (await nf.$$("script")).length === 0);
     check("the 404 page footer links to the privacy policy and terms",
       (await nf.$$('.footer-links a[href="/privacy"]')).length === 1 && (await nf.$$('.footer-links a[href="/terms"]')).length === 1);
     const deep = await nf.goto("http://localhost:8123/day/99-not-a-day", { waitUntil: "networkidle" });
-    check("a missing day page gets the same 404", deep.status() === 404 && (await nf.$$('main a[href="/app?sos=1"]')).length === 2);
+    check("a missing day page gets the same 404", deep.status() === 404 && (await nf.$$('main a[href="/app?sos=1"]')).length === 1
+      && (await nf.$$('main a[href="/app?sos=1&lang=es"]')).length === 1);
     for (const scheme of ["light", "dark"]) {
       await nf.emulateMedia({ colorScheme: scheme });
       await nf.goto("http://localhost:8123/no-such-page", { waitUntil: "networkidle" });

@@ -105,6 +105,9 @@ function sanitizeRosary(r, sets) {
  *
  * deps: { coreDays, tracks, langs, prayerIds, rosarySets }
  */
+// The narration speeds offered in the day player, shared by every voice.
+const VOICE_RATES = [0.85, 1, 1.15];
+
 function sanitizeBackup(raw, deps) {
   const { coreDays, tracks, langs, prayerIds = [], rosarySets = [] } = deps;
   if (!raw || typeof raw !== "object") return null;
@@ -168,10 +171,12 @@ function sanitizeBackup(raw, deps) {
     reminderEvening: /^([01]\d|2[0-3]):[0-5]\d$/.test(raw.reminderEvening) ? raw.reminderEvening : null,
     // Whether an evening series has been exported, so turning it off can
     // cancel it once.
-    reminderEveningExported: raw.reminderEveningExported === true
+    reminderEveningExported: raw.reminderEveningExported === true,
+    // The narration speed, one of the speeds the app offers.
+    voiceRate: VOICE_RATES.includes(raw.voiceRate) ? raw.voiceRate : 1
   };
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { localISO, slugify, completedDatesOf, streakFrom, ledgerStats, sanitizeTrackData, sanitizeBackup, sanitizeRosary };
+  module.exports = { localISO, slugify, completedDatesOf, streakFrom, ledgerStats, sanitizeTrackData, sanitizeBackup, sanitizeRosary, VOICE_RATES };
 }

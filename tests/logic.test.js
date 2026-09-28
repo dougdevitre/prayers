@@ -12,7 +12,7 @@ const assert = require("assert");
 const path = require("path");
 const { execFileSync } = require("child_process");
 const { tracks, themes } = require("../content.js");
-const { localISO, completedDatesOf, streakFrom, ledgerStats, sanitizeTrackData, sanitizeBackup } = require("../logic.js");
+const { localISO, completedDatesOf, streakFrom, ledgerStats, sanitizeTrackData, sanitizeBackup, VOICE_RATES } = require("../logic.js");
 
 let failures = 0;
 function test(name, fn) {
@@ -244,6 +244,12 @@ test("Prayer Book favorites keep only known prayers, each once, and default to n
   assert.deepStrictEqual(sanitizeBackup(validBackup(), deps).prayerFavorites, []);
   // A build that passes no prayer ids keeps none rather than trusting the file.
   assert.deepStrictEqual(sanitizeBackup(validBackup({ prayerFavorites: ["memorare"] }), DEPS).prayerFavorites, []);
+});
+
+test("the narration speed survives a backup only as one the app offers", () => {
+  assert.strictEqual(sanitizeBackup(validBackup(), DEPS).voiceRate, 1);
+  for (const rate of VOICE_RATES) assert.strictEqual(sanitizeBackup(validBackup({ voiceRate: rate }), DEPS).voiceRate, rate);
+  for (const bad of [0, 3, "1.15", null, NaN]) assert.strictEqual(sanitizeBackup(validBackup({ voiceRate: bad }), DEPS).voiceRate, 1, String(bad));
 });
 
 test("a Rosary in progress survives a backup only when it is a sound one", () => {

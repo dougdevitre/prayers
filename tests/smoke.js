@@ -404,6 +404,7 @@ const server = http.createServer((req, res) => {
   // ?sos=1 home-screen shortcut auto-opens SOS
   await page.goto("http://localhost:8123/app?sos=1", { waitUntil: "networkidle" });
   check("?sos=1 auto-opens SOS", await page.evaluate(() => document.getElementById("sosDialog").open));
+  check("…and clears it from the address bar, so a reload does not reopen it", await page.evaluate(() => location.search === ""));
   await page.click("#closeSos");
 
   // theme toggle
@@ -496,32 +497,87 @@ const server = http.createServer((req, res) => {
     // The SOS recording: named on the lock screen, and it stops when the SOS
     // screen closes, by the × or by Escape. It used to keep talking. The
     // fixture is a second long, so it loops while the check runs; otherwise
-    // "it stopped" could pass because it had simply ended.
+    // "it stopped" could pass because it had simply ended. SOS plays through
+    // the same prayer player as every other surface.
     await page.evaluate(() => {
       audioManifest.base = location.origin;
       for (let i = 0; i < 4; i++) audioManifest.items[sosItemId("en", i)] = { key: "tests/fixtures/silence.mp3", hash: "0".repeat(64), bytes: 15846, seconds: 1 };
+      audioManifest.items[dayItemId("en", "core", 0)] = { key: "tests/fixtures/silence.mp3", hash: "0".repeat(64), bytes: 15846, seconds: 1 };
+      go(0);
     });
+    const sosPlaying = () => prayerAudio.recorded && !audioEl.paused && navigator.mediaSession.playbackState === "playing";
     const sosListen = async () => {
-      await page.click("#sosButton");
       await page.click("#sosStage .checkin-scale button:nth-child(4)");
       await page.click("#sosStage .complete-button");
-      await page.click('#sosStage button:has-text("Hear this prayed")');
-      await page.waitForFunction(() => sos.audio && !audioEl.paused && navigator.mediaSession.playbackState === "playing", null, { timeout: 5000 }).catch(() => {});
+      await page.click("#sosListen");
+      await page.waitForFunction(sosPlaying, null, { timeout: 5000 }).catch(() => {});
       await page.evaluate(() => { audioEl.loop = true; });
     };
+    // Opening SOS stops the day's narration rather than talking over it.
+    await page.click("#playButton");
+    await page.waitForFunction(() => player.status === "playing" && !audioEl.paused, null, { timeout: 5000 }).catch(() => {});
+    await page.evaluate(() => { audioEl.loop = true; });
+    await page.click("#sosButton");
+    check("opening SOS stops the day's recording", await page.evaluate(() => player.status === "idle" && audioEl.paused));
+    await page.evaluate(() => { audioEl.loop = false; });
     await sosListen();
     check("the SOS recording plays and is named on the lock screen", await page.evaluate(() =>
-      sos.audio && !audioEl.paused && audioEl.src === `${location.origin}/tests/fixtures/silence.mp3`
+      prayerAudio.recorded && !audioEl.paused && audioEl.src === `${location.origin}/tests/fixtures/silence.mp3`
       && navigator.mediaSession.playbackState === "playing"
       && /^Steady me now · \S/.test(navigator.mediaSession.metadata && navigator.mediaSession.metadata.title)));
     check("the SOS recording gets lock-screen position like any recording", await page.evaluate(() => recordingInSession()));
+    check("…and its button offers to stop", (await page.textContent("#sosListen")) === "■ Stop");
+    await page.click("#sosListen");
+    check("the button stops it and offers to listen again", await page.evaluate(() => audioEl.paused && !prayerAudio.playing)
+      && (await page.textContent("#sosListen")) === "▶ Hear this prayed");
+    await page.click("#sosListen");
+    await page.waitForFunction(sosPlaying, null, { timeout: 5000 }).catch(() => {});
+    await page.evaluate(() => { audioEl.loop = true; });
+    await page.click('#sosStage button:has-text("I need another round")');
+    check("moving to another step stops the voice", await page.evaluate(() => audioEl.paused && !prayerAudio.playing));
     await page.click("#closeSos");
-    check("closing SOS stops its recording", await page.evaluate(() => audioEl.paused && !sos.audio && navigator.mediaSession.playbackState === "none"));
     await page.evaluate(() => { audioEl.loop = false; });
+    await page.click("#sosButton");
+    await sosListen();
+    await page.click("#closeSos");
+    check("closing SOS stops its recording", await page.evaluate(() => audioEl.paused && !prayerAudio.playing && navigator.mediaSession.playbackState === "none"));
+    await page.evaluate(() => { audioEl.loop = false; });
+    await page.click("#sosButton");
     await sosListen();
     await page.keyboard.press("Escape");
     check("Escape out of SOS stops its recording too", await page.evaluate(() =>
-      !document.getElementById("sosDialog").open && audioEl.paused && !sos.audio));
+      !document.getElementById("sosDialog").open && audioEl.paused && !prayerAudio.playing));
+    await page.evaluate(() => { audioEl.loop = false; });
+
+    // One speed, saved, for every voice: the day's and SOS's recordings both
+    // play at it, and it survives a reload.
+    await page.selectOption("#voiceRate", "1.15");
+    await page.click("#sosButton");
+    await sosListen();
+    check("SOS plays at the saved speed", await page.evaluate(() => audioEl.playbackRate === 1.15 && state.voiceRate === 1.15));
+    await page.click("#closeSos");
+    await page.evaluate(() => { audioEl.loop = false; });
+    await page.reload({ waitUntil: "networkidle" });
+    check("the speed is kept across a reload", (await page.inputValue("#voiceRate")) === "1.15");
+    await page.selectOption("#voiceRate", "1");
+
+    // Marking the day complete or ♡ repaints the same day: the narration
+    // carries on. Moving to another day stops it.
+    await page.evaluate(() => {
+      audioManifest.base = location.origin;
+      audioManifest.items[dayItemId("en", "core", 0)] = { key: "tests/fixtures/silence.mp3", hash: "0".repeat(64), bytes: 15846, seconds: 1 };
+      go(0);
+    });
+    await page.click("#playButton");
+    await page.waitForFunction(() => player.status === "playing" && !audioEl.paused, null, { timeout: 5000 }).catch(() => {});
+    await page.evaluate(() => { audioEl.loop = true; });
+    await page.click("#favoriteButton");
+    await page.click("#completeButton");
+    check("♡ and Mark complete leave the narration playing", await page.evaluate(() => player.status === "playing" && !audioEl.paused));
+    await page.click("#favoriteButton");
+    await page.click("#completeButton");
+    await page.evaluate(() => go(1));
+    check("moving to another day stops it", await page.evaluate(() => player.status === "idle" && audioEl.paused));
     await page.evaluate(() => { audioEl.loop = false; stopAudio(); audioManifest.items = {}; audioManifest.base = ""; go(0); });
 
     // Device speech names the day on the lock screen, without a scrubber.
@@ -531,6 +587,13 @@ const server = http.createServer((req, res) => {
       stopAudio();
       return title === document.title;
     }));
+    check("a prayer read by the device voice names itself on the lock screen, and clears it when stopped", await page.evaluate(() => {
+      if (!canSpeak) return true;
+      speakPrayer([{ text: "Amen.", pause: 0 }], null, "The Angelus");
+      const named = navigator.mediaSession.metadata.title === "The Angelus" && navigator.mediaSession.playbackState === "playing";
+      stopPrayerNarration();
+      return named && navigator.mediaSession.playbackState === "none";
+    }));
     // The kill switch: ?tts=1 ignores the manifest entirely.
     await page.goto("http://localhost:8123/app?tts=1#1", { waitUntil: "networkidle" });
     check("?tts=1 forces the device voice", await page.evaluate(() => {
@@ -539,6 +602,7 @@ const server = http.createServer((req, res) => {
       audioManifest.items = {};
       return forced;
     }));
+    check("…and ?tts=1 stays in the address bar, unlike a link's settings", await page.evaluate(() => location.search === "?tts=1"));
   }
 
   // Error reports, in a page of their own so these deliberate errors never
@@ -1163,6 +1227,7 @@ const server = http.createServer((req, res) => {
       check("?rosary= opens the named mysteries, in Spanish", await reader.isVisible("#rosaryView")
         && (await reader.textContent("#rosaryHeading")) === "Misterios Luminosos"
         && (await reader.textContent("#rosaryStepTitle")) === "Señal de la Cruz");
+      check("…and the link's settings leave the address bar once applied", await reader.evaluate(() => location.search === ""));
       // Sign of the Cross, Creed, Our Father, three beads, Glory Be: seven taps.
       for (let i = 0; i < 7; i++) await reader.click("#rosaryNext");
       check("…with the mystery and its reference in Spanish", (await reader.textContent("#rosaryStepTitle")) === "Primer misterio luminoso"
@@ -1187,6 +1252,16 @@ const server = http.createServer((req, res) => {
     check("the prayer plays its recording", await reader.evaluate(() => book.playing === "angelus" && prayerAudio.recorded
       && audioEl.src.endsWith("/tests/fixtures/silence.mp3") && player.status === "idle"));
     check("…and the button offers to pause", (await reader.getAttribute("#bookPlay", "aria-label")) === "Pause this prayer");
+    // The device voice cannot pause, so while it reads the button says Stop.
+    check("read by the device voice, the button offers to stop, not pause", await reader.evaluate(() => {
+      const recorded = prayerAudio.recorded;
+      prayerAudio.recorded = false;
+      paintBookPlay();
+      const label = [document.getElementById("bookPlay").getAttribute("aria-label"), document.getElementById("bookPlayIcon").textContent];
+      prayerAudio.recorded = recorded;
+      paintBookPlay();
+      return label[0] === "Stop this prayer" && label[1] === "■";
+    }));
     // The fixture is one second long: slowed, it cannot end mid-check.
     await reader.evaluate(() => { audioEl.playbackRate = 0.1; });
     await reader.click("#bookPlay");
@@ -1682,6 +1757,7 @@ const server = http.createServer((req, res) => {
     return r.top >= 0 && r.bottom <= innerHeight;
   });
   check("?checkin=1 opens the day with the fear check-in in view", checkinInView && (await page.textContent("#dayNumber")) === "DAY 03");
+  check("…and the check-in link keeps its day but not its ?checkin", await page.evaluate(() => location.search === "" && location.hash === "#3"));
   await page.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
   await page.click("#libraryButton");
 

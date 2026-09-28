@@ -134,9 +134,9 @@ function firstIncompleteDay() {
 // sosSets and the fear finder all check typeof), so a failed load leaves the
 // app working in English rather than broken. The service worker still
 // precaches the file, so switching works offline.
-// The Rosary (rosary.js) loads the same way, the first time the Prayer Book
-// opens. A script loaded here resolves either way; the caller checks that
-// what it needs arrived.
+// The Rosary (rosary.js, then the guided Rosary's own code in rosary-ui.js)
+// loads the same way, the first time the Prayer Book opens. A script loaded
+// here resolves either way; the caller checks that what it needs arrived.
 const scriptLoads = {};
 function loadScript(src, ready) {
   if (ready()) return Promise.resolve();
@@ -150,7 +150,16 @@ function loadScript(src, ready) {
   return scriptLoads[src];
 }
 const loadSpanish = () => loadScript("/content.es.js", () => typeof esTracks !== "undefined");
-const loadRosary = () => loadScript("/rosary.js", () => typeof rosarySteps !== "undefined");
+const loadRosary = () => loadScript("/rosary.js", () => typeof rosarySteps !== "undefined")
+  .then(() => loadScript("/rosary-ui.js", () => typeof openRosary === "function"));
+// Runs fn once the guided Rosary is here; offline before it was ever saved,
+// the Rosary simply stays closed.
+const withRosary = fn => loadRosary().then(() => { if (typeof openRosary === "function") fn(); });
+// Leaving the Rosary view (for a prayer or the list): praying along stops and
+// the screen may sleep again. Nothing to do if the Rosary never loaded.
+function leftRosary() {
+  if (typeof stopAlong === "function") { stopAlong(); syncWakeLock(); }
+}
 const languageReady = () => (state.lang === "es" ? loadSpanish() : Promise.resolve());
 
 // A ?lang= link (from a Spanish Prayer Book page) opens the app in that
@@ -999,9 +1008,12 @@ function wrapText(ctx, text, maxWidth) {
   return lines;
 }
 
-// A 1080x1350 (4:5) card in the app's light palette, for social sharing.
-function buildVerseCard() {
-  const [title, ref, verse] = activeTrack().days[day];
+// A 1080x1350 (4:5) card in the app's light palette, drawn on the device
+// when the site's card cannot be fetched (offline, slow or failing): a
+// spaced-out kicker, the text centred (each paragraph wrapped, and cut with
+// an ellipsis where it would run past the frame), and a line beneath it.
+const spaced = text => text.toLocaleUpperCase(state.lang).split("").join(" ");
+function drawCard(kicker, paragraphs, sub, { italic = true, size = 58 } = {}) {
   const canvas = document.createElement("canvas");
   canvas.width = 1080;
   canvas.height = 1350;
@@ -1019,17 +1031,19 @@ function buildVerseCard() {
   ctx.font = "700 44px Georgia, serif";
   ctx.fillText("✦", 540, 175);
   ctx.font = "800 30px system-ui, sans-serif";
-  ctx.fillText(`${t("share.cardDay")}   ${day + 1}   ·   ${title.toUpperCase().split("").join(" ")}`, 540, 265);
+  ctx.fillText(kicker, 540, 265);
 
   ctx.fillStyle = ink;
-  ctx.font = "italic 58px Georgia, serif";
-  const lines = wrapText(ctx, `“${verse}”`, 820);
-  const start = 675 - ((lines.length - 1) * 82) / 2;
-  lines.forEach((line, i) => ctx.fillText(line, 540, start + i * 82));
+  ctx.font = `${italic ? "italic " : ""}${size}px Georgia, serif`;
+  const step = Math.round(size * 1.41), room = Math.floor(700 / step);
+  let lines = paragraphs.flatMap(p => wrapText(ctx, p, 820));
+  if (lines.length > room) lines = [...lines.slice(0, room - 1), `${lines[room - 1].replace(/[\s,.;:]*$/, "")}…`];
+  const start = 675 - ((lines.length - 1) * step) / 2;
+  lines.forEach((line, i) => ctx.fillText(line, 540, start + i * step));
 
   ctx.fillStyle = muted;
   ctx.font = "700 32px system-ui, sans-serif";
-  ctx.fillText(ref.toUpperCase(), 540, start + lines.length * 82 + 40);
+  ctx.fillText(sub.toLocaleUpperCase(state.lang), 540, start + lines.length * step + 40);
 
   ctx.fillStyle = ink;
   ctx.font = "800 34px system-ui, sans-serif";
@@ -1037,6 +1051,16 @@ function buildVerseCard() {
 
   return new Promise(resolve => canvas.toBlob(resolve, "image/png"));
 }
+
+// A day's card: its verse.
+function buildVerseCard() {
+  const [title, ref, verse] = activeTrack().days[day];
+  return drawCard(`${t("share.cardDay")}   ${day + 1}   ·   ${spaced(title)}`, [`“${verse}”`], ref);
+}
+
+// A Prayer Book prayer's card: as much of the prayer as fits, under its name.
+const prayerCard = item => () =>
+  drawCard(spaced(t("book.kicker")), item.text[state.lang].trim().split(/\n+/), item.name[state.lang], { italic: false, size: 44 });
 
 // The link a share carries is the day's crawlable page, not the app's hash
 // route: /day/07-the-word previews with that day's title and description,
@@ -1050,8 +1074,8 @@ const shareCardName = () => `stand-day-${String(day + 1).padStart(2, "0")}.png`;
 // reflection and prayer, the same image the day's page shows; for a Prayer
 // Book prayer, the whole prayer. The ".latest." address redirects to the
 // current card, since the app knows the page but not the card's hash.
-// Offline, slow or failing, a day's verse card is drawn here instead, and a
-// prayer is shared as a link. A share sheet must open soon after the tap, so
+// Offline, slow or failing, a card is drawn here instead (drawCard): a day's
+// verse, a prayer, or a set of the Rosary's mysteries. A share sheet must open soon after the tap, so
 // the fetch starts on pointerdown and the click reuses it.
 let cardFetch = null;
 function shareCardUrl() {
@@ -1094,19 +1118,7 @@ function prayerShare(id) {
   return {
     kind: "prayer", url: location.origin + prayerBook.prayerPath(lang, id), heading: `${item.name[lang]} — Stand`,
     caption: `“${lead}”`,
-    cardUrl: `/cards/${lang}/prayers/${slug}.latest.post.png`, cardName: `stand-${lang === "es" ? "oracion" : "prayer"}-${slug}.png`, fallbackCard: null
-  };
-}
-// A set of the Rosary's mysteries: its page on the site and its card, which
-// numbers the five mysteries. rosary.js is loaded by then (the button is in
-// the Rosary view).
-function rosaryShare(setId) {
-  const lang = rosaryLang();
-  const set = setById(setId);
-  return {
-    kind: "rosary", url: location.origin + rosaryPagePath(lang, setId), heading: `${set.name[lang]} — Stand`,
-    caption: set.mysteries.map(m => m.name[lang]).join(" · "),
-    cardUrl: `/cards/${lang}/rosary/${set.slug[lang]}.latest.post.png`, cardName: `stand-${lang === "es" ? "rosario" : "rosary"}-${set.slug[lang]}.png`, fallbackCard: null
+    cardUrl: `/cards/${lang}/prayers/${slug}.latest.post.png`, cardName: `stand-${lang === "es" ? "oracion" : "prayer"}-${slug}.png`, fallbackCard: prayerCard(item)
   };
 }
 // The item the share dialog is showing, for its Save button.
@@ -1343,7 +1355,9 @@ function keptData() {
   const others = Object.values(state.tracks || {}).filter(Boolean);
   const completed = (state.completed || []).length + others.reduce((n, t) => n + (t.completed || []).length, 0);
   const notes = [state.notes || {}, ...others.map(t => t.notes || {})].some(n => Object.values(n).some(v => String(v).trim()));
-  return { completed, notes, checkins: (state.checkins || []).length + (state.sos || []).length };
+  // Favorites are kept too: the days' (every journey's) and the Prayer Book's.
+  const favorites = [state, ...others].reduce((n, t) => n + (t.favorites || []).length, 0) + (state.prayerFavorites || []).length;
+  return { completed, notes, favorites, rosary: Boolean(state.rosary), checkins: (state.checkins || []).length + (state.sos || []).length };
 }
 
 async function storagePersisted() {
@@ -1362,7 +1376,7 @@ function scheduleProtect() {
 
 async function protectData() {
   const kept = keptData();
-  if (!kept.completed && !kept.notes && !kept.checkins) { $("backupNudge").hidden = true; return; }
+  if (!kept.completed && !kept.notes && !kept.checkins && !kept.favorites && !kept.rosary) { $("backupNudge").hidden = true; return; }
   let persisted = await storagePersisted();
   if (!persisted && !persistRequested && navigator.storage && navigator.storage.persist) {
     persistRequested = true;
@@ -1370,7 +1384,9 @@ async function protectData() {
   }
   const now = Date.now();
   const due = now - readTime(BACKUP_AT_KEY) > MONTH_MS && now - readTime(BACKUP_SNOOZE_KEY) > MONTH_MS;
-  const enough = kept.completed >= 3 || kept.notes;
+  // A Rosary in progress asks the browser to keep storage, but lasts only
+  // twelve hours, so it alone does not call for a backup.
+  const enough = kept.completed >= 3 || kept.notes || kept.favorites >= 3;
   // An installed copy keeps its storage; elsewhere, iPhone is at risk even
   // with persistence granted, and other browsers only when it was refused.
   const atRisk = !installedCopy() && (onIPhone() || !persisted);
@@ -1436,9 +1452,20 @@ async function syncOfflineAudio() {
   const run = ++offlineRun;
   if (!offlineOn() || !offlineSupported()) return;
   const status = $("offlineStatus");
+  // Today's Rosary is kept too: its prayers, its five mysteries and, when the
+  // reader prays it, the Fatima Prayer. Only readers who turned this on load
+  // the Rosary for it.
+  await loadRosary();
+  if (run !== offlineRun) return;
+  let rosaryPrayers = [], rosaryItems = [];
+  if (typeof rosarySteps !== "undefined") {
+    const set = setForDate(new Date()), fatima = state.rosaryFatima !== false;
+    rosaryPrayers = rosarySteps(set.id, { fatima }).filter(step => step.kind === "prayer").map(step => step.prayer);
+    rosaryItems = [...set.mysteries.map(m => m.id), ...(fatima ? ["fatima"] : [])];
+  }
   const plan = offlinePlan(audioManifest, offlineIds({
     lang: state.lang, track: state.track || "core", day, days: DAYS(), sosCount: sosSets().length,
-    prayers: prayerFavorites()
+    favoriteDays: tdata().favorites, prayers: [...prayerFavorites(), ...rosaryPrayers], rosary: rosaryItems
   }));
   let cache;
   try { cache = await caches.open(OFFLINE_CACHE); } catch { return; }
@@ -2069,7 +2096,9 @@ $("prayerBoth").onchange = () => {
   save();
   renderPrayerSurface();
 };
-$("prayerAnother").onclick = () => { prayerState.seed += 1; renderPrayer(); };
+// The composed prayer is not a live region (typing an intention would read
+// it out on every keypress); asking for another moves focus to it instead.
+$("prayerAnother").onclick = () => { prayerState.seed += 1; renderPrayer(); focusView($("prayerCard").querySelector("h3")); };
 $("prayerListen").onclick = () => speakPrayer(
   currentPrayer().lines.map(text => ({ text, pause: 0.6 })),
   $("prayerListen"),
@@ -2191,15 +2220,14 @@ function paintBookFavorite() {
   $("bookFavorite").setAttribute("aria-label", t(fav ? "book.unfavorite" : "book.favorite"));
 }
 
-function showBookPrayer(id) {
+function showBookPrayer(id, stay) {
   const item = prayerBook.byId(id);
   if (!item) return;
-  stopAlong();
   if (book.playing && book.playing !== id) stopPrayerNarration();
   book.open = id;
   $("bookList").hidden = true;
   $("rosaryView").hidden = true;
-  syncWakeLock();
+  leftRosary();
   $("bookReader").hidden = false;
   $("bookSection").textContent = prayerBook.label(item.tradition, state.lang);
   $("bookTitle").textContent = item.name[state.lang];
@@ -2232,20 +2260,51 @@ function showBookPrayer(id) {
   }
   paintBookPlay();
   paintBookFavorite();
+  $("bookBoth").checked = state.bilingual;
+  if (stay) return;
   $("bookDialog").scrollTop = 0;
+  focusView($("bookTitle"));
 }
+
+// "Show both languages" is one setting, offered wherever prayers are read:
+// the composer, a Prayer Book prayer and the Rosary.
+$("bookBoth").onchange = () => {
+  state.bilingual = $("bookBoth").checked;
+  save();
+  showBookPrayer(book.open, true);
+};
 
 function showBookList() {
   book.open = null;
-  stopAlong();
+  // Back from a prayer or the Rosary lands on the list's heading; a filter
+  // tab keeps focus where it is.
+  const returning = !$("bookReader").hidden || !$("rosaryView").hidden;
   $("bookReader").hidden = true;
   $("rosaryView").hidden = true;
-  syncWakeLock();
+  leftRosary();
   $("bookList").hidden = false;
-  renderRosaryEntry();
+  withRosary(() => renderRosaryEntry());
+  if (returning) focusView($("bookHeading"));
   document.querySelectorAll("#bookDialog .filter-tab").forEach(tab => tab.classList.toggle("active", tab.dataset.bookFilter === book.filter));
   renderBookList();
 }
+
+// Switching views inside an open dialog moves focus to the new view's
+// heading, so a keyboard or screen-reader user is not left on a button that
+// has just been hidden, and hears where they are.
+function focusView(heading) {
+  if (!heading || !heading.closest("dialog[open]")) return;
+  heading.tabIndex = -1;
+  heading.focus({ preventScroll: true });
+}
+
+// ← and → turn the pages of the Prayer Book, as they do in the Rosary.
+$("bookDialog").addEventListener("keydown", event => {
+  if ($("bookReader").hidden || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+  if (event.target.closest("input, select, textarea")) return;
+  const button = event.key === "ArrowRight" ? $("bookNext") : event.key === "ArrowLeft" ? $("bookPrev") : null;
+  if (button && !button.hidden) { event.preventDefault(); button.click(); }
+});
 
 /** Open the Prayer Book, at one prayer when `id` names one. */
 function openBook(id) {
@@ -2293,6 +2352,8 @@ $("bookPlay").onclick = () => {
   } else speak();
 };
 
+$("rosaryEntry").onclick = () => withRosary(() => openRosary());
+
 $("bookFavorite").onclick = () => {
   const favorites = prayerFavorites();
   const i = favorites.indexOf(book.open);
@@ -2308,363 +2369,7 @@ $("bookFavorite").onclick = () => {
 // a phone that can, else the share dialog (copy, save the card, platforms).
 $("bookShare").addEventListener("pointerdown", () => { if (book.open) fetchShareCard(prayerShare(book.open).cardUrl); });
 $("bookShare").onclick = () => { if (book.open) shareItem(prayerShare(book.open)); };
-$("rosaryShare").addEventListener("pointerdown", () => { if (rosaryRun.set) fetchShareCard(rosaryShare(rosaryRun.set).cardUrl); });
-$("rosaryShare").onclick = () => { if (rosaryRun.set) shareItem(rosaryShare(rosaryRun.set)); };
 
-/* ---------- The Rosary ----------
-   A guided Rosary inside the Prayer Book: one step at a time, in the order
-   rosary.js gives (rosarySteps), with a bead counter for the Hail Marys.
-   Today's mysteries are the default (setForDate); any set can be chosen.
-   Every prayer but the mysteries and the Fatima Prayer is the Prayer Book's
-   own, so a step shows and plays exactly what the Prayer Book does. Where a
-   reader is is saved (state.rosary), so closing the app mid-decade and coming
-   back resumes there, for twelve hours; after that it starts fresh. */
-
-const ROSARY_RESUME_MS = 12 * 60 * 60 * 1000;
-const rosaryRun = { set: null, fatima: true, steps: [], index: 0, bead: 0, done: false };
-const rosaryLang = () => (state.lang === "es" ? "es" : "en");
-
-/** The saved Rosary, if there is one still worth resuming. */
-function savedRosary() {
-  const r = state.rosary;
-  if (!r || !setById(r.set) || !Number.isFinite(r.started) || Date.now() - r.started > ROSARY_RESUME_MS) return null;
-  return r;
-}
-
-function renderRosaryEntry(retry = true) {
-  // rosary.js arrives on the Prayer Book's first opening; the entry fills in
-  // then (once: a failed load leaves it as its title alone).
-  if (typeof rosarySteps === "undefined") {
-    $("rosaryEntryMeta").textContent = "";
-    if (retry) loadRosary().then(() => renderRosaryEntry(false));
-    return;
-  }
-  const lang = rosaryLang();
-  const saved = savedRosary();
-  if (saved) {
-    const total = rosarySteps(saved.set, { fatima: saved.fatima !== false }).length;
-    $("rosaryEntryMeta").textContent = t("rosary.entryContinue", { set: setById(saved.set).name[lang], n: Math.min(saved.step + 1, total), total });
-  } else {
-    $("rosaryEntryMeta").textContent = t("rosary.entryToday", { set: setForDate(new Date()).name[lang] });
-  }
-}
-
-function saveRosary() {
-  if (rosaryRun.done) state.rosary = null;
-  else {
-    const started = state.rosary && state.rosary.set === rosaryRun.set && Number.isFinite(state.rosary.started) ? state.rosary.started : Date.now();
-    state.rosary = { set: rosaryRun.set, step: rosaryRun.index, bead: rosaryRun.bead, fatima: rosaryRun.fatima, started };
-  }
-  save();
-}
-
-function startRosary(setId) {
-  Object.assign(rosaryRun, { set: setId, fatima: state.rosaryFatima !== false, index: 0, bead: 0, done: false });
-  rosaryRun.steps = rosarySteps(setId, { fatima: rosaryRun.fatima });
-  state.rosary = null;
-  saveRosary();
-}
-
-/** Open the Rosary in the Prayer Book: where the reader left off, or a set. */
-async function openRosary(setId) {
-  await loadRosary();
-  if (typeof rosarySteps === "undefined") return; // offline before it was ever saved
-  const saved = savedRosary();
-  if (setId && setById(setId) && !(saved && saved.set === setId)) startRosary(setId);
-  else if (saved) {
-    Object.assign(rosaryRun, { set: saved.set, fatima: saved.fatima !== false, done: false });
-    rosaryRun.steps = rosarySteps(saved.set, { fatima: rosaryRun.fatima });
-    rosaryRun.index = Math.min(Math.max(0, saved.step | 0), rosaryRun.steps.length - 1);
-    const step = rosaryRun.steps[rosaryRun.index];
-    rosaryRun.bead = step.count ? Math.min(Math.max(0, saved.bead | 0), step.count - 1) : 0;
-  } else startRosary(setForDate(new Date()).id);
-  stopPrayerNarration();
-  book.open = null;
-  $("bookList").hidden = true;
-  $("bookReader").hidden = true;
-  $("rosaryView").hidden = false;
-  if (!$("bookDialog").open) $("bookDialog").showModal();
-  renderRosary();
-  syncWakeLock();
-  $("bookDialog").scrollTop = 0;
-}
-
-function renderRosary() {
-  const lang = rosaryLang();
-  const set = setById(rosaryRun.set);
-  $("rosaryHeading").textContent = set.name[lang];
-  const today = setForDate(new Date()).id;
-  const select = $("rosarySet");
-  select.textContent = "";
-  for (const s of rosary.sets) {
-    select.append(new Option(s.id === today ? t("rosary.today", { set: s.name[lang] }) : s.name[lang], s.id, false, s.id === set.id));
-  }
-  $("rosaryFatima").checked = rosaryRun.fatima;
-
-  const done = rosaryRun.done;
-  $("rosaryDone").hidden = !done;
-  for (const id of ["rosaryStep", "rosaryProgress", "rosaryDecades"]) $(id).hidden = done;
-  $("rosaryPrev").closest(".rosary-actions").hidden = done;
-  if (done) { $("rosaryAgain").focus(); return; }
-
-  const steps = rosaryRun.steps;
-  const step = steps[rosaryRun.index];
-  $("rosaryProgress").textContent = t("rosary.progress", { n: rosaryRun.index + 1, total: steps.length });
-
-  // Five marks for the decades: done, current, still to come.
-  const current = step.decade || (rosaryRun.index < 5 ? 0 : 6);
-  const decades = $("rosaryDecades");
-  decades.textContent = "";
-  for (let d = 1; d <= 5; d++) {
-    const mark = document.createElement("span");
-    mark.className = `rosary-decade${d < current ? " done" : d === current ? " current" : ""}`;
-    decades.append(mark);
-  }
-
-  let kicker, title, text = "", verse = "", note = "", other = "";
-  const o = otherLang();
-  const where = step.decade ? t("rosary.decade", { n: step.decade }) : t(rosaryRun.index < 5 ? "rosary.opening" : "rosary.closing");
-  if (step.kind === "mystery") {
-    const m = set.mysteries[step.decade - 1];
-    const ordinal = t("rosary.ordinals").split("|")[step.decade - 1];
-    kicker = where;
-    title = t("rosary.mysteryHeading", { ordinal, adjective: set.adjective[lang] });
-    text = m.name[lang];
-    verse = `“${m.verse[lang]}” (${mysteryRef(m, lang)})`;
-    note = m.note ? m.note[lang] : "";
-    other = `${m.name[o]}. “${m.verse[o]}” (${mysteryRef(m, o)})`;
-  } else if (step.kind === "fatima") {
-    kicker = where;
-    title = rosary.fatima.name[lang];
-    text = rosary.fatima.text[lang];
-    other = rosary.fatima.text[o];
-  } else {
-    const item = prayerBook.byId(step.prayer);
-    kicker = step.label === "virtues" ? `${where} · ${rosary.virtues[lang]}` : where;
-    title = item.name[lang];
-    text = item.text[lang].trim();
-    other = item.text[o].trim();
-  }
-  $("rosaryStepKicker").textContent = kicker;
-  $("rosaryStepTitle").textContent = title;
-  $("rosaryStepText").textContent = text;
-  $("rosaryStepText").classList.toggle("rosary-mystery-name", step.kind === "mystery");
-  $("rosaryStepVerse").hidden = !verse;
-  $("rosaryStepVerse").textContent = verse;
-  $("rosaryStepNote").hidden = !note;
-  $("rosaryStepNote").textContent = note;
-  // "Show both languages" applies here as in the reader: the other language
-  // beneath, marked as such.
-  $("rosaryStepOther").hidden = !state.bilingual;
-  $("rosaryStepOther").lang = o;
-  $("rosaryStepOther").textContent = state.bilingual ? other : "";
-
-  // The bead counter: one bead per Hail Mary of this step, filled as they
-  // are prayed, and a count a screen reader announces.
-  const beads = $("rosaryBeads");
-  beads.hidden = !step.count;
-  beads.textContent = "";
-  $("rosaryCount").textContent = "";
-  if (step.count) {
-    for (let b = 0; b < step.count; b++) {
-      const bead = document.createElement("span");
-      bead.className = `rosary-bead${b < rosaryRun.bead ? " done" : b === rosaryRun.bead ? " current" : ""}`;
-      beads.append(bead);
-    }
-    $("rosaryCount").textContent = t("rosary.bead", { prayer: title, n: rosaryRun.bead + 1, total: step.count });
-  }
-
-  const last = rosaryRun.index === steps.length - 1;
-  const moreBeads = step.count && rosaryRun.bead < step.count - 1;
-  $("rosaryNext").textContent = t(moreBeads ? "rosary.nextBead" : last ? "rosary.finish" : "rosary.next");
-  $("rosaryPrev").disabled = rosaryRun.index === 0 && rosaryRun.bead === 0;
-  updatePrayerButton($("rosaryListen"), false);
-  paintAlong();
-}
-
-function rosaryNext() {
-  stopPrayerNarration();
-  const step = rosaryRun.steps[rosaryRun.index];
-  if (step.count && rosaryRun.bead < step.count - 1) rosaryRun.bead++;
-  else if (rosaryRun.index < rosaryRun.steps.length - 1) { rosaryRun.index++; rosaryRun.bead = 0; }
-  else rosaryRun.done = true;
-  saveRosary();
-  renderRosary();
-}
-
-function rosaryPrev() {
-  stopPrayerNarration();
-  if (rosaryRun.bead > 0) rosaryRun.bead--;
-  else if (rosaryRun.index > 0) {
-    rosaryRun.index--;
-    const step = rosaryRun.steps[rosaryRun.index];
-    rosaryRun.bead = step.count ? step.count - 1 : 0;
-  }
-  saveRosary();
-  renderRosary();
-}
-
-// Turning the Fatima Prayer on or off keeps the reader's place: the position
-// is counted in steps that are not the Fatima Prayer, which both lists share.
-function setRosaryFatima(on) {
-  state.rosaryFatima = on;
-  const before = rosaryRun.steps.slice(0, rosaryRun.index).filter(s => s.kind !== "fatima").length;
-  rosaryRun.fatima = on;
-  rosaryRun.steps = rosarySteps(rosaryRun.set, { fatima: on });
-  let seen = 0;
-  rosaryRun.index = rosaryRun.steps.findIndex(s => s.kind !== "fatima" && seen++ === before);
-  if (rosaryRun.index < 0) rosaryRun.index = rosaryRun.steps.length - 1;
-  const step = rosaryRun.steps[rosaryRun.index];
-  if (!step.count) rosaryRun.bead = 0;
-  saveRosary();
-  renderRosary();
-}
-
-// Next and Back while praying along move the place and carry on from there.
-function rosaryMove(move) {
-  const again = along.on;
-  stopAlong();
-  move();
-  if (again && !rosaryRun.done) startAlong();
-}
-
-$("rosaryEntry").onclick = () => openRosary();
-$("rosaryBack").onclick = () => { stopAlong(); stopPrayerNarration(); showBookList(); };
-$("rosaryNext").onclick = () => rosaryMove(rosaryNext);
-$("rosaryPrev").onclick = () => rosaryMove(rosaryPrev);
-$("rosarySet").onchange = () => { stopAlong(); stopPrayerNarration(); startRosary($("rosarySet").value); renderRosary(); };
-$("rosaryFatima").onchange = () => setRosaryFatima($("rosaryFatima").checked);
-$("rosaryAgain").onclick = () => { startRosary(rosaryRun.set); renderRosary(); $("rosaryNext").focus(); };
-$("rosaryToBook").onclick = showBookList;
-$("rosaryAlong").onclick = () => (along.on ? stopAlong() : startAlong());
-
-// ← and → move a bead or a step, for a keyboard or a switch, whatever has
-// focus in the Rosary (except its own menu and checkbox).
-$("bookDialog").addEventListener("keydown", event => {
-  if ($("rosaryView").hidden || rosaryRun.done || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-  if (event.target.closest("input, select, textarea")) return;
-  if (event.key === "ArrowRight") { event.preventDefault(); $("rosaryNext").click(); }
-  else if (event.key === "ArrowLeft") { event.preventDefault(); if (!$("rosaryPrev").disabled) $("rosaryPrev").click(); }
-});
-
-/* ---------- Praying the Rosary along ----------
-   Each step is read aloud in turn, as Listen reads it, and when it ends the
-   Rosary moves on by itself: bead by bead through the Hail Marys, with a
-   longer pause after each mystery to dwell on it. A stop from anywhere (the
-   button, Listen, other audio, closing the book) ends it; Next and Back carry
-   on from the new place. */
-const along = { on: false, timer: 0 };
-const alongPause = { step: 800, mystery: 5000 };
-
-function paintAlong() {
-  const button = $("rosaryAlong");
-  button.textContent = t(along.on ? "rosary.alongStop" : "rosary.along");
-  button.setAttribute("aria-pressed", String(along.on));
-}
-
-function startAlong() {
-  if (rosaryRun.done || along.on) return;
-  along.on = true;
-  paintAlong();
-  alongPlay();
-}
-
-function stopAlong() {
-  if (!along.on) return;
-  along.on = false;
-  clearTimeout(along.timer);
-  stopPrayerNarration();
-  paintAlong();
-}
-
-function alongPlay() {
-  playRosaryStep(finished => {
-    if (!along.on) return;
-    if (!finished) { stopAlong(); return; }
-    const step = rosaryRun.steps[rosaryRun.index];
-    along.timer = setTimeout(() => {
-      if (!along.on) return;
-      rosaryNext();
-      if (rosaryRun.done) { stopAlong(); return; }
-      alongPlay();
-    }, step.kind === "mystery" ? alongPause.mystery : alongPause.step);
-  });
-}
-
-/* ---------- Keeping the screen on ----------
-   A Rosary takes twenty minutes, prayed a bead at a time with the phone in
-   hand or set down beside you; the screen stays on while it is open, and the
-   lock is let go when it closes or the page is hidden (the browser drops it
-   then anyway, and it is taken again on return). Where the Screen Wake Lock
-   API is missing or refused, the screen behaves as it always has. */
-const wake = { lock: null, asking: false };
-async function syncWakeLock() {
-  const want = () => $("bookDialog").open && !$("rosaryView").hidden && document.visibilityState === "visible";
-  if (want() && !wake.lock && !wake.asking && navigator.wakeLock) {
-    wake.asking = true;
-    try {
-      const lock = await navigator.wakeLock.request("screen");
-      lock.addEventListener("release", () => { if (wake.lock === lock) wake.lock = null; });
-      wake.lock = lock;
-    } catch { /* refused (battery saver, no permission): nothing to hold */ }
-    wake.asking = false;
-  }
-  if (!want() && wake.lock) {
-    const lock = wake.lock;
-    wake.lock = null;
-    lock.release().catch(() => {});
-  }
-}
-document.addEventListener("visibilitychange", syncWakeLock);
-$("bookDialog").addEventListener("close", () => { stopAlong(); syncWakeLock(); });
-
-// Listen to the step open now: a Prayer Book prayer plays its recording (or
-// the device voice, as in the reader); the mystery and the Fatima Prayer are
-// read by the device voice until they are recorded.
-$("rosaryListen").onclick = () => {
-  if (along.on) { stopAlong(); return; }
-  if (prayerAudio.playing) { stopPrayerNarration(); return; }
-  playRosaryStep(null);
-};
-
-// Reads the step open now aloud. onEnd, if given, hears how it ended (see
-// prayerAudio). With no device voice, a step with no recording is given the
-// time it takes to pray it silently, so praying along still moves on.
-function playRosaryStep(onEnd) {
-  const button = $("rosaryListen");
-  const lang = rosaryLang();
-  const step = rosaryRun.steps[rosaryRun.index];
-  const speak = segments => {
-    if (canSpeak) {
-      speakPrayer(segments, button, $("rosaryStepTitle").textContent);
-      prayerAudio.onEnd = onEnd;
-    } else if (onEnd) {
-      const words = segments.map(s => s.text).join(" ").split(/\s+/).length;
-      along.timer = setTimeout(() => onEnd(true), Math.max(2500, words * 400));
-    }
-  };
-  if (step.kind === "prayer") {
-    const item = prayerBook.byId(step.prayer);
-    const segments = narrationSegments(item.text[lang], item.audio, lang);
-    const src = recordedUrl(prayerItemId(lang, item.id));
-    if (src) {
-      playPrayerRecording(src, button, () => speak(segments), item.name[lang]);
-      prayerAudio.onEnd = onEnd;
-    } else speak(segments);
-  } else {
-    // The mysteries and the Fatima Prayer have their own recordings
-    // (narration.js, rosaryItemId); the device voice reads them until then.
-    const mystery = step.kind === "mystery" ? setById(rosaryRun.set).mysteries[step.decade - 1] : null;
-    const parts = [$("rosaryStepTitle").textContent, $("rosaryStepText").textContent];
-    if (mystery) parts.push(mystery.verse[lang]);
-    const segments = parts.map(text => ({ text, pause: 0.6 }));
-    const src = recordedUrl(rosaryItemId(lang, mystery ? mystery.id : "fatima"));
-    if (src) {
-      playPrayerRecording(src, button, () => speak(segments), $("rosaryStepTitle").textContent);
-      prayerAudio.onEnd = onEnd;
-    } else speak(segments);
-  }
-}
 
 /* ---------- Startup ----------
    Everything above is declarations and handler wiring; this is the only code
@@ -2697,7 +2402,8 @@ function start() {
     openBook(prayer.id);
   } else if (new URLSearchParams(location.search).has("rosary")) {
     // A Rosary page links here with ?rosary=<set>, or ?rosary=today.
-    openRosary(new URLSearchParams(location.search).get("rosary"));
+    const set = new URLSearchParams(location.search).get("rosary");
+    withRosary(() => openRosary(set));
   } else if (!state.welcomed) {
     $("welcomeDialog").showModal();
   }

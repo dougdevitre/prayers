@@ -137,7 +137,7 @@
     <div class="day-grid" id="dayGrid"></div>
     <div class="offline-row" id="offlineRow" hidden>
       <label for="offlineAudio"><input type="checkbox" id="offlineAudio" /> <span data-i18n="offline.label">Keep a week of audio on this device</span></label>
-      <p class="reminder-help" data-i18n="offline.help">Saves today’s recording, the next six days, the “Steady me now” sets and your favorite prayers from the Prayer Book, about 8 MB, so they play without a connection. Turn it off to free the space.</p>
+      <p class="reminder-help" data-i18n="offline.help">Saves today’s recording, the next six days, your favorite days, the “Steady me now” sets, today’s Rosary and your favorite prayers from the Prayer Book, about 12 MB, so they play without a connection. Turn it off to free the space.</p>
       <p class="reminder-help" id="offlineStatus" aria-live="polite"></p>
     </div>
     <div class="reminder-row">
@@ -176,7 +176,7 @@
       <label for="prayerPetition" id="prayerPetitionLabel">A personal intention (optional — it stays on your device)</label>
       <input type="text" id="prayerPetition" maxlength="200" />
     </div>
-    <div class="prayer-card" id="prayerCard" aria-live="polite"></div>
+    <div class="prayer-card" id="prayerCard"></div>
     <div class="prayer-actions">
       <button class="text-button" id="prayerAnother">Another prayer</button>
       <button class="text-button" id="prayerListen">▶ Listen</button>
@@ -211,6 +211,7 @@
       <div class="rosary-options">
         <div><label for="rosarySet" data-i18n="rosary.setLabel">Mysteries</label><select id="rosarySet"></select></div>
         <label class="rosary-fatima" for="rosaryFatima"><input type="checkbox" id="rosaryFatima" checked /> <span data-i18n="rosary.fatima">Include the Fatima Prayer after each decade</span></label>
+        <label class="rosary-fatima book-both" for="rosaryBoth"><input type="checkbox" id="rosaryBoth" /> <span data-i18n="book.both">Show both languages</span></label>
       </div>
       <div class="rosary-along">
         <button type="button" class="rosary-along-button" id="rosaryAlong" aria-pressed="false" aria-describedby="rosaryAlongHint" data-i18n="rosary.along">▶ Pray along</button>
@@ -249,6 +250,7 @@
         </div>
       </div>
       <p class="tradition-note" id="bookNote"></p>
+      <label class="rosary-fatima book-both" for="bookBoth"><input type="checkbox" id="bookBoth" /> <span data-i18n="book.both">Show both languages</span></label>
       <section class="audio-card book-player" aria-label="Listen" data-i18n-aria="book.player">
         <button class="play-button" id="bookPlay" aria-label="Play this prayer"><span id="bookPlayIcon" aria-hidden="true">▶</span></button>
         <div class="audio-main">

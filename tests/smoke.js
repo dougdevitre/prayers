@@ -176,6 +176,23 @@ const server = http.createServer((req, res) => {
     && await page.evaluate(() => Number(localStorage.getItem("stand-backup-snooze")) > 0));
   await page.evaluate(() => { localStorage.removeItem("stand-backup-snooze"); navigator.storage.persisted = async () => true; return protectData(); });
   check("storage the browser has promised to keep (off iPhone) needs no offer", !(await page.isVisible("#backupNudge")));
+  // Favorites are data worth keeping too: three of them, and nothing else,
+  // earn the offer; one does not.
+  check("three favorites alone earn the backup offer, one does not", await page.evaluate(async () => {
+    const saved = JSON.stringify(state);
+    Object.assign(state, { completed: [], notes: {}, favorites: [], tracks: {}, checkins: [], sos: [], prayerFavorites: ["angelus", "memorare"] });
+    state.favorites = [4];
+    navigator.storage.persisted = async () => false;
+    await protectData();
+    const three = !document.getElementById("backupNudge").hidden;
+    Object.assign(state, { favorites: [], prayerFavorites: ["angelus"] });
+    await protectData();
+    const one = !document.getElementById("backupNudge").hidden;
+    Object.assign(state, JSON.parse(saved));
+    navigator.storage.persisted = async () => true;
+    await protectData();
+    return three && !one;
+  }));
   check("the app asks the browser to keep its storage once there is something to keep", await page.evaluate(() => persistRequested));
   await page.evaluate(() => {
     navigator.storage.persisted = async () => false;
@@ -674,6 +691,8 @@ const server = http.createServer((req, res) => {
   check("prayer footnote shows combinations", (await page.textContent("#prayerMeta")).includes("can be composed"));
   await page.click("#prayerAnother");
   check("another prayer composes a different one", (await page.textContent("#prayerCard")) !== firstPrayer);
+  check("…and moves focus to it, rather than reading every change aloud", await page.evaluate(() =>
+    !document.getElementById("prayerCard").hasAttribute("aria-live") && document.activeElement === document.querySelector("#prayerCard h3")));
   await page.selectOption("#prayerMode", "grace");
   check("switching mode repopulates intentions", (await page.$$("#prayerIntention option")).length === prayerCorpus.modes.grace.intentions.length);
   await page.selectOption("#prayerMode", "prayer");
@@ -975,7 +994,7 @@ const server = http.createServer((req, res) => {
       const fetched = [];
       english.on("request", r => fetched.push(new URL(r.url()).pathname));
       await english.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
-      check("an English first visit does not download the Spanish journeys or the Rosary", !fetched.includes("/content.es.js") && !fetched.includes("/rosary.js")
+      check("an English first visit does not download the Spanish journeys or the Rosary", !fetched.includes("/content.es.js") && !fetched.includes("/rosary.js") && !fetched.includes("/rosary-ui.js")
         && await english.evaluate(() => typeof esTracks === "undefined"));
       await english.evaluate(() => { document.getElementById("welcomeDialog").close(); });
       await english.click("#prayerButton");
@@ -1021,8 +1040,20 @@ const server = http.createServer((req, res) => {
     await reader.click("#bookNext");
     check("next goes to the following prayer", (await reader.textContent("#bookTitle")) === "Memorare"
       && (await reader.getAttribute("#bookFavorite", "aria-pressed")) === "false");
+    check("turning a page moves focus to the prayer's title", await reader.evaluate(() => document.activeElement.id === "bookTitle"));
+    await reader.keyboard.press("ArrowLeft");
+    check("← turns back a page in the Prayer Book", (await reader.textContent("#bookTitle")) === "Angelus");
+    await reader.keyboard.press("ArrowRight");
+    check("…and → forward, as in the Rosary", (await reader.textContent("#bookTitle")) === "Memorare");
+    await reader.click("#bookBoth");
+    check("Show both languages is offered in the reader, and adds the other language beneath", await reader.evaluate(() =>
+      state.bilingual && document.querySelector("#bookText .book-other").lang === "es" && document.activeElement.id === "bookBoth"));
+    await reader.click("#bookBoth");
+    check("…and takes it away again", await reader.evaluate(() => !state.bilingual && !document.querySelector("#bookText .book-other")));
     await reader.click("#bookBack");
+    check("back from a prayer lands on the list's heading", await reader.evaluate(() => document.activeElement.id === "bookHeading"));
     await reader.click('#bookDialog .filter-tab[data-book-filter="favorites"]');
+    check("…while a filter tab keeps its own focus", await reader.evaluate(() => document.activeElement.dataset.bookFilter === "favorites"));
     check("the favorites tab lists it, marked", (await reader.$$eval("#bookSections .day-card", els => els.map(e => e.dataset.prayer))).join() === "angelus"
       && (await reader.$$("#bookSections .day-card .fav-mark")).length === 1);
 
@@ -1076,6 +1107,11 @@ const server = http.createServer((req, res) => {
         && (await reader.textContent("#rosaryProgress")) === "Step 1 of 32"
         && (await reader.textContent("#rosaryHeading")) === today.name.en);
       // The mysteries share like a prayer: their page on the site and their card.
+      check("opening the Rosary moves focus to its heading", await reader.evaluate(() => document.activeElement.id === "rosaryHeading"));
+      await reader.click("#rosaryBoth");
+      check("Show both languages is offered in the Rosary too", await reader.evaluate(() =>
+        state.bilingual && !document.getElementById("rosaryStepOther").hidden && document.getElementById("rosaryStepOther").textContent.length > 0));
+      await reader.click("#rosaryBoth");
       await reader.click("#rosaryShare");
       await reader.waitForSelector("#shareDialog[open]");
       check("the Rosary's share names the mysteries and links to their page", (await reader.textContent("#shareHeading")) === "Share these mysteries"
@@ -1092,6 +1128,15 @@ const server = http.createServer((req, res) => {
         && rosaryPng.readUInt32BE(16) === 1080 && rosaryPng.readUInt32BE(20) === 1350);
       await reader.click("#closeShare");
       check("…and the Rosary is where it was", await reader.isVisible("#rosaryView") && (await reader.textContent("#rosaryProgress")) === "Step 1 of 32");
+      // Offline (the site's card out of reach and not yet cached), a prayer and
+      // the Rosary still share a card: drawn on the device, as a day's is, at
+      // the site card's size. The service worker may hold a card already seen,
+      // so the device's own drawing is asked for directly.
+      check("offline, a prayer and the Rosary still share a card, drawn on the device", await reader.evaluate(async () => {
+        const ok = async item => { if (typeof item.fallbackCard !== "function") return false; const blob = await item.fallbackCard();
+          if (!blob || blob.type !== "image/png") return false; const bmp = await createImageBitmap(blob); return bmp.width === 1080 && bmp.height === 1350; };
+        return (await ok(prayerShare("angelus"))) && (await ok(rosaryShare(rosaryRun.set))) && (await ok(dayShare()));
+      }));
       for (let i = 0; i < 3; i++) await reader.click("#rosaryNext");
       check("the three Hail Marys are counted, with their intention", (await reader.textContent("#rosaryCount")) === "Hail Mary 1 of 3"
         && (await reader.textContent("#rosaryStepKicker")).includes("For faith, hope and charity")

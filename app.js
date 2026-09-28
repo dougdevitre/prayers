@@ -70,7 +70,7 @@ function tdata() {
 /* ---------- Persistent state ---------- */
 
 function loadState() {
-  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, checkins: [], sos: [], track: "core", tracks: {}, prayerFavorites: [], rosary: null, rosaryFatima: true, theme: null, lang: "en", bilingual: false, welcomed: false, installHintDismissed: false };
+  const fallback = { completed: [], favorites: [], notes: {}, completedDates: {}, checkins: [], sos: [], track: "core", tracks: {}, prayerFavorites: [], rosary: null, rosaryFatima: true, theme: null, lang: "en", bilingual: false, welcomed: false, installHintDismissed: false, voiceRate: 1 };
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!raw || typeof raw !== "object") return fallback;
@@ -274,15 +274,15 @@ function setMediaPlaybackState(value) {
 }
 
 // The shared audio element is what the lock screen shows while it plays day
-// narration from a recording or a traditional prayer's recording. SOS plays
-// through it too but leaves the day player idle and sets no metadata.
+// narration from a recording or a prayer's recording (the Prayer Book, the
+// composer, the Rosary and SOS all play prayers the same way).
 function recordingInSession() {
   return (player.mode === "rec" && player.status !== "idle") || inPlaceRecording();
 }
 
-// A traditional prayer's recording and the SOS recording play through the
-// shared element while the day player stays idle.
-const inPlaceRecording = () => prayerAudio.recorded || sos.audio;
+// A prayer's recording plays through the shared element while the day player
+// stays idle.
+const inPlaceRecording = () => prayerAudio.recorded;
 
 function updatePositionState() {
   const session = mediaSessionApi();
@@ -316,11 +316,14 @@ function speechMediaSession() {
   for (const action of ["seekbackward", "seekforward", "seekto"]) setMediaAction(action, null);
 }
 
-// A prayer's or SOS recording pauses and resumes in place; the day player's
-// button would start the day instead.
+// A prayer's recording pauses and resumes in place; the day player's button
+// would start the day instead. A prayer read by the device voice cannot pause
+// reliably, so the lock screen's pause stops it, as its own button does.
 function mediaPlay() {
   if (inPlaceRecording()) {
-    audioEl.play().then(() => setMediaPlaybackState("playing")).catch(() => (sos.audio ? stopAudio() : stopPrayerNarration()));
+    audioEl.play().then(() => setMediaPlaybackState("playing")).catch(stopPrayerNarration);
+  } else if (prayerAudio.playing) {
+    return;
   } else if (player.status !== "playing") {
     $("playButton").click();
   }
@@ -330,6 +333,8 @@ function mediaPause() {
   if (inPlaceRecording()) {
     audioEl.pause();
     setMediaPlaybackState("paused");
+  } else if (prayerAudio.playing) {
+    stopPrayerNarration();
   } else if (player.status === "playing") {
     $("playButton").click();
   }
@@ -361,7 +366,7 @@ function setMediaSession(title) {
 function playRecorded(src) {
   player.mode = "rec";
   audioEl.src = src;
-  audioEl.playbackRate = Number($("voiceRate").value);
+  audioEl.playbackRate = voiceRate();
   audioEl.currentTime = 0;
   audioEl.play().then(() => {
     setPlayerStatus("playing");
@@ -406,7 +411,6 @@ function stopAudio() {
   // The composer shares this one speech synthesiser, so day narration always
   // takes it back cleanly.
   stopPrayerNarration();
-  sos.audio = false;
   // Go idle before cancel(): cancel can fire onend synchronously, and repeat
   // mode must not treat that as a natural end and restart.
   setPlayerStatus("idle");
@@ -420,7 +424,7 @@ function speakDay() {
   speechMediaSession();
   const script = narrationScript(day);
   const utterance = new SpeechSynthesisUtterance(script);
-  utterance.rate = Number($("voiceRate").value);
+  utterance.rate = voiceRate();
   utterance.pitch = 0.96;
   utterance.lang = state.lang === "es" ? "es-ES" : "en-US";
   // The chosen fallback voice is English; Spanish is left to the device's own
@@ -479,9 +483,20 @@ $("playButton").onclick = () => {
   }
 };
 
+/** The chosen narration speed; every voice in the app reads it here. */
+function voiceRate() {
+  const rate = Number($("voiceRate").value);
+  return VOICE_RATES.includes(rate) ? rate : 1;
+}
+
+// One saved speed for every voice in the app: the day, the prayers, the
+// Rosary and SOS. A recording changes speed as it plays; the device voice
+// restarts the day at the new speed, and a prayer picks it up next time.
 $("voiceRate").onchange = () => {
-  if (player.mode === "rec" && player.status !== "idle") {
-    audioEl.playbackRate = Number($("voiceRate").value);
+  state.voiceRate = voiceRate();
+  save();
+  if (recordingInSession()) {
+    audioEl.playbackRate = voiceRate();
   } else if (player.status !== "idle") {
     startAudio();
   }
@@ -507,7 +522,7 @@ const sosSets = () => (state.lang === "es" && typeof esSos !== "undefined" ? esS
 const sosSet = () => sosSets()[sos.i] || sosSets()[0];
 
 // recorded: the check-in was saved. audio: the SOS recording is playing.
-const sos = { i: 0, before: null, recorded: false, audio: false, timers: [] };
+const sos = { i: 0, before: null, recorded: false, timers: [] };
 
 function sosClearTimers() {
   sos.timers.forEach(clearTimeout);
@@ -535,6 +550,7 @@ function scaleButtons(onPick) {
 
 function sosStageEl(kicker, heading) {
   sosClearTimers();
+  stopPrayerNarration();
   const stage = $("sosStage");
   stage.textContent = "";
   const k = document.createElement("p");
@@ -622,39 +638,21 @@ function sosAnchor() {
   decl.className = "sos-decl";
   decl.textContent = sosSet().declaration;
 
+  // The same player as every other prayer: recording first, else the device
+  // voice; the button toggles to Stop; the saved speed and the lock-screen
+  // title apply. Moving to another step stops it (sosStageEl).
   const listen = document.createElement("button");
   listen.className = "text-button";
+  listen.id = "sosListen";
+  listen.dataset.listen = t("sos.listen");
   listen.textContent = t("sos.listen");
   listen.onclick = () => {
-    stopAudio();
+    const title = `${t("sos.button")} · ${sosSet().ref}`;
+    const speak = () => speakPrayer([{ text: sosScript(sosSet(), state.lang), pause: 0 }], listen, title);
     const src = recordedUrl(sosItemId(state.lang, sos.i));
-    if (src) {
-      player.mode = "rec";
-      sos.audio = true;
-      audioEl.src = src;
-      audioEl.playbackRate = 1;
-      audioEl.currentTime = 0;
-      audioEl.play().then(() => {
-        if (!sos.audio) return;
-        setMediaSession(`${t("sos.button")} · ${sosSet().ref}`);
-        setMediaPlaybackState("playing");
-      }).catch(() => { sos.audio = false; player.mode = "tts"; sosSpeak(); });
-      return;
-    }
-    sosSpeak();
+    if (src) playPrayerRecording(src, listen, speak, title);
+    else speak();
   };
-
-  function sosSpeak() {
-    if (!canSpeak) return;
-    const utterance = new SpeechSynthesisUtterance(sosScript(sosSet(), state.lang));
-    utterance.rate = 0.95;
-    utterance.pitch = 0.96;
-    utterance.lang = state.lang === "es" ? "es-ES" : "en-US";
-    // The recorded narration voice is English; Spanish falls back to the device's
-    // own voice for the language rather than reading Spanish with an English one.
-    if (narrationVoice && state.lang === "en") utterance.voice = narrationVoice;
-    speechSynthesis.speak(utterance);
-  }
 
   const actions = document.createElement("div");
   actions.className = "sos-actions";
@@ -700,7 +698,8 @@ function sosDone(after) {
 }
 
 function openSos() {
-  if (canSpeak) speechSynthesis.cancel();
+  // Nothing plays underneath: the day's narration or a prayer stops here.
+  stopAudio();
   sos.i = state.sos.length % sosSets().length;
   sos.before = null;
   sos.recorded = false;
@@ -714,8 +713,7 @@ function openSos() {
 // cancel device speech but leave a recording talking, and Escape stopped
 // neither.
 function sosStopVoice() {
-  if (sos.audio) stopAudio();
-  else if (canSpeak) speechSynthesis.cancel();
+  stopPrayerNarration();
 }
 
 function closeSos() {
@@ -915,10 +913,19 @@ document.querySelectorAll("#libraryDialog .filter-tab").forEach(tab => {
 
 const weekLabelFor = d => weekLabel(activeTrack().weeks, d);
 
+// What render() last painted. Narration stops only when that changes (another
+// day, journey or language); marking the day complete or ♡ repaints the same
+// day and leaves the prayer being read undisturbed.
+let renderedFor = null;
+
 function render() {
   scheduleOfflineSync();
   scheduleProtect();
-  stopAudio();
+  const showing = `${state.lang}|${state.track || "core"}|${day}`;
+  if (showing !== renderedFor) {
+    stopAudio();
+    renderedFor = showing;
+  }
   const [title, ref, verse, reflection, prayer, declaration, action] = activeTrack().days[day];
   const done = tdata().completed.includes(day);
   const fav = tdata().favorites.includes(day);
@@ -1290,6 +1297,7 @@ $("restoreInput").onchange = async event => {
   if (!confirm(t("backup.confirm"))) return;
   Object.assign(state, clean);
   save();
+  $("voiceRate").value = String(state.voiceRate);
   await languageReady();
   day = Math.max(0, Math.min(day, DAYS() - 1));
   location.hash = String(day + 1);
@@ -1911,14 +1919,17 @@ function showTraditional(item) {
   // generator run would insert a break.
   listen.onclick = () => {
     const src = recordedUrl(prayerItemId(state.lang, item.id));
-    if (src) playPrayerRecording(src, listen, () => speakPrayer(narrationSegments(item.text[state.lang], item.audio, state.lang), listen), item.name[state.lang]);
-    else speakPrayer(narrationSegments(item.text[state.lang], item.audio, state.lang), listen);
+    const speak = () => speakPrayer(narrationSegments(item.text[state.lang], item.audio, state.lang), listen, item.name[state.lang]);
+    if (src) playPrayerRecording(src, listen, speak, item.name[state.lang]);
+    else speak();
   };
   card.append(listen);
 }
 
+// A button may carry its own resting label (SOS says "Hear this prayed");
+// every prayer button reads the same Stop while it plays.
 function updatePrayerButton(button, playing) {
-  if (button) button.textContent = playing ? ui().stop : ui().listen;
+  if (button) button.textContent = playing ? ui().stop : button.dataset.listen || ui().listen;
 }
 
 function stopPrayerNarration() {
@@ -1926,14 +1937,14 @@ function stopPrayerNarration() {
   prayerAudio.onEnd = null;
   clearTimeout(prayerAudio.timer);
   if (prayerAudio.playing && canSpeak) speechSynthesis.cancel();
+  if (prayerAudio.playing) setMediaPlaybackState("none");
   if (prayerAudio.recorded) {
     prayerAudio.recorded = false;
     audioEl.pause();
-    setMediaPlaybackState("none");
     clearPositionState();
   }
   prayerAudio.playing = false;
-  for (const id of ["prayerListen", "traditionalListen", "rosaryListen"]) updatePrayerButton($(id), false);
+  for (const id of ["prayerListen", "traditionalListen", "rosaryListen", "sosListen"]) updatePrayerButton($(id), false);
   book.playing = null;
   paintBookPlay();
   $("bookProgress").style.width = "0";
@@ -1961,7 +1972,7 @@ function playPrayerRecording(src, button, fallback, title) {
   prayerAudio.recorded = true;
   updatePrayerButton(button, true);
   audioEl.src = src;
-  audioEl.playbackRate = Number($("voiceRate").value);
+  audioEl.playbackRate = voiceRate();
   audioEl.currentTime = 0;
   audioEl.play().then(() => {
     if (!prayerAudio.recorded) return;
@@ -1979,12 +1990,16 @@ function playPrayerRecording(src, button, fallback, title) {
 }
 
 // Speaks segments in order, holding the silence each one asks for afterwards.
-function speakPrayer(segments, button) {
+// The lock screen shows the title where the device shows one for speech.
+function speakPrayer(segments, button, title) {
   if (prayerAudio.playing) { stopPrayerNarration(); return; }
   if (!canSpeak) return;
   stopAudio();
   prayerAudio.playing = true;
   updatePrayerButton(button, true);
+  setMediaSession(title || document.title);
+  speechMediaSession();
+  setMediaPlaybackState("playing");
 
   let i = 0;
   const next = () => {
@@ -1992,7 +2007,7 @@ function speakPrayer(segments, button) {
     if (i >= segments.length) { finishPrayerNarration(); return; }
     const segment = segments[i++];
     const utterance = new SpeechSynthesisUtterance(segment.text);
-    utterance.rate = Number($("voiceRate").value) * 0.95;
+    utterance.rate = voiceRate() * 0.95;
     utterance.pitch = 0.96;
     utterance.lang = state.lang === "es" ? "es-ES" : "en-US";
     // The day narration voice is English; Spanish falls back to the device's
@@ -2057,7 +2072,8 @@ $("prayerBoth").onchange = () => {
 $("prayerAnother").onclick = () => { prayerState.seed += 1; renderPrayer(); };
 $("prayerListen").onclick = () => speakPrayer(
   currentPrayer().lines.map(text => ({ text, pause: 0.6 })),
-  $("prayerListen")
+  $("prayerListen"),
+  $("prayerHeading").textContent
 );
 $("prayerCopy").onclick = async () => {
   let text = prayerToText(currentPrayer());
@@ -2152,10 +2168,13 @@ function renderBookList() {
   $("bookWeb").href = prayerBook.bookPath(state.lang);
 }
 
+// A recording pauses in place (❚❚); the device voice cannot pause reliably,
+// so while it reads the button says, and does, Stop (■).
 function paintBookPlay() {
   const playing = Boolean(book.playing) && book.playing === book.open && (!prayerAudio.recorded || !audioEl.paused);
-  $("bookPlayIcon").textContent = playing ? "❚❚" : "▶";
-  $("bookPlay").setAttribute("aria-label", t(playing ? "book.pause" : "book.play"));
+  const pauses = prayerAudio.recorded;
+  $("bookPlayIcon").textContent = playing ? (pauses ? "❚❚" : "■") : "▶";
+  $("bookPlay").setAttribute("aria-label", t(playing ? (pauses ? "book.pause" : "book.stop") : "book.play"));
 }
 
 function paintBookProgress() {
@@ -2260,7 +2279,7 @@ $("bookPlay").onclick = () => {
   // Both ways of playing stop whatever was playing first, which clears
   // book.playing, so it is set after them.
   const speak = () => {
-    speakPrayer(narrationSegments(item.text[state.lang], item.audio, state.lang), null);
+    speakPrayer(narrationSegments(item.text[state.lang], item.audio, state.lang), null, item.name[state.lang]);
     book.playing = item.id;
     paintBookPlay();
   };
@@ -2617,7 +2636,7 @@ function playRosaryStep(onEnd) {
   const step = rosaryRun.steps[rosaryRun.index];
   const speak = segments => {
     if (canSpeak) {
-      speakPrayer(segments, button);
+      speakPrayer(segments, button, $("rosaryStepTitle").textContent);
       prayerAudio.onEnd = onEnd;
     } else if (onEnd) {
       const words = segments.map(s => s.text).join(" ").split(/\s+/).length;
@@ -2659,6 +2678,7 @@ function playRosaryStep(onEnd) {
 function start() {
   applyTheme();
   applyUi();
+  $("voiceRate").value = String(VOICE_RATES.includes(state.voiceRate) ? state.voiceRate : 1);
   initReminder();
   if (dayFromHash() === null) history.replaceState(null, "", `${location.search}#${day + 1}`);
   render();
@@ -2681,6 +2701,20 @@ function start() {
   } else if (!state.welcomed) {
     $("welcomeDialog").showModal();
   }
+  clearLinkParams();
+}
+
+// A link's settings (?lang, ?track, ?prayer, ?rosary, ?sos, ?checkin) are
+// applied once, above; left in the address bar, a reload or a bookmark would
+// reopen that prayer or switch back that journey. Anything else, such as the
+// ?tts=1 kill switch, stays.
+function clearLinkParams() {
+  const params = new URLSearchParams(location.search);
+  const used = ["lang", "track", "prayer", "rosary", "sos", "checkin"].filter(key => params.has(key));
+  if (!used.length) return;
+  for (const key of used) params.delete(key);
+  const query = params.toString();
+  history.replaceState(null, "", `${location.pathname}${query ? `?${query}` : ""}${location.hash}`);
 }
 
 // app.js is the last script in the body, so parsing is still in progress and

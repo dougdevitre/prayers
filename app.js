@@ -1343,7 +1343,8 @@ async function syncOfflineAudio() {
   if (!offlineOn() || !offlineSupported()) return;
   const status = $("offlineStatus");
   const plan = offlinePlan(audioManifest, offlineIds({
-    lang: state.lang, track: state.track || "core", day, days: DAYS(), sosCount: sosSets().length
+    lang: state.lang, track: state.track || "core", day, days: DAYS(), sosCount: sosSets().length,
+    prayers: prayerFavorites()
   }));
   let cache;
   try { cache = await caches.open(OFFLINE_CACHE); } catch { return; }
@@ -1916,6 +1917,13 @@ function renderPrayerSurface() {
 
 $("prayerButton").onclick = () => { renderPrayerSurface(); $("prayerDialog").showModal(); };
 $("closePrayer").onclick = () => $("prayerDialog").close();
+// The composer lists the traditional prayers; the Prayer Book is where they
+// are read and prayed, so it opens there, at the prayer open here if any.
+$("traditionalBook").onclick = () => {
+  const id = prayerState.openTraditional;
+  $("prayerDialog").close();
+  openBook(id);
+};
 $("prayerDialog").addEventListener("close", stopPrayerNarration);
 
 $("prayerLang").onchange = () => {
@@ -2162,6 +2170,8 @@ $("bookFavorite").onclick = () => {
   save();
   scheduleProtect();
   paintBookFavorite();
+  // A favorite is kept for offline listening, when that is on.
+  scheduleOfflineSync();
 };
 
 // Shares the prayer's page on the site, which carries its own card: the

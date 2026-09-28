@@ -136,7 +136,7 @@
     <div class="day-grid" id="dayGrid"></div>
     <div class="offline-row" id="offlineRow" hidden>
       <label for="offlineAudio"><input type="checkbox" id="offlineAudio" /> <span data-i18n="offline.label">Keep a week of audio on this device</span></label>
-      <p class="reminder-help" data-i18n="offline.help">Saves today’s recording, the next six days and the “Steady me now” sets, about 8 MB, so they play without a connection. Turn it off to free the space.</p>
+      <p class="reminder-help" data-i18n="offline.help">Saves today’s recording, the next six days, the “Steady me now” sets and your favorite prayers from the Prayer Book, about 8 MB, so they play without a connection. Turn it off to free the space.</p>
       <p class="reminder-help" id="offlineStatus" aria-live="polite"></p>
     </div>
     <div class="reminder-row">
@@ -184,6 +184,7 @@
     <p class="prayer-meta" id="prayerMeta"></p>
     <div class="traditional-list" id="traditionalList"></div>
     <div class="prayer-card" id="traditionalCard" aria-live="polite" hidden></div>
+    <p class="library-about"><button type="button" class="text-button" id="traditionalBook" data-i18n="book.fromComposer">Read and pray them in the Prayer Book →</button></p>
   </dialog>
 
   <dialog id="bookDialog" aria-labelledby="bookHeading">

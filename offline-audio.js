@@ -2,8 +2,8 @@
 // else. Pure, so the tests can run it in Node; app.js does the caching.
 //
 // A browser global (loaded before app.js) and a CommonJS module, like
-// logic.js. It needs dayItemId and sosItemId from narration.js, which is a
-// global in the browser and a require here.
+// logic.js. It needs dayItemId, sosItemId and prayerItemId from narration.js,
+// which is a global in the browser and a require here.
 
 const OFFLINE_CACHE = "stand-audio-offline-v1";
 // Today and the six days after it: a week of the journey the reader is on.
@@ -11,18 +11,22 @@ const OFFLINE_DAYS = 7;
 
 const offlineIdsFor = (typeof module !== "undefined" && module.exports)
   ? require("./narration.js")
-  : { dayItemId: (...a) => dayItemId(...a), sosItemId: (...a) => sosItemId(...a) };
+  : { dayItemId: (...a) => dayItemId(...a), sosItemId: (...a) => sosItemId(...a), prayerItemId: (...a) => prayerItemId(...a) };
 
 /**
  * Manifest ids to keep offline: the current day and the six after it in the
- * reader's journey and language (not wrapping past the last day), and every
- * SOS set in that language, since fear does not wait for a connection.
+ * reader's journey and language (not wrapping past the last day), every SOS
+ * set in that language, since fear does not wait for a connection, and the
+ * Prayer Book prayers the reader has marked as favorites. Only the favorites:
+ * all thirteen would nearly double the download, and the favorites are the
+ * ones a reader returns to.
  */
-function offlineIds({ lang, track, day, days, sosCount }) {
+function offlineIds({ lang, track, day, days, sosCount, prayers = [] }) {
   const ids = [];
   const last = Math.min(days, day + OFFLINE_DAYS);
   for (let d = Math.max(0, day); d < last; d++) ids.push(offlineIdsFor.dayItemId(lang, track, d));
   for (let i = 0; i < sosCount; i++) ids.push(offlineIdsFor.sosItemId(lang, i));
+  for (const id of prayers) ids.push(offlineIdsFor.prayerItemId(lang, id));
   return ids;
 }
 

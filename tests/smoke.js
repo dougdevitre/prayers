@@ -20,6 +20,8 @@ const SITE = "https://prayers.dougdevitre.org";
 // The app is served from the test server, so runtime URLs use its origin.
 const SITE_ORIGIN = "http://localhost:8123";
 const DAY_PAGE_COUNT = Object.values(tracks).reduce((n, t) => n + t.days.length, 0);
+// Per language: one page per traditional prayer, the book, and the Roman Catholic page.
+const PRAYER_BOOK_PAGE_COUNT = (require("../prayers.js").prayerCorpus.traditional.length + 2) * 2;
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp", ".xml": "application/xml", ".txt": "text/plain", ".webmanifest": "application/manifest+json", ".mp3": "audio/mpeg" };
 
 // Mirrors the redirects in vercel.json, so the suite covers old links too.
@@ -792,6 +794,60 @@ const server = http.createServer((req, res) => {
   await page.click(".feature-card h3 a");
   check("following a fear opens a day page", (await page.$$("article.devotional")).length === 1);
 
+  // The Prayer Book: every traditional prayer on a page of its own, the
+  // Roman Catholic ones also gathered on theirs, each opening in the app.
+  {
+    const { prayerBook } = require("../prayerbook.js");
+    const all = prayerBook.prayers();
+    const catholic = all.filter(p => p.tradition === "roman-catholic");
+    await page.goto("http://localhost:8123/prayers", { waitUntil: "networkidle" });
+    check("prayer book loads", (await page.title()) === "Prayer Book — Stand");
+    check("prayer book lists every traditional prayer", (await page.$$(".feature-card")).length === all.length);
+    check("prayer book names both traditions", (await page.$$eval(".landing-section h2.section-kicker", els => els.map(e => e.textContent)))
+      .join("|") === "TRADITIONAL PRAYERS|ROMAN CATHOLIC PRAYERS");
+    check("prayer book heading levels do not skip", !(await headingsSkip()));
+    check("prayer book has no horizontal scroll", !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)));
+    check("menu links to the prayer book", (await page.$$('.nav-menu a[href="/prayers"]')).length === 0
+      && (await page.$$('.nav-menu a[href="/fears"]')).length === 1);
+    await page.click('a[href="/prayers/catholic"]');
+    await page.waitForLoadState("networkidle");
+    check("the Roman Catholic prayers have a page of their own", (await page.textContent("h1")) === "Roman Catholic prayers");
+    const listed = await page.$$eval(".feature-card h3 a", els => els.map(e => e.getAttribute("href")));
+    check("it lists the Roman Catholic prayers first, then the shared ones",
+      listed.length === all.length && catholic.every((p, i) => listed[i] === `/prayers/${p.id}`));
+    let brokenPrayer = 0;
+    for (const href of listed) if (!(await page.request.get("http://localhost:8123" + href)).ok()) brokenPrayer++;
+    check("every prayer links to a page that exists", brokenPrayer === 0);
+
+    await page.goto("http://localhost:8123/prayers/angelus", { waitUntil: "networkidle" });
+    check("a prayer page shows the prayer whole", (await page.textContent(".prayer-panel p:not(.section-kicker)")) === prayerBook.byId("angelus").text.en.trim());
+    check("a prayer page names its tradition", (await page.textContent(".day-number")) === "ROMAN CATHOLIC PRAYERS");
+    const cardSrc = await page.getAttribute(".share-card img", "src");
+    const cardRes = await page.request.get("http://localhost:8123" + cardSrc);
+    check("a prayer page's share card renders", /^\/cards\/en\/prayers\/angelus\.[0-9a-f]{8}\.post\.png$/.test(cardSrc)
+      && cardRes.ok() && cardRes.headers()["content-type"] === "image/png");
+    check("a prayer page previews with its own card", /\/cards\/en\/prayers\/angelus\.[0-9a-f]{8}\.og\.png$/.test(await page.getAttribute('meta[property="og:image"]', "content") || ""));
+    check("a prayer page links to the next prayer", await page.isVisible('.day-nav a[href="/prayers/memorare"]'));
+    check("a prayer page has no horizontal scroll", !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)));
+    check("a prayer page offers its translation", (await page.$$('.nav-menu a[href="/es/oraciones/angelus"][hreflang="es"]')).length === 1);
+
+    // The page's button opens the prayer in the app, in the page's language:
+    // a fresh visitor, so no welcome in the way and nothing already chosen.
+    const reader = await browser.newPage();
+    await reader.goto("http://localhost:8123/es/oraciones/memorare", { waitUntil: "networkidle" });
+    await reader.click(".prayer-page .complete-button");
+    await reader.waitForSelector("#prayerDialog[open]");
+    check("a Spanish prayer page opens the prayer in the app", await reader.isVisible("#traditionalCard")
+      && (await reader.textContent("#traditionalCard")).includes(prayerBook.byId("memorare").name.es));
+    check("…in Spanish, and the app keeps the choice", await reader.evaluate(() => state.lang === "es"
+      && JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}").lang === "es" && document.documentElement.lang === "es"));
+    check("…without the welcome in the way", !(await reader.evaluate(() => document.getElementById("welcomeDialog").open)));
+    check("…ready to play", await reader.isVisible("#traditionalListen"));
+    await reader.goto("http://localhost:8123/app?prayer=no-such-prayer", { waitUntil: "networkidle" });
+    check("an unknown prayer opens the app as usual", !(await reader.evaluate(() => document.getElementById("prayerDialog").open)));
+    await reader.close();
+  }
+
   // Day pages are where search traffic actually lands, so they carry the same
   // way onward as the landing page, and the same social card. Until now they
   // were dead ends: a brand mark, one button, and prev/next.
@@ -872,8 +928,8 @@ const server = http.createServer((req, res) => {
   const sitemap = await sitemapRes.text();
   const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
   // The two landing pages, the two fear indexes, and the privacy policy and
-  // terms in both languages, plus every day page.
-  check("sitemap lists every generated page", locs.length === DAY_PAGE_COUNT * 2 + 8);
+  // terms in both languages, plus every day page and the Prayer Book.
+  check("sitemap lists every generated page", locs.length === DAY_PAGE_COUNT * 2 + 8 + PRAYER_BOOK_PAGE_COUNT);
   check("sitemap is absolute", locs.every(u => u.startsWith(SITE + "/")));
   check("sitemap covers the landing page", locs.includes(`${SITE}/`));
   check("sitemap omits the redirected /about", !locs.includes(`${SITE}/about`));
@@ -1333,7 +1389,7 @@ const server = http.createServer((req, res) => {
   {
     const sitemapRes = await page.request.get("http://localhost:8123/sitemap.xml");
     const locs = [...(await sitemapRes.text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
-    check("sitemap carries both languages", locs.length === DAY_PAGE_COUNT * 2 + 8);
+    check("sitemap carries both languages", locs.length === DAY_PAGE_COUNT * 2 + 8 + PRAYER_BOOK_PAGE_COUNT);
     check("sitemap covers the Spanish landing page", locs.includes(`${SITE}/es`));
     check("sitemap covers the Spanish fear index", locs.includes(`${SITE}/es/fears`));
     check("sitemap covers the privacy policy and terms in both languages",
@@ -1609,7 +1665,7 @@ const server = http.createServer((req, res) => {
   const sweepContrast = () => sweepContrastOn(page);
 
   const SWEEP_PAGES = ["/", "/app", "/fears", "/day/01-stand", "/track/furnace/01-the-decree", "/es", "/es/fears", "/es/day/01-firmeza",
-    "/privacy", "/terms", "/es/privacy", "/es/terms"];
+    "/privacy", "/terms", "/es/privacy", "/es/terms", "/prayers", "/prayers/st-michael", "/es/oraciones/catolicas"];
   for (const url of SWEEP_PAGES) {
     await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
     const bad = await sweepContrast();

@@ -14,8 +14,10 @@
 //
 // Core days publish under day/ (stable URLs); other tracks under track/<id>/.
 //
-// It also writes the privacy policy and terms of use in both languages, and
-// the 404 page Vercel serves for any unknown path.
+// It also writes the Prayer Book (the traditional prayers, one page each, with
+// a page of their own for the Roman Catholic ones), the privacy policy and
+// terms of use in both languages, and the 404 page Vercel serves for any
+// unknown path.
 
 const fs = require("fs");
 const path = require("path");
@@ -32,7 +34,8 @@ const { slugify } = require("../logic.js");
 const { shareLinks, shareIcons: ICON } = require("../share.js");
 // Each day page previews with its own card (api/card.js renders it); the
 // address carries a hash of what the card shows, so an edit is a new URL.
-const { cardFor, cardPath } = require("../cards.js");
+const { cardFor, prayerCardFor, cardPath } = require("../cards.js");
+const { prayerBook } = require("../prayerbook.js");
 const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 // Meta descriptions are cut to 155 characters; at a word, with an ellipsis,
 // rather than mid-word ("…it is to stand. Standing means refu").
@@ -65,6 +68,7 @@ const LOCALES = [
       { href: APP, label: "Open the app" },
       { href: `${APP}?sos=1`, label: "Steady me now" },
       { href: "/fears", label: "Start from a fear" },
+      { href: "/prayers", label: "Prayer Book" },
       { href: "/", label: "What Stand does" }
     ],
     legal: [
@@ -91,7 +95,28 @@ const LOCALES = [
     cardAlt: (n, t) => `Day ${n}: ${t} — the day's reflection and the start of its prayer, from Stand`,
     share: { label: "Share this day", copy: "Copy link", copied: "Link copied", native: "Share…", x: "Share on X", facebook: "Share on Facebook", whatsapp: "Share on WhatsApp", email: "Share by email", url: "Page link",
       card: "SHARE AS AN IMAGE", download: "Download image", shareImage: "Share image",
-      cardAlt: (n, t) => `Share card for Day ${n}: ${t}, with the day's verse, reflection and prayer` }
+      cardAlt: (n, t) => `Share card for Day ${n}: ${t}, with the day's verse, reflection and prayer` },
+    // The Prayer Book. Interface words only: the prayers, their names and the
+    // section names and notes all come from prayers.js.
+    book: {
+      title: "Prayer Book — Stand",
+      description: "Traditional Christian prayers in English and Spanish: the Our Father, the Creed, the Hail Mary, the Angelus and more, to read, share and pray along with.",
+      eyebrow: "PRAYER BOOK", heading: "Prayer Book",
+      lead: n => `${n} traditional prayers, in English and in Spanish. Read them here, share them, or pray along with a recording in the app.`,
+      catholicTitle: "Roman Catholic prayers — Prayer Book — Stand",
+      catholicDescription: "Roman Catholic prayers in English and Spanish: the Hail Mary, Hail Holy Queen, Act of Contrition, Angelus, Memorare and the Prayer to St. Michael.",
+      catholicLead: n => `${n} Roman Catholic devotions, in English and in Spanish. The prayers shared across the wider Christian tradition follow below.`,
+      catholicLink: "The Roman Catholic prayers on a page of their own",
+      pageTitle: name => `${name} — Prayer Book — Stand`,
+      describe: name => `“${name}”, from the Stand Prayer Book, in English and Spanish.`,
+      pray: "PRAY",
+      open: "Pray along in the app — with a recording",
+      openShort: "pray along in the app",
+      prayerNav: "Prayer navigation",
+      shareLabel: "Share this prayer",
+      imageAlt: name => `${name} — the opening of the prayer, from the Stand Prayer Book`,
+      cardAlt: name => `Share card for ${name}, with the whole prayer`
+    }
   },
   {
     code: "es", prefix: "/es", tracks: esTracks, fearIndex: esFearIndex, groups: esGroups,
@@ -99,6 +124,7 @@ const LOCALES = [
       { href: APP, label: "Abrir la app" },
       { href: `${APP}?sos=1`, label: "Calma ahora" },
       { href: "/es/fears", label: "Empieza por un miedo" },
+      { href: "/es/oraciones", label: "Devocionario" },
       { href: "/es", label: "Qué hace Stand" }
     ],
     legal: [
@@ -125,7 +151,26 @@ const LOCALES = [
     cardAlt: (n, t) => `Día ${n}: ${t} — la reflexión del día y el comienzo de su oración, de Stand`,
     share: { label: "Compartir este día", copy: "Copiar enlace", copied: "Enlace copiado", native: "Compartir…", x: "Compartir en X", facebook: "Compartir en Facebook", whatsapp: "Compartir en WhatsApp", email: "Compartir por correo", url: "Enlace de la página",
       card: "COMPARTIR COMO IMAGEN", download: "Descargar imagen", shareImage: "Compartir imagen",
-      cardAlt: (n, t) => `Tarjeta para compartir del Día ${n}: ${t}, con el versículo, la reflexión y la oración del día` }
+      cardAlt: (n, t) => `Tarjeta para compartir del Día ${n}: ${t}, con el versículo, la reflexión y la oración del día` },
+    book: {
+      title: "Devocionario — Stand",
+      description: "Oraciones cristianas tradicionales en español y en inglés: el Padre Nuestro, el Credo, el Ave María, el Ángelus y más, para leer, compartir y orar.",
+      eyebrow: "DEVOCIONARIO", heading: "Devocionario",
+      lead: n => `${n} oraciones tradicionales, en español y en inglés. Léelas aquí, compártelas u ora con una grabación en la app.`,
+      catholicTitle: "Oraciones católicas romanas — Devocionario — Stand",
+      catholicDescription: "Oraciones católicas romanas en español y en inglés: el Ave María, la Salve, el Acto de Contrición, el Ángelus, el Memorare y la oración a San Miguel.",
+      catholicLead: n => `${n} devociones católicas romanas, en español y en inglés. Más abajo están las oraciones compartidas por la tradición cristiana en general.`,
+      catholicLink: "Las oraciones católicas romanas en su propia página",
+      pageTitle: name => `${name} — Devocionario — Stand`,
+      describe: name => `«${name}», del Devocionario de Stand, en español y en inglés.`,
+      pray: "ORA",
+      open: "Ora en la app — con una grabación",
+      openShort: "orar en la app",
+      prayerNav: "Navegación de oraciones",
+      shareLabel: "Compartir esta oración",
+      imageAlt: name => `${name}: el comienzo de la oración, del Devocionario de Stand`,
+      cardAlt: name => `Tarjeta para compartir de ${name}, con la oración completa`
+    }
   }
 ];
 
@@ -244,9 +289,9 @@ function structuredData({ L, track, id, i, title, ref, description, relPath, alt
 // come from share.js, inline SVG, so the page loads nothing from any
 // platform. The caption is the verse and its reference, the same text the
 // app shares.
-function shareRow({ L, url, title, text }) {
+function shareRow({ L, url, title, text, label = L.share.label }) {
   const links = shareLinks({ url, title, text });
-  const S = L.share;
+  const S = { ...L.share, label };
   const platform = (name, label) => `<a class="share-link" href="${esc(links[name])}" target="_blank" rel="noopener noreferrer" aria-label="${esc(label)}" title="${esc(label)}">${ICON[name]}</a>`;
   return `        <nav class="share-row" aria-label="${esc(S.label)}" data-url="${esc(url)}" data-title="${esc(title)}" data-text="${esc(text)}">
           <span class="share-label">${esc(S.label)}</span>
@@ -264,12 +309,12 @@ function shareRow({ L, url, title, text }) {
 // Download link that needs no script, and a Share button that share.js
 // reveals only where the device can share an image file. Site-relative, so
 // it works on previews and in the test server as well as in production.
-function shareCard({ L, card, fileName, n, title }) {
+function shareCard({ L, card, fileName, alt }) {
   const src = cardPath(card, "post");
   const S = L.share;
   return `        <figure class="share-card">
           <p class="section-kicker">${esc(S.card)}</p>
-          <a class="share-card-image" href="${src}"><img src="${src}" width="1080" height="1350" loading="lazy" decoding="async" alt="${esc(S.cardAlt(n, title))}" /></a>
+          <a class="share-card-image" href="${src}"><img src="${src}" width="1080" height="1350" loading="lazy" decoding="async" alt="${esc(alt)}" /></a>
           <figcaption>
             <a class="share-card-download" href="${src}" download="${esc(fileName)}">${ICON.download}<span>${esc(S.download)}</span></a>
             <button type="button" class="share-card-native" data-file="${esc(fileName)}" hidden>${ICON.share}<span>${esc(S.shareImage)}</span></button>
@@ -352,7 +397,7 @@ ${siteNav(L, relPath, altPath)}
         <section class="declaration-panel"><p class="section-kicker">${L.declare}</p><p>${esc(declaration)}</p></section>
         <section class="action-panel" id="practice"><div class="action-icon">→</div><div><p class="section-kicker">${L.practice}</p><p>${esc(action)}</p></div></section>
 ${shareRow({ L, url: `${SITE_URL}${relPath}`, title: pageTitle, text: `“${verse}” — ${ref}` })}
-${shareCard({ L, card, fileName: `stand-${id === "core" ? "" : `${id}-`}${slugs[L.code][id][i]}.png`, n: i + 1, title })}
+${shareCard({ L, card, fileName: `stand-${id === "core" ? "" : `${id}-`}${slugs[L.code][id][i]}.png`, alt: L.share.cardAlt(i + 1, title) })}
         <a class="complete-button" href="${APP}${appQuery}#${i + 1}">${L.openDay(i + 1)}</a>
         <nav class="day-nav" aria-label="${L.code === "es" ? "Navegación de días" : "Day navigation"}">${prev}${next}</nav>
       </article>
@@ -434,6 +479,169 @@ ${siteFooter(L, relPath)}
   fs.mkdirSync(path.join(root, L.prefix.slice(1) || "."), { recursive: true });
   fs.mkdirSync(path.join(root, L.prefix.slice(1), "fears"), { recursive: true });
   fs.writeFileSync(path.join(root, L.prefix.slice(1), "fears", "index.html"), html);
+}
+
+// ---------------------------------------------------------------------
+// The Prayer Book: the traditional prayers from prayers.js, one page each,
+// listed on /prayers (/es/oraciones), with the Roman Catholic ones also on a
+// page of their own. prayerbook.js decides the order and the addresses; the
+// words, names and section names are the corpus's own, so a page cannot say
+// anything the app does not. Each prayer page has its own share card
+// (cards.js, track "prayers") and opens the prayer in the app.
+const bookPaths = [];
+
+function bookPage({ L, title, description, relPath, altPath, type = "website", image, imageAlt, head = "", main }) {
+  return `<!doctype html>
+<html lang="${L.code}" class="theme-auto">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#132a3a" />
+  <meta name="description" content="${esc(description)}" />
+${socialMeta({ L, title, description, type, relPath, altPath, image, imageAlt })}
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <title>${esc(title)}</title>
+${head}</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="${L.brandHome}" aria-label="Stand"><span class="brand-mark">✦</span><span>STAND</span></a>
+${siteNav(L, relPath, altPath)}
+    </header>
+    <main>
+${main}
+    </main>
+${siteFooter(L, relPath)}
+  </div>
+${type === "article" ? `  <script src="/share.js" defer></script>\n` : ""}</body>
+</html>
+`;
+}
+
+// Each language's own app link: the prayer opens in the app, in the page's
+// language (app.js reads ?prayer= and ?lang=).
+const appPrayerLink = (L, id) => `${APP}?prayer=${id}${L.code === "en" ? "" : `&lang=${L.code}`}`;
+
+// A section of prayer cards, as on the fear index.
+function bookSection(L, tradition, { id, more } = {}) {
+  const B = L.book;
+  const cards = prayerBook.prayers().filter(p => p.tradition === tradition).map(p => `          <div class="feature-card">
+            <h3><a href="${prayerBook.prayerPath(L.code, p.id)}">${esc(p.name[L.code])}</a></h3>
+            <p>${esc(clip(p.text[L.code].trim(), 110))} · <a href="${esc(appPrayerLink(L, p.id))}">${B.openShort}</a></p>
+          </div>`).join("\n");
+  return `      <section class="landing-section"${id ? ` id="${id}"` : ""}>
+        <h2 class="section-kicker">${esc(prayerBook.label(tradition, L.code).toLocaleUpperCase(L.code))}</h2>
+        <p class="tradition-note">${esc(prayerBook.note(tradition, L.code))}</p>
+        <div class="feature-grid">
+${cards}
+        </div>${more ? `\n        <p class="landing-fineprint"><a href="${more.href}">${esc(more.label)}</a></p>` : ""}
+      </section>`;
+}
+
+function prayerStructuredData({ L, item, title, description, relPath, altPath, image }) {
+  const url = `${SITE_URL}${relPath}`;
+  const bookUrl = `${SITE_URL}${prayerBook.bookPath(L.code)}`;
+  const article = {
+    "@type": "Article",
+    "@id": `${url}#article`,
+    headline: item.name[L.code],
+    name: item.name[L.code],
+    description,
+    url,
+    mainEntityOfPage: url,
+    inLanguage: L.code,
+    image,
+    isAccessibleForFree: true,
+    isPartOf: { "@type": "CreativeWork", "@id": `${bookUrl}#book`, name: L.book.heading, url: bookUrl, inLanguage: L.code },
+    publisher: { "@type": "Organization", name: "Stand", url: `${SITE_URL}/` }
+  };
+  article[L.code === "en" ? "workTranslation" : "translationOfWork"] = { "@type": "Article", "@id": `${SITE_URL}${altPath}#article`, inLanguage: L.code === "en" ? "es" : "en" };
+  const trail = [["Stand", `${SITE_URL}${L.brandHome}`], [L.book.heading, bookUrl]];
+  if (prayerBook.sectionSlugs[item.tradition]) trail.push([prayerBook.label(item.tradition, L.code), `${SITE_URL}${prayerBook.sectionPath(L.code, item.tradition)}`]);
+  trail.push([item.name[L.code], url]);
+  const breadcrumb = {
+    "@type": "BreadcrumbList",
+    itemListElement: trail.map(([name, item], i) => ({ "@type": "ListItem", position: i + 1, name, item }))
+  };
+  return JSON.stringify({ "@context": "https://schema.org", "@graph": [article, breadcrumb] }, null, 2).replace(/<\//g, "<\\/");
+}
+
+for (const L of LOCALES) {
+  const other = L.code === "en" ? "es" : "en";
+  const B = L.book;
+  const dir = path.join(root, prayerBook.bookPath(L.code).slice(1));
+  fs.mkdirSync(dir, { recursive: true });
+  const all = prayerBook.prayers();
+
+  // One page per prayer, in book order, each linking to the next.
+  all.forEach((item, i) => {
+    const name = item.name[L.code];
+    const text = item.text[L.code].trim();
+    const relPath = prayerBook.prayerPath(L.code, item.id);
+    const altPath = prayerBook.prayerPath(other, item.id);
+    const title = B.pageTitle(name);
+    const description = clip(`${B.describe(name)} ${text}`, 155);
+    const card = prayerCardFor(L.code, item.id);
+    const image = `${SITE_URL}${cardPath(card, "og")}`;
+    const link = (p, arrowFirst) => `<a href="${prayerBook.prayerPath(L.code, p.id)}">${arrowFirst ? "← " : ""}${esc(p.name[L.code])}${arrowFirst ? "" : " →"}</a>`;
+    const prev = i > 0 ? link(all[i - 1], true) : "<span></span>";
+    const next = i < all.length - 1 ? link(all[i + 1], false) : "<span></span>";
+    const main = `      <article class="devotional prayer-page">
+        <p class="eyebrow"><a href="${prayerBook.bookPath(L.code)}">${B.eyebrow}</a></p>
+        <div class="title-row"><div><p class="day-number"><a href="${prayerBook.sectionPath(L.code, item.tradition)}">${esc(prayerBook.label(item.tradition, L.code).toLocaleUpperCase(L.code))}</a></p><h1>${esc(name)}</h1></div></div>
+        <p class="tradition-note">${esc(prayerBook.note(item.tradition, L.code))}</p>
+        <section class="prayer-panel"><p class="section-kicker">${B.pray}</p><p>${esc(text)}</p></section>
+${shareRow({ L, url: `${SITE_URL}${relPath}`, title, text: card.prayerLead, label: B.shareLabel })}
+${shareCard({ L, card, fileName: `stand-${L.code === "en" ? "prayer" : "oracion"}-${card.slug}.png`, alt: B.cardAlt(name) })}
+        <a class="complete-button" href="${esc(appPrayerLink(L, item.id))}">${B.open}</a>
+        <nav class="day-nav" aria-label="${B.prayerNav}">${prev}${next}</nav>
+      </article>`;
+    const head = `  <script type="application/ld+json">
+${prayerStructuredData({ L, item, title, description, relPath, altPath, image })}
+  </script>
+`;
+    fs.writeFileSync(path.join(dir, `${card.slug}.html`), bookPage({ L, title, description, relPath, altPath, type: "article", image, imageAlt: B.imageAlt(name), head, main }));
+    bookPaths.push(relPath);
+  });
+
+  // The book: every section, in order. Only the Roman Catholic section has a
+  // page of its own, linked from its heading's section.
+  {
+    const relPath = prayerBook.bookPath(L.code);
+    const altPath = prayerBook.bookPath(other);
+    const sections = prayerBook.sections.map(t => bookSection(L, t, {
+      id: t,
+      more: prayerBook.sectionSlugs[t] && { href: prayerBook.sectionPath(L.code, t), label: B.catholicLink }
+    })).join("\n");
+    const main = `      <section class="landing-hero">
+        <p class="eyebrow">${B.eyebrow}</p>
+        <h1>${esc(B.heading)}</h1>
+        <p class="landing-lead">${esc(B.lead(all.length))}</p>
+        <a class="complete-button" href="${APP}">${L.openApp}</a>
+      </section>
+${sections}`;
+    fs.writeFileSync(path.join(dir, "index.html"), bookPage({ L, title: B.title, description: B.description, relPath, altPath, main }));
+    bookPaths.push(relPath);
+  }
+
+  // The Roman Catholic prayers on their own, then the shared ones.
+  for (const tradition of Object.keys(prayerBook.sectionSlugs)) {
+    const relPath = prayerBook.sectionPath(L.code, tradition);
+    const altPath = prayerBook.sectionPath(other, tradition);
+    const count = all.filter(p => p.tradition === tradition).length;
+    const rest = prayerBook.sections.filter(t => t !== tradition).map(t => bookSection(L, t)).join("\n");
+    const main = `      <section class="landing-hero">
+        <p class="eyebrow"><a href="${prayerBook.bookPath(L.code)}">${B.eyebrow}</a></p>
+        <h1>${esc(prayerBook.label(tradition, L.code))}</h1>
+        <p class="landing-lead">${esc(B.catholicLead(count))}</p>
+        <a class="complete-button" href="${APP}">${L.openApp}</a>
+      </section>
+${bookSection(L, tradition)}
+${rest}`;
+    fs.writeFileSync(path.join(root, `${relPath.slice(1)}.html`), bookPage({ L, title: B.catholicTitle, description: B.catholicDescription, relPath, altPath, main }));
+    bookPaths.push(relPath);
+  }
 }
 
 // ---------------------------------------------------------------------
@@ -749,9 +957,10 @@ ${siteFooter(en, null)}
 // 404 page is deliberately absent.
 const urls = [`${SITE_URL}/`, `${SITE_URL}/es`, `${SITE_URL}/fears`, `${SITE_URL}/es/fears`,
   ...legalPaths.map(p => `${SITE_URL}${p}`),
+  ...bookPaths.map(p => `${SITE_URL}${p}`),
   ...allPaths.map(p => `${SITE_URL}${p}`)];
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `  <url><loc>${u}</loc></url>`).join("\n")}\n</urlset>\n`;
 fs.writeFileSync(path.join(root, "sitemap.xml"), sitemap);
 fs.writeFileSync(path.join(root, "robots.txt"), `User-agent: *\nAllow: /\nSitemap: ${SITE_URL}/sitemap.xml\n`);
 
-console.log(`Wrote ${allPaths.length} day pages across ${LOCALES.length} languages, both fear indexes, ${legalPaths.length} privacy and terms pages, 404.html, sitemap.xml (${urls.length} URLs) and robots.txt`);
+console.log(`Wrote ${allPaths.length} day pages across ${LOCALES.length} languages, both fear indexes, ${bookPaths.length} Prayer Book pages, ${legalPaths.length} privacy and terms pages, 404.html, sitemap.xml (${urls.length} URLs) and robots.txt`);

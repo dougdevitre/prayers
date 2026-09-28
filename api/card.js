@@ -1,6 +1,7 @@
-// Renders a day's share card as a PNG.
+// Renders a day's share card, or a Prayer Book prayer's, as a PNG.
 //
 //   GET /cards/{lang}/{track}/{slug}.{hash}.{post|og}.png
+//     (track "prayers" for a prayer: /cards/en/prayers/our-father.…)
 //     (vercel.json rewrites it to /api/card?lang=&track=&file=)
 //
 //   200  image/png, cached for a year: the hash in the address changes
@@ -10,7 +11,7 @@
 //   404  no such day, or not a card address
 //   405  anything but GET or HEAD
 //
-// Only published day content is drawn, looked up by address. Nothing from the
+// Only published day and prayer content is drawn, looked up by address. Nothing from the
 // request is ever rendered as text, so this cannot be used to make an image
 // saying something else, and a reader's own notes never reach it.
 //
@@ -82,6 +83,36 @@ function ogCard(card) {
     footer(card, GOLD, "#d9d4c6"));
 }
 
+// A prayer is drawn whole, never cut short, so its type steps down as it
+// grows: the Sign of the Cross at 60px, the Angelus at 25px. It sits in the
+// middle of the space under the title, so a short prayer is not a box
+// stranded at the top of an empty card. The steps were
+// checked by eye at each prayer's length; cards.js PRAYER_BUDGET is the
+// longest prayer the smallest step was checked at.
+const prayerSize = n => n <= 160 ? 60 : n <= 340 ? 46 : n <= 520 ? 38 : n <= 700 ? 34 : n <= 1000 ? 29 : 25;
+const prayerTitleSize = t => t.length <= 20 ? 80 : t.length <= 30 ? 64 : 54;
+
+/** 1080x1350: the whole prayer. */
+function prayerPostCard(card) {
+  const size = prayerSize(card.text.length);
+  return h("div", { display: "flex", width: "100%", height: "100%", padding: 56, backgroundColor: PAPER, color: INK },
+    h("div", { display: "flex", flexDirection: "column", width: "100%", height: "100%", padding: "60px 72px", border: `3px solid ${GOLD}`, backgroundColor: SURFACE },
+      kicker(card.kicker, GOLD_TEXT, 22),
+      h("div", { display: "flex", fontFamily: "Serif", fontSize: prayerTitleSize(card.title), lineHeight: 1.05, letterSpacing: -2, margin: "14px 0 30px" }, card.title),
+      h("div", { display: "flex", flexDirection: "column", justifyContent: "center", flexGrow: 1, paddingBottom: 30 },
+        h("div", { display: "flex", fontFamily: "Serif", fontSize: size, lineHeight: 1.5, padding: "30px 34px", border: `2px solid ${GOLD}`, backgroundImage: `linear-gradient(135deg, #f3e6c8, ${SURFACE})` }, card.text)),
+      footer(card, INK, MUTED)));
+}
+
+/** 1200x630: the link preview, with the prayer's opening sentences. */
+function prayerOgCard(card) {
+  return h("div", { display: "flex", flexDirection: "column", width: "100%", height: "100%", padding: "56px 72px", backgroundColor: INK, color: PAPER },
+    kicker(card.kicker, GOLD, 22),
+    h("div", { display: "flex", fontFamily: "Serif", fontSize: Math.min(72, prayerTitleSize(card.title)), lineHeight: 1.05, letterSpacing: -2, margin: "12px 0 24px" }, card.title),
+    h("div", { display: "flex", fontFamily: "Serif", fontStyle: "italic", fontSize: 32, lineHeight: 1.4, color: GOLD_LIGHT }, card.prayerLead),
+    footer(card, GOLD, "#d9d4c6"));
+}
+
 let engines = null;
 function setUp() {
   engines = engines || (async () => {
@@ -104,7 +135,10 @@ function setUp() {
 async function render(card, format) {
   const { satori, Resvg } = await setUp();
   const { width, height } = FORMATS[format];
-  const svg = await satori(format === "og" ? ogCard(card) : postCard(card), { width, height, fonts: FONTS });
+  const layout = card.kind === "prayer"
+    ? (format === "og" ? prayerOgCard : prayerPostCard)
+    : (format === "og" ? ogCard : postCard);
+  const svg = await satori(layout(card), { width, height, fonts: FONTS });
   return Buffer.from(new Resvg(svg, { fitTo: { mode: "width", value: width } }).render().asPng());
 }
 

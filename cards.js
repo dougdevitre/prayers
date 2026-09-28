@@ -7,6 +7,8 @@
 // Every day of every journey, in both languages, has two cards:
 //   post  1080x1350  verse, reflection and prayer, for posting as an image
 //   og    1200x630   the link preview: reflection and the prayer's first line
+// and so does every prayer in the Prayer Book (prayerbook.js), under the
+// track "prayers": the whole prayer on the post card, its opening on the og.
 //
 // The address carries a hash of everything the card shows, so an edit to a
 // verse, reflection or prayer (or to the template) is a new address: social
@@ -14,6 +16,7 @@
 // be cached forever.
 //
 //   /cards/en/core/01-stand.1a2b3c4d.post.png
+//   /cards/es/prayers/padre-nuestro.1a2b3c4d.og.png
 //
 // Node only (it hashes with node:crypto).
 
@@ -21,6 +24,7 @@ const crypto = require("crypto");
 const { tracks } = require("./content.js");
 const { esTracks } = require("./content.es.js");
 const { slugify } = require("./logic.js");
+const { prayerBook } = require("./prayerbook.js");
 
 // Bump when the card's layout or wording changes, so every address changes.
 const TEMPLATE_VERSION = 1;
@@ -33,11 +37,19 @@ const SITE_LABEL = "prayers.dougdevitre.org";
 // leaves a quarter of the card empty). tests/cards.test.js fails if any day
 // grows past this, so a longer text gets a look at the layout first.
 const TEXT_BUDGET = 700;
+// A prayer's text, measured at the longest (the Angelus in Spanish, 1,310
+// characters). A prayer card sets its text smaller as the prayer grows
+// (api/card.js), down to a size checked readable at this length; the tests
+// fail past it rather than let a prayer be cut short.
+const PRAYER_BUDGET = 1320;
+// The track name prayer cards are filed under; never a journey id.
+const PRAYER_TRACK = "prayers";
 
 const LABELS = {
   en: { day: "DAY", reflection: "REFLECTION", prayer: "PRAYER" },
   es: { day: "DÍA", reflection: "REFLEXIÓN", prayer: "ORACIÓN" }
 };
+const BOOK = { en: "PRAYER BOOK", es: "DEVOCIONARIO" };
 
 // The Spanish journeys override only their text; ids, groups and weeks are
 // the English track's (the same merge the page generator does).
@@ -73,8 +85,52 @@ function cardFor(lang, trackId, day) {
   return { ...fields, slug: slugOf(track, day), hash, labels: LABELS[lang] };
 }
 
-/** The card for a page slug ("01-stand"), or null. */
+/**
+ * A prayer's opening for the link preview: whole sentences, as many as fit in
+ * about two hundred characters, marked with an ellipsis when the prayer goes
+ * on. A first sentence longer than that (the Creed's) ends at its last comma
+ * or semicolon inside the limit instead.
+ */
+function openingOf(text, max = 200) {
+  const sentences = String(text).match(/[^.!?]+[.!?]+(?=\s|$)/g) || [String(text)];
+  let out = sentences[0].trim();
+  if (out.length > max) {
+    const cut = Math.max(out.lastIndexOf(",", max), out.lastIndexOf(";", max));
+    return (cut > 0 ? out.slice(0, cut + 1) : out.slice(0, max)) + " …";
+  }
+  for (const s of sentences.slice(1)) {
+    if ((out + " " + s.trim()).length > max) break;
+    out += " " + s.trim();
+  }
+  return out.length < String(text).trim().length ? out + " …" : out;
+}
+
+/**
+ * What a Prayer Book prayer's card shows, or null. `id` is the prayer's id
+ * in prayers.js ("our-father"); the slug is its page's, in that language.
+ */
+function prayerCardFor(lang, id) {
+  if (!LANGS.includes(lang)) return null;
+  const item = prayerBook.byId(id);
+  if (!item) return null;
+  const fields = {
+    kind: "prayer", lang, track: PRAYER_TRACK, id,
+    kicker: `${BOOK[lang]} · ${prayerBook.label(item.tradition, lang).toLocaleUpperCase(lang)}`,
+    title: item.name[lang], text: item.text[lang].trim(),
+    prayerLead: openingOf(item.text[lang].trim()), site: SITE_LABEL
+  };
+  const hash = crypto.createHash("sha256")
+    .update(JSON.stringify({ v: TEMPLATE_VERSION, ...fields }))
+    .digest("hex").slice(0, 8);
+  return { ...fields, slug: prayerBook.prayerSlug(lang, id), hash };
+}
+
+/** The card for a page slug ("01-stand", or a prayer's "padre-nuestro"), or null. */
 function cardForSlug(lang, trackId, slug) {
+  if (trackId === PRAYER_TRACK) {
+    const item = LANGS.includes(lang) && prayerBook.prayerForSlug(lang, slug);
+    return item ? prayerCardFor(lang, item.id) : null;
+  }
   const track = trackFor(lang, trackId);
   if (!track) return null;
   const day = track.days.findIndex((_, i) => slugOf(track, i) === slug);
@@ -99,14 +155,15 @@ function parseCardFile(lang, trackId, file) {
   return { lang, track: trackId, slug: m[1], hash: m[2], format: m[3] };
 }
 
-/** Every card, for the tests and for warming the cache after a deploy. */
+/** Every day's card, then every prayer's, for the tests and for warming the cache after a deploy. */
 function allCards() {
   const out = [];
   for (const lang of LANGS) for (const id of Object.keys(tracks)) {
     const track = trackFor(lang, id);
     if (track) for (let i = 0; i < track.days.length; i++) out.push(cardFor(lang, id, i));
   }
+  for (const lang of LANGS) for (const item of prayerBook.prayers()) out.push(prayerCardFor(lang, item.id));
   return out;
 }
 
-module.exports = { TEMPLATE_VERSION, FORMATS, TEXT_BUDGET, SITE_LABEL, cardFor, cardForSlug, cardPath, latestCardPath, parseCardFile, allCards, firstSentence };
+module.exports = { TEMPLATE_VERSION, FORMATS, TEXT_BUDGET, PRAYER_BUDGET, PRAYER_TRACK, SITE_LABEL, cardFor, prayerCardFor, cardForSlug, cardPath, latestCardPath, parseCardFile, allCards, firstSentence, openingOf };

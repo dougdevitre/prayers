@@ -55,8 +55,8 @@ const prayerCorpus = {
     },
     "traditionLabels": {
       "universal": {
-        "en": "Traditional prayers",
-        "es": "Oraciones tradicionales"
+        "en": "Shared Christian prayers",
+        "es": "Oraciones cristianas comunes"
       },
       "roman-catholic": {
         "en": "Roman Catholic prayers",

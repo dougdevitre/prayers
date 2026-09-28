@@ -524,4 +524,23 @@ const appUi = {
   }
 };
 
+// The Spanish journeys (content.es.js) load only for a Spanish reader, from
+// app.js, which runs last. So that the download does not wait for every
+// script before it, this asks for it now, as early as the page can know the
+// language wanted (a ?lang= link, else the saved choice): the app's own load
+// then finds it already on its way. It only preloads; nothing runs here.
+if (typeof document !== "undefined") {
+  try {
+    const wanted = new URLSearchParams(location.search).get("lang")
+      || (JSON.parse(localStorage.getItem("stand-state") || "{}") || {}).lang;
+    if (wanted === "es") {
+      const hint = document.createElement("link");
+      hint.rel = "preload";
+      hint.as = "script";
+      hint.href = "/content.es.js";
+      document.head.append(hint);
+    }
+  } catch { /* storage refused: the app loads it when it needs it */ }
+}
+
 if (typeof module !== "undefined" && module.exports) module.exports = { appUi };

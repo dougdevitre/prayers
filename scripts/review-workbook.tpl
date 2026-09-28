@@ -156,6 +156,7 @@ textarea{width:100%;min-height:40px;resize:vertical;padding:9px 11px;border:1px 
     ["sos", "Steady me now", "The 90-second rescue: a verse, a short spoken prayer, a declaration."],
     ["composer", "Prayer composer", "Every block the composer can combine. A composed prayer is one block per slot."],
     ["traditional", "Traditional prayers", "Shared word for word with REMAM."],
+    ["rosary", "The Rosary", "New: the Fatima Prayer and the twenty mysteries, each with a short verse. The mysteries and their days follow Rosarium Virginis Mariae (2002)."],
     ["finder", "Fear finder", "The sentences a reader picks from to find where to start."]
   ];
   const $ = id => document.getElementById(id);

@@ -39,11 +39,16 @@ function sosVerses() {
 // to be condensed paraphrases (clauses dropped to fit a card, "perishing" for
 // Mark 4:38's "dying") and were reported separately; each one is now a
 // contiguous substring of the WEB text, so the same rule applies to all.
+// The Rosary's mysteries each carry a verse in both languages (rosary.js).
+const { rosary } = require("../rosary.js");
+const rosaryMysteries = rosary.sets.flatMap(set => set.mysteries.map(m => ({ ...m, label: `rosary ${set.id} ${m.id}` })));
+
 const gated = [];
 for (const track of Object.values(tracks)) {
   track.days.forEach((d, i) => gated.push({ ref: d[1], verse: d[2], label: `${track.id} day ${i + 1}` }));
 }
 gated.push(...sosVerses());
+gated.push(...rosaryMysteries.map(m => ({ ref: m.ref, verse: m.verse.en, label: m.label })));
 
 function classify({ ref, verse }) {
   const source = SOURCE[ref];
@@ -124,6 +129,21 @@ let esFail = 0, esOk = 0, esPunct = 0, esDays = 0;
       });
     }
   }
+  // The Rosary's Spanish verses: the same rule, keyed by the English reference.
+  for (const m of rosaryMysteries) {
+    const hay = norm(ES_SOURCE[m.ref] || "");
+    const needle = norm(m.verse.es);
+    if (hay.includes(needle)) esOk++;
+    else if (hay.includes(needle.replace(/[.?!]$/, ""))) esPunct++;
+    else {
+      esFail++;
+      console.error(`FAIL ${m.label} (${esRefFor(m.ref)}) — not in the Reina-Valera 1909`);
+      console.error(`     app: ${m.verse.es}`);
+      console.error(`     RV1909: ${ES_SOURCE[m.ref] || "(reference not in es-source.json)"}`);
+    }
+    const book = m.ref.replace(/\s+\d+:.*$/, "");
+    if (!ES_BOOKS[book]) { esFail++; console.error(`FAIL ${m.label}: no Spanish name for ${book} in scripts/es-books.json`); }
+  }
 }
 
 let failures = 0, verbatim = 0, punctuation = 0;
@@ -147,6 +167,6 @@ if (failures || esFail) {
 console.log(`✓ scripture verified — ${gated.length} quoted excerpts all drawn from the World English Bible ` +
             `(${verbatim} verbatim, ${punctuation} differing only in trailing punctuation)`);
 if (esDays) {
-  console.log(`✓ Spanish verified — ${esDays} days, every verse drawn from the Reina-Valera 1909 ` +
+  console.log(`✓ Spanish verified — ${esDays} days and ${rosaryMysteries.length} Rosary mysteries, every verse drawn from the Reina-Valera 1909 ` +
               `(${esOk} verbatim, ${esPunct} differing only in trailing punctuation)`);
 }

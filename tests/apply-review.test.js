@@ -12,7 +12,7 @@ const { readDecisions, plan, apply } = require("../scripts/apply-review.js");
 const { collect } = require("../scripts/build-review-workbook.js");
 
 const ROOT = path.join(__dirname, "..");
-const COPY = ["content.js", "content.es.js", "prayers.js", "logic.js", "scripts/build-review-workbook.js", "scripts/review-workbook.tpl", "scripts/review-suggestions.json"];
+const COPY = ["content.js", "content.es.js", "prayers.js", "rosary.js", "logic.js", "scripts/build-review-workbook.js", "scripts/review-workbook.tpl", "scripts/review-suggestions.json"];
 
 let failures = 0;
 function test(name, fn) {

@@ -717,13 +717,13 @@ const server = http.createServer((req, res) => {
   check("landing has no horizontal scroll", !landingScroll);
   // Screenshots of the running app. The page described the app in 650 words
   // and showed none of it; these are captures, not mockups.
-  check("landing shows the app", (await page.$$("#see .shot img")).length === 3);
+  check("landing shows the app", (await page.$$("#see .shot img")).length === 4);
   const shotsLoad = await page.evaluate(async () => {
     const imgs = [...document.querySelectorAll("#see .shot img")];
     await Promise.all(imgs.map(i => i.complete ? null : new Promise(r => { i.onload = r; i.onerror = r; })));
     return imgs.filter(i => i.naturalWidth > 0).length;
   });
-  check("every screenshot resolves", shotsLoad === 3);
+  check("every screenshot resolves", shotsLoad === 4);
   check("screenshots are described", await page.evaluate(() =>
     [...document.querySelectorAll("#see .shot img")].every(i => (i.getAttribute("alt") || "").length > 40)));
   check("screenshots reserve their space", await page.evaluate(() =>

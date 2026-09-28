@@ -39,6 +39,7 @@
     { "src": "shots/install-day.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Today's day: the verse, a guided prayer to listen to, and the reflection" },
     { "src": "shots/install-sos.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Steady me now: slow breathing for a fearful moment, with a link to crisis support" },
     { "src": "shots/install-composer.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Compose a prayer for what you are carrying" },
+    { "src": "shots/install-rosary.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "The Rosary, a bead at a time, or prayed along hands-free" },
     { "src": "shots/install-wide.png", "sizes": "1280x800", "type": "image/png", "form_factor": "wide", "label": "Stand on a computer" }
   ]
 }

@@ -149,10 +149,11 @@
       <div class="reminder-option"><label for="reminderFrom" data-i18n="reminder.fromLabel">Start with</label><select id="reminderFrom"><option value="current" data-i18n="reminder.fromCurrent">Where I am</option><option value="start" data-i18n="reminder.fromStart">Day 1</option></select></div>
       <div class="reminder-option"><label for="reminderLead" data-i18n="reminder.leadLabel">Alert</label><select id="reminderLead"><option value="0" data-i18n="reminder.leadNone">At the time</option><option value="10" data-i18n="reminder.leadTen">10 minutes before</option><option value="30" data-i18n="reminder.leadThirty">30 minutes before</option></select></div>
       <div class="reminder-option"><label for="reminderWeekdays"><input type="checkbox" id="reminderWeekdays" /> <span data-i18n="reminder.weekdays">Weekdays only</span></label></div>
+      <div class="reminder-option"><label for="reminderPrivate"><input type="checkbox" id="reminderPrivate" /> <span data-i18n="reminder.privateLabel">Private: no day details in my calendar</span></label></div>
       <div class="reminder-option"><label for="reminderEvening"><input type="checkbox" id="reminderEvening" /> <span data-i18n="reminder.eveningLabel">Evening check-in</span></label><input type="time" id="reminderEveningTime" value="21:00" disabled /></div>
       <p class="reminder-help" data-i18n="reminder.eveningHelp">A second, shorter reminder each evening asking how the practice went.</p>
     </details>
-    <p class="reminder-help" data-i18n="reminder.help">One reminder for each remaining day of your journey, with that day’s verse, practice and a link straight to it.</p>
+    <p class="reminder-help" id="reminderHelp" data-i18n="reminder.help">One reminder for each remaining day of your journey, with that day’s verse, practice and a link straight to it.</p>
     <details class="reminder-preview" id="reminderPreview"><summary data-i18n="reminder.preview">Preview the first reminder</summary><p class="reminder-preview-title" id="reminderPreviewTitle"></p><p class="reminder-preview-body" id="reminderPreviewBody"></p></details>
     <details class="reminder-subscribe" id="reminderSubscribe"><summary data-i18n="reminder.subscribeLabel">Or subscribe</summary>
       <p class="reminder-help" data-i18n="reminder.subscribeHelp">A calendar feed your calendar app checks on its own, built from the options above and starting on the first day shown. Change the options and subscribe again to move it.</p>
@@ -283,6 +284,7 @@
     <div class="ledger" id="ledger"></div>
     <div id="journalList"></div>
     <button class="complete-button" id="exportButton" data-i18n="journal.download">Download my notes (.txt)</button>
+    <p class="data-note" data-i18n="journal.privacyNote">Your notes have no password of their own: anyone who can open this device can read them here. Downloaded files aren’t locked either, so keep them somewhere private.</p>
     <div class="data-actions">
       <button class="text-button" id="backupButton" data-i18n="journal.backup">Back up all data (.json)</button>
       <label class="text-button" for="restoreInput"><span data-i18n="journal.restore">Restore from backup</span><input type="file" id="restoreInput" accept="application/json,.json" hidden /></label>
@@ -325,6 +327,8 @@
         <ul>
           <li><a href="tel:988"><strong>988</strong></a> <span data-i18n="sos.lifeline">— Suicide &amp; Crisis Lifeline (call or text, 24/7)</span></li>
           <li><span data-i18n="sos.textVerb">Text</span> <strong data-i18n="sos.textKeyword">HOME</strong> <span data-i18n="sos.textTo">to</span> <a href="sms:741741"><strong>741741</strong></a> <span data-i18n="sos.textLine">— Crisis Text Line</span></li>
+          <li><a href="tel:+18007997233"><strong>1-800-799-7233</strong></a> <span data-i18n="sos.dvLine">— National Domestic Violence Hotline (24/7; or text START to 88788)</span></li>
+          <li><a href="tel:+18004224453"><strong>1-800-422-4453</strong></a> <span data-i18n="sos.childLine">— Childhelp National Child Abuse Hotline (call or text, 24/7)</span></li>
           <li><a href="tel:911"><strong>911</strong></a> <span data-i18n="sos.emergency">— if you are in immediate physical danger</span></li>
           <li><span data-i18n="sos.outsideUs">Outside the US:</span> <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer"><strong>findahelpline.com</strong></a> <span data-i18n="sos.findHelpline">— free, verified helplines in 175+ countries</span></li>
         </ul>

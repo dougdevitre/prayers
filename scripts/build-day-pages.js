@@ -883,7 +883,8 @@ const PRIVACY = {
       ]],
       ["What stays on your device", [
         para("Everything you enter in Stand — your progress, notes, journal, fear check-ins, favorites and preferences — is stored only on your own device, in your browser’s local storage. It is not sent to us or to anyone else."),
-        para("It leaves your device only if you choose to take it out: by downloading your journal as a text file (.txt), by downloading a backup file (.json), or by sharing.")
+        para("It leaves your device only if you choose to take it out: by downloading your journal as a text file (.txt), by downloading a backup file (.json), or by sharing."),
+        para("Stand has no password of its own. Anyone who can open your device can open Stand and read what you have written there, and a downloaded journal or backup file is not locked either. If that is a concern, keep those files somewhere private; “Erase all data” removes everything from this device.")
       ]],
       ["Removing your data", [
         para("You can delete everything at any time with “Erase all data” in the app. Clearing your browser’s stored data for this site deletes it too."),
@@ -898,7 +899,8 @@ const PRIVACY = {
       ["Error reports", [
         para("If part of Stand stops working on your device, the app sends a short technical report to our host so we can fix it: the kind of error, a shortened error message with any quoted text removed, the file and line in Stand’s own code where it happened, and the page it happened on. It never includes your notes, your progress or anything you typed, and it carries no identifier. At most three reports are sent per visit, and none if your browser sends the Global Privacy Control signal. Reports are kept only in our host’s logs, for a short time.")
       ]],
-      ["Calendar subscription", [
+      ["Calendar reminders", [
+        para("Calendar reminders show each day’s title, verse and practice in your calendar, where anyone who can see your calendar or your lock screen can read them. If you turn on “Private” in the reminder options, each reminder says only “Stand — daily prayer”, with a link into the app."),
         para("If you subscribe to Stand’s calendar feed (/calendar.ics), your calendar app will request a link from time to time. That link contains only the journey, the day to start on, a date, a time, the language and a few option settings. It contains no notes and no personal details. The request is handled by our host.")
       ]],
       ["Recorded narration", [
@@ -917,7 +919,7 @@ const PRIVACY = {
         para(`If you have a question about your privacy, you can write to ${contactLink}.`)
       ]]
     ],
-    updated: "Last updated: 26 September 2026"
+    updated: "Last updated: 17 October 2026"
   },
   es: {
     title: "Privacidad — Stand",
@@ -931,7 +933,8 @@ const PRIVACY = {
       ]],
       ["Lo que se queda en tu dispositivo", [
         para("Todo lo que introduces en Stand —tu progreso, tus notas, tu diario, tus registros del miedo, tus favoritos y tus preferencias— se guarda solo en tu propio dispositivo, en el almacenamiento local del navegador. No se envía ni a nosotros ni a nadie."),
-        para("Solo sale de tu dispositivo si tú decides sacarlo: al descargar tu diario como archivo de texto (.txt), al descargar un respaldo (.json) o al compartir.")
+        para("Solo sale de tu dispositivo si tú decides sacarlo: al descargar tu diario como archivo de texto (.txt), al descargar un respaldo (.json) o al compartir."),
+        para("Stand no tiene contraseña propia. Cualquiera que pueda abrir tu dispositivo puede abrir Stand y leer lo que escribiste, y un diario o un respaldo descargado tampoco está protegido. Si eso te preocupa, guarda esos archivos en un lugar privado; “Borrar todos los datos” elimina todo de este dispositivo.")
       ]],
       ["Cómo borrar tus datos", [
         para("Puedes borrarlo todo cuando quieras con “Borrar todos los datos” en la app. Si borras los datos guardados de este sitio en tu navegador, también desaparecen."),
@@ -946,7 +949,8 @@ const PRIVACY = {
       ["Informes de errores", [
         para("Si alguna parte de Stand deja de funcionar en tu dispositivo, la app envía un breve informe técnico a nuestro proveedor de alojamiento para que podamos arreglarlo: el tipo de error, un mensaje de error abreviado sin el texto entre comillas, el archivo y la línea del código de Stand donde ocurrió, y la página en la que estabas. Nunca incluye tus notas, tu progreso ni nada de lo que escribiste, y no lleva ningún identificador. Se envían como máximo tres informes por visita, y ninguno si tu navegador envía la señal Global Privacy Control. Los informes se guardan solo en los registros de nuestro proveedor, por poco tiempo.")
       ]],
-      ["Suscripción al calendario", [
+      ["Recordatorios en el calendario", [
+        para("Los recordatorios muestran en tu calendario el título, el versículo y la práctica de cada día, y cualquiera que pueda ver tu calendario o tu pantalla bloqueada puede leerlos. Si activas «Privado» en las opciones del recordatorio, cada uno dice solo «Stand — oración diaria», con un enlace a la app."),
         para("Si te suscribes al calendario de Stand (/calendar.ics), tu app de calendario pedirá un enlace de vez en cuando. Ese enlace contiene solo el camino, el día en que empiezas, una fecha, una hora, el idioma y algunas opciones. No contiene notas ni datos personales. La solicitud la atiende nuestro proveedor de alojamiento.")
       ]],
       ["Narración grabada", [
@@ -965,7 +969,7 @@ const PRIVACY = {
         para(`Si tienes alguna pregunta sobre tu privacidad, puedes escribir a ${contactLink}.`)
       ]]
     ],
-    updated: "Última actualización: 26 de septiembre de 2026"
+    updated: "Última actualización: 17 de octubre de 2026"
   }
 };
 
@@ -985,7 +989,7 @@ const TERMS = {
       ]],
       ["If you are in crisis", [
         para("You do not have to carry this alone. If you are in the United States:"),
-        list(["Call or text <a href=\"tel:988\">988</a>.", "Text HOME to 741741.", "If you are in immediate danger, call <a href=\"tel:911\">911</a>."]),
+        list(["Call or text <a href=\"tel:988\">988</a>.", "Text HOME to 741741.", "For domestic violence, call the National Domestic Violence Hotline at <a href=\"tel:+18007997233\">1-800-799-7233</a>, or text START to 88788.", "If a child may be at risk, call or text the Childhelp National Child Abuse Hotline at <a href=\"tel:+18004224453\">1-800-422-4453</a>.", "If you are in immediate danger, call <a href=\"tel:911\">911</a>."]),
         para("Outside the United States, you can find a local helpline at <a href=\"https://findahelpline.com\">findahelpline.com</a>.")
       ]],
       ["Scripture", [
@@ -1007,7 +1011,7 @@ const TERMS = {
         para(`If you have a question about these terms, you can write to ${contactLink}.`)
       ]]
     ],
-    updated: "Last updated: 26 September 2026"
+    updated: "Last updated: 17 October 2026"
   },
   es: {
     title: "Términos de uso — Stand",
@@ -1022,29 +1026,29 @@ const TERMS = {
       ]],
       ["Si estás en crisis", [
         para("No tienes que cargar con esto a solas. Si estás en Estados Unidos:"),
-        list(["Llama al <a href=\"tel:988\">988</a> y marca 2, o envía un mensaje de texto con la palabra AYUDA al 988.", "Envía AYUDA por mensaje de texto al 741741.", "Si estás en peligro inmediato, llama al <a href=\"tel:911\">911</a>."]),
+        list(["Llama al <a href=\"tel:988\">988</a> y marca 2, o envía un mensaje de texto con la palabra AYUDA al 988.", "Envía AYUDA por mensaje de texto al 741741.", "Ante la violencia doméstica, llama a la Línea Nacional de Violencia Doméstica al <a href=\"tel:+18007997233\">1-800-799-7233</a>; hay atención en español.", "Si un niño puede estar en riesgo, llama o envía un mensaje de texto a Childhelp, la línea nacional contra el abuso infantil, al <a href=\"tel:+18004224453\">1-800-422-4453</a>; hay intérpretes.", "Si estás en peligro inmediato, llama al <a href=\"tel:911\">911</a>."]),
         para("Fuera de Estados Unidos, puedes encontrar una línea de ayuda local en <a href=\"https://findahelpline.com\">findahelpline.com</a>.")
       ]],
       ["La Escritura", [
         para("La Escritura en Stand es de dominio público: la World English Bible en inglés y la Reina-Valera 1909 en español.")
       ]],
-      ["LAS PALABRAS Y GRABACIONES DE STAND", [
+      ["Las palabras y grabaciones de Stand", [
         para("Los textos, las oraciones y las grabaciones originales de Stand pertenecen al proyecto Stand. Puedes usarlos para tu oración personal, sin fines comerciales, y compartir enlaces a ellos con quien quieras.")
       ]],
-      ["GRATIS Y TAL COMO ES", [
+      ["Gratis y tal como es", [
         para("Stand es gratuito. Se ofrece “tal cual”, sin garantías de ningún tipo. El servicio puede cambiar, y también puede dejar de existir.")
       ]],
-      ["CÓMO USAR STAND", [
+      ["Cómo usar Stand", [
         para("Te pedimos que uses Stand con amabilidad y dentro de la ley, y que no intentes interrumpir el servicio.")
       ]],
-      ["TU PRIVACIDAD", [
+      ["Tu privacidad", [
         para("Cómo trata Stand la información se explica en la <a href=\"/es/privacy\">política de privacidad</a>.")
       ]],
-      ["CONTACTO", [
+      ["Contacto", [
         para(`Si tienes alguna pregunta sobre estos términos, puedes escribir a ${contactLink}.`)
       ]]
     ],
-    updated: "Última actualización: 26 de septiembre de 2026"
+    updated: "Última actualización: 17 de octubre de 2026"
   }
 };
 

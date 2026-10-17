@@ -1569,7 +1569,9 @@ const reminderOptions = () => ({
   from: state.reminderFrom === "start" ? "start" : "current",
   weekdays: state.reminderWeekdays === true,
   lead: REMINDER_LEADS.includes(state.reminderLead) ? state.reminderLead : 0,
-  evening: /^\d{2}:\d{2}$/.test(state.reminderEvening || "") ? state.reminderEvening : null
+  evening: /^\d{2}:\d{2}$/.test(state.reminderEvening || "") ? state.reminderEvening : null,
+  // Private reminders: no day title, verse or practice in the calendar.
+  discreet: state.reminderPrivate === true
 });
 
 function initReminder() {
@@ -1579,6 +1581,7 @@ function initReminder() {
   $("reminderFrom").value = options.from;
   $("reminderLead").value = String(options.lead);
   $("reminderWeekdays").checked = options.weekdays;
+  $("reminderPrivate").checked = options.discreet;
   const changed = () => { save(); $("reminderStatus").textContent = ""; renderReminder(); };
   field.onchange = () => {
     if (/^\d{2}:\d{2}$/.test(field.value)) state.reminderTime = field.value;
@@ -1587,6 +1590,7 @@ function initReminder() {
   $("reminderFrom").onchange = () => { state.reminderFrom = $("reminderFrom").value === "start" ? "start" : "current"; changed(); };
   $("reminderLead").onchange = () => { state.reminderLead = Number($("reminderLead").value); changed(); };
   $("reminderWeekdays").onchange = () => { state.reminderWeekdays = $("reminderWeekdays").checked; changed(); };
+  $("reminderPrivate").onchange = () => { state.reminderPrivate = $("reminderPrivate").checked; changed(); };
   // The evening time field is live only while the check-in is on; its value
   // is kept either way so turning it back on remembers the time.
   const eveningTime = $("reminderEveningTime");
@@ -1615,7 +1619,7 @@ $("reminderButton").onclick = async () => {
   // A reader who had the evening series and turned it off gets it cancelled
   // once; after that the flag clears so the file stays lean.
   const cancelEvening = !options.evening && state.reminderEveningExported === true;
-  const ics = buildReminderIcs({ track, trackId, lang, time: chosen, seq: state.reminderSeq, now: new Date(), origin: location.origin, t, lead: options.lead, evening: options.evening, cancelEvening, schedule });
+  const ics = buildReminderIcs({ track, trackId, lang, time: chosen, seq: state.reminderSeq, now: new Date(), origin: location.origin, t, lead: options.lead, evening: options.evening, cancelEvening, discreet: options.discreet, schedule });
   state.reminderEveningExported = Boolean(options.evening);
   save();
   const eveningNote = options.evening ? " " + t("reminder.eveningOn", { time: options.evening }) : (cancelEvening ? " " + t("reminder.eveningCancelled") : "");
@@ -1677,7 +1681,13 @@ function renderReminder() {
   const { trackId, track, lang, schedule } = reminderContext(time);
   const vars = { count: schedule.count, from: schedule.fromDay + 1, to: track.days.length };
   $("reminderButton").textContent = t(schedule.count === 1 ? "reminder.buttonOne" : "reminder.buttonPlan", vars);
-  const entry = reminderEntry({ track, trackId, lang, origin: location.origin, t, dayIndex: schedule.fromDay, position: 0 });
+  const { discreet } = reminderOptions();
+  // The help line says what the reminders will carry, so it follows Private.
+  // Re-keying it (not just its text) keeps a language switch saying the same.
+  const help = $("reminderHelp");
+  help.dataset.i18n = discreet ? "reminder.helpPrivate" : "reminder.help";
+  help.textContent = t(help.dataset.i18n);
+  const entry = reminderEntry({ track, trackId, lang, origin: location.origin, t, dayIndex: schedule.fromDay, position: 0, discreet });
   $("reminderPreviewTitle").textContent = entry.summary;
   $("reminderPreviewBody").textContent = entry.description;
   renderSubscribe(time, { trackId, lang, schedule });
@@ -1699,6 +1709,7 @@ function subscribeUrl(time, { trackId, lang, schedule }) {
   if (options.weekdays) q.set("weekdays", "1");
   if (options.lead) q.set("lead", String(options.lead));
   if (options.evening) q.set("evening", options.evening);
+  if (options.discreet) q.set("private", "1");
   return `${location.host}/calendar.ics?${q}`;
 }
 

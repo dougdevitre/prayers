@@ -166,5 +166,74 @@ test("the guard itself catches what it retires", () => {
   assert.ok(!visibleText("<script>var sos = 'SOS'</script><p>ok</p>").includes("SOS"));
 });
 
+// The crisis routes Stand gives, per language. Each must appear in the app's
+// support panel (app/index.html, with the words from ui.js) and on that
+// language's terms page (scripts/build-day-pages.js), with its text keyword
+// in the same line, so the two can never give a reader different numbers.
+// Changing a number means changing it here and in both places.
+const CRISIS = {
+  en: [["988"], ["741741", "HOME"], ["1-800-799-7233"], ["88788", "START"], ["1-800-422-4453"], ["911"], ["findahelpline.com"]],
+  es: [["988", "AYUDA"], ["741741", "AYUDA"], ["1-800-799-7233"], ["1-800-422-4453"], ["911"], ["findahelpline.com"]]
+};
+const flat = s => s.replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+// "1-800-799-7233" and "18007997233" are the same number; "988" is not part of "19880".
+const hasRoute = (line, route) => /^[\d-]+$/.test(route)
+  ? new RegExp(`(^|\\D)${route.replace(/-/g, "")}(\\D|$)`).test(line.replace(/(\d)-(?=\d)/g, "$1"))
+  : line.includes(route);
+// The support panel as a reader in `lang` sees it: one entry per list item,
+// each with the words its data-i18n keys carry in that language.
+function panelLines(lang) {
+  const html = fs.readFileSync(path.join(ROOT, "app/index.html"), "utf8").match(/<div class="sos-resources"[\s\S]*?<\/div>/)[0];
+  const words = html.replace(/(<(\w+)[^>]*\sdata-i18n="([^"]+)"[^>]*>)[^<]*(<\/\2>)/g, (m, open, tag, key, close) => open + appUi[lang][key] + close);
+  return { lines: [...words.matchAll(/<li>([\s\S]*?)<\/li>/g)].map(m => flat(m[1])), hrefs: [...html.matchAll(/href="([^"]+)"/g)].map(m => m[1]) };
+}
+// The terms page's crisis section: its list items and paragraphs.
+function termsLines(lang) {
+  const html = fs.readFileSync(path.join(ROOT, lang === "es" ? "es/terms/index.html" : "terms/index.html"), "utf8");
+  const section = html.split('<section class="content-section">').find(s => /<h2[^>]*>(If you are in crisis|Si estás en crisis)<\/h2>/.test(s));
+  assert.ok(section, `the ${lang} terms page has no crisis section`);
+  return { lines: [...section.matchAll(/<(li|p)>([\s\S]*?)<\/\1>/g)].map(m => flat(m[2])), hrefs: [...section.matchAll(/href="([^"]+)"/g)].map(m => m[1]) };
+}
+
+test("the app and the terms give the same crisis numbers, with the same text keywords", () => {
+  const bad = [];
+  for (const lang of ["en", "es"]) {
+    for (const [where, { lines, hrefs }] of [["app", panelLines(lang)], ["terms", termsLines(lang)]]) {
+      for (const [route, keyword] of CRISIS[lang]) {
+        const line = lines.find(l => hasRoute(l, route));
+        if (!line) bad.push(`${lang} ${where}: no ${route}`);
+        else if (keyword && !line.includes(keyword)) bad.push(`${lang} ${where}: ${route} without ${keyword} (“${line}”)`);
+      }
+      // And nothing one-tap that the list does not know about.
+      for (const href of hrefs) {
+        const target = href.replace(/^(tel|sms):\+?1?(?=\d{10}$)/, "").replace(/^(tel|sms):/, "").replace(/^https:\/\//, "");
+        const known = CRISIS[lang].some(([route]) => route.replace(/-/g, "").replace(/^1(?=\d{10}$)/, "") === target || route === target);
+        if (!known) bad.push(`${lang} ${where}: ${href} is not in the crisis list`);
+      }
+    }
+  }
+  assert.deepStrictEqual(bad, []);
+});
+
+// Kickers are capitalized by the stylesheet; written in capitals, a screen
+// reader may spell them out or read them as shouting.
+test("the policy pages write their section headings in normal case", () => {
+  const bad = [];
+  for (const file of ["privacy/index.html", "es/privacy/index.html", "terms/index.html", "es/terms/index.html"]) {
+    const html = fs.readFileSync(path.join(ROOT, file), "utf8");
+    for (const [, heading] of html.matchAll(/<h2[^>]*>([^<]+)<\/h2>/g)) {
+      if (/\p{Ll}/u.test(heading.toLowerCase()) && heading === heading.toUpperCase()) bad.push(`${file}: “${heading}”`);
+    }
+  }
+  assert.deepStrictEqual(bad, []);
+});
+
+test("the crisis check notices a number that differs", () => {
+  assert.ok(hasRoute("Call 1-800-799-7233 now", "1-800-799-7233"));
+  assert.ok(!hasRoute("Call 1-800-799-7234 now", "1-800-799-7233"));
+  assert.ok(!hasRoute("Call 19880", "988"));
+  assert.ok(hasRoute("Call or text 988.", "988"));
+});
+
 if (failures) { console.log(`\n${failures} failing`); process.exit(1); }
 console.log("\nAll copy tests passed.");

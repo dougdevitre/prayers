@@ -286,7 +286,14 @@ const server = http.createServer((req, res) => {
   // One tap to call or text in a crisis, and a way to find help outside the US.
   check("crisis numbers are tappable", await page.evaluate(() => {
     const hrefs = [...document.querySelectorAll("#sosResources a")].map(a => a.getAttribute("href"));
-    return ["tel:988", "sms:741741", "tel:911", "https://findahelpline.com"].every(h => hrefs.includes(h));
+    return ["tel:988", "sms:741741", "tel:+18007997233", "tel:+18004224453", "tel:911", "https://findahelpline.com"].every(h => hrefs.includes(h));
+  }));
+  // Stand's readers include people afraid at home and afraid for a child, so
+  // the panel names the domestic violence and child abuse lines too.
+  check("the domestic violence and child abuse hotlines are listed", await page.evaluate(() => {
+    const text = document.querySelector("#sosResources").textContent;
+    return text.includes("1-800-799-7233 — National Domestic Violence Hotline") && text.includes("text START to 88788")
+      && text.includes("1-800-422-4453 — Childhelp National Child Abuse Hotline");
   }));
   check("the English text line keyword is HOME", (await page.textContent("#sosResources")).includes("Text HOME to 741741"));
   check("readers outside the US are pointed to a helpline finder", (await page.textContent("#sosResources")).includes("Outside the US: findahelpline.com"));
@@ -1586,6 +1593,7 @@ const server = http.createServer((req, res) => {
   check("Spanish crisis resources give 988's Spanish options", esResources.includes("marca 2 para español") && esResources.includes("AYUDA al 988"));
   check("Spanish crisis resources text AYUDA, not HOME, to 741741", esResources.includes("Escribe AYUDA al 741741") && !esResources.includes("HOME"));
   check("Spanish crisis resources point outside the US too", esResources.includes("Fuera de EE. UU.: findahelpline.com"));
+  check("Spanish crisis resources name the domestic violence and child abuse lines", esResources.includes("1-800-799-7233 — Línea Nacional de Violencia Doméstica") && esResources.includes("1-800-422-4453 — Childhelp"));
   await page.click("#closeSos");
 
   await page.click("#prayerButton");
@@ -1770,6 +1778,25 @@ const server = http.createServer((req, res) => {
   const clean = await readIcs();
   check("the next export carries no evening series at all", !clean.includes("stand-evening-checkin@"));
 
+  // Private reminders: the calendar, the lock screen and a shared view get
+  // only the generic name; the preview shows that, the feed link asks for it,
+  // and the choice survives a reload.
+  await page.check("#reminderPrivate");
+  const quiet = unfold(await readIcs());
+  const quietSummaries = [...new Set(quiet.split("\r\n").filter(l => l.startsWith("SUMMARY:")))];
+  check("private reminders carry only the generic name", quietSummaries.length === 1 && quietSummaries[0] === "SUMMARY:Stand — daily prayer");
+  check("private reminders keep the day's notes and page out of the calendar", !quiet.includes("Today’s practice: ") && !quiet.includes("/day/") && quiet.includes(`URL:${SITE_ORIGIN}/app#`));
+  check("the preview shows the private reminder", (await page.textContent("#reminderPreviewTitle")) === "Stand — daily prayer");
+  check("the help line says what a private reminder carries", (await page.textContent("#reminderHelp")).includes("Each says only “Stand — daily prayer”"));
+  check("the feed link asks for private reminders", /[?&]private=1(&|$)/.test(await page.getAttribute("#subscribeLink", "href")));
+  await page.reload({ waitUntil: "networkidle" });
+  await page.click("#libraryButton");
+  await page.click("#reminderOptions > summary");
+  check("private reminders are remembered", await page.isChecked("#reminderPrivate"));
+  await page.uncheck("#reminderPrivate");
+  check("turning private off brings the day back to the preview", (await page.textContent("#reminderPreviewTitle")).startsWith("Stand · Day ")
+    && (await page.textContent("#reminderHelp")).includes("with that day’s verse, practice"));
+
   // The subscription feed: the link the app builds must serve the same
   // series the download does, from the same options.
   await page.click("#reminderSubscribe > summary");
@@ -1911,7 +1938,7 @@ const server = http.createServer((req, res) => {
       && await meta2("og:url") === `${SITE}${url}` && await meta2("twitter:card") === "summary_large_image");
     check(`${url} follows the device's colour scheme`, (await page.getAttribute("html", "class")) === "theme-auto");
     check(`${url} opens with a plain summary and closes with its date`, (await page.textContent(".landing-hero .landing-lead")).length > 200
-      && /^(Last updated|Última actualización): 26/.test((await page.textContent(".landing-section > .landing-fineprint")).trim()));
+      && /^(Last updated: \d{1,2} [A-Z][a-z]+ \d{4}|Última actualización: \d{1,2} de [a-z]+ de \d{4})$/.test((await page.textContent(".landing-section > .landing-fineprint")).trim()));
     check(`${url} heading levels do not skip`, !(await headingsSkip()));
     check(`${url} ships no script`, (await page.$$("script")).length === 0);
     check(`${url} gives the contact address as a mailto link`,

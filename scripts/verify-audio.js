@@ -14,6 +14,10 @@
  * the manifest recorded; --attempts and --delay poll, because the host
  * publishes a little after the files are pushed.
  *
+ * Stale items come with the cost of re-rendering them: the characters the
+ * build would send to ElevenLabs, counted the way build-audio.js counts them,
+ * so a pull request that edits narrated text shows its spend before merge.
+ *
  * --allow-stale lists stale items without failing on them. The Build audio
  * workflow checks the manifest that way before it renders (stale items are
  * what a run is for), and after a dry run or a partial run (--only, --limit),
@@ -36,12 +40,15 @@ function verify({ manifest = lib.readManifest(), items = lib.loadItems(), voices
   const ok = !lines.length && (allowStale || !report.stale.length);
   const mark = allowStale ? "•" : "✗";
   for (const s of report.stale) lines.push(`${mark} ${s.id} is stale: rendered as ${s.key}, the current script and settings give ${s.expected}`);
+  const length = new Map(plan.map(p => [p.item.id, p.item.text.length]));
+  const staleChars = report.stale.reduce((n, s) => n + length.get(s.id), 0);
   if (report.stale.length) {
     lines.push(`  re-render with: node scripts/build-audio.js --only ${report.stale.map(s => s.id).join(",")}`);
+    lines.push(`  that sends ${staleChars.toLocaleString("en-US")} characters to ElevenLabs for ${report.stale.length} recording${report.stale.length === 1 ? "" : "s"}`);
   }
   if (report.orphan.length) lines.push("  remove orphans by deleting their entries from audio-manifest.js");
   lines.push(`${ok ? "✓" : "✗"} audio manifest — ${report.fresh.length} fresh, ${report.stale.length} stale, ${report.orphan.length} orphaned, ${report.missing.length} not yet rendered of ${plan.length}${manifest.enabled === false ? " (recordings disabled)" : ""}`);
-  return { ok, report, lines };
+  return { ok, report, lines, staleChars };
 }
 
 /**

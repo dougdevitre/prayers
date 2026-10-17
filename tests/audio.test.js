@@ -220,6 +220,10 @@ function fakeApi({ failFirst = 0, status = 429 } = {}) {
     assert.ok(!stale.ok);
     assert.ok(stale.lines.some(l => l.includes("es/sos/1 is stale")));
     assert.ok(stale.lines.some(l => l.includes("node scripts/build-audio.js --only es/sos/1")));
+    // And what that costs, counted as the build counts it.
+    const editedLength = edited.find(i => i.id === "es/sos/1").text.length;
+    assert.strictEqual(stale.staleChars, editedLength);
+    assert.ok(stale.lines.includes(`  that sends ${editedLength.toLocaleString("en-US")} characters to ElevenLabs for 1 recording`), stale.lines.join("\n"));
     // Before a render, stale items are the work to do, not a failure; an
     // orphan still fails.
     const before = verify({ manifest: lib.readManifest(file), items: edited, voices, slugify, allowStale: true });
@@ -228,7 +232,11 @@ function fakeApi({ failFirst = 0, status = 429 } = {}) {
     assert.ok(!verify({ manifest: lib.readManifest(file), items: edited.filter(i => i.id !== "es/sos/2"), voices, slugify, allowStale: true }).ok);
     // The settings change under every item of a language.
     const retuned = JSON.parse(JSON.stringify(voices)); retuned.es.sos.speed = 0.95;
-    assert.strictEqual(verify({ manifest: lib.readManifest(file), items, voices: retuned, slugify }).report.stale.length, 4);
+    const retunedReport = verify({ manifest: lib.readManifest(file), items, voices: retuned, slugify });
+    assert.strictEqual(retunedReport.report.stale.length, 4);
+    assert.strictEqual(retunedReport.staleChars, items.filter(i => i.id.startsWith("es/sos/")).reduce((n, i) => n + i.text.length, 0), "a settings change costs every item it touches");
+    assert.ok(retunedReport.lines.some(l => l.endsWith("characters to ElevenLabs for 4 recordings")));
+    assert.strictEqual(fresh.staleChars, 0);
     // A build after the edit renders just the stale one.
     const r = await build.run({ ...build.parseArgs(["--only", "es/sos"]), out: dir },
       { items: edited, voices, slugify, manifest: lib.readManifest(file), manifestFile: file, fetchImpl: api.fetchImpl, apiKey: "k", log: quiet });

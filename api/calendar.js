@@ -10,7 +10,8 @@
 // date-anchored rather than progress-anchored; a reader who falls behind
 // re-subscribes from the app, which builds the URL from where they are.
 //
-// This is the product's only server code. It is a pure function of the
+// It is one of three server functions (with api/report.js and api/card.js),
+// and none of them stores anything. It is a pure function of the
 // query over the committed content, runs on Vercel's Node runtime, and can
 // be exercised by the test server the same way (it is a plain Node
 // (req, res) handler that reads req.url).

@@ -4,7 +4,7 @@
 
 Not a broad devotional platform. One job, done better than anyone: when fear rises — at 3 a.m., before the hearing, in the waiting room — Stand is the app that steadies you, and the daily practice that makes you harder to shake over time.
 
-Current state (v1.2): a complete 30-day journey as an offline-capable PWA with guided narration, notes, journal + export, favorites, streaks, sharing, backup/restore, and hardened security headers. Zero backend, zero cost, total privacy.
+Current state (v1.2): a complete 30-day journey as an offline-capable PWA with guided narration, notes, journal + export, favorites, streaks, sharing, backup/restore, and hardened security headers. No accounts and zero cost; what readers write never leaves their device.
 
 ---
 

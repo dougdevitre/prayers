@@ -59,7 +59,8 @@ const INTERFACE_RULES = {
     [/\breflections?\b/i, "Notes are what the reader writes; the Reflection is the day’s text"],
     [/\brescue\b/i, "a guided pause, not a rescue"],
     [/well stood/i, "no line grades the reader"],
-    [/fear drops/i, "the ledger reports what happened; it does not promise a drop"]
+    [/fear drops/i, "the ledger reports what happened; it does not promise a drop"],
+    [/\byou stood\b/i, "no line grades the reader"]
   ],
   es: [
     [/\bSOS\b/, "«Calma ahora», not SOS"],
@@ -70,7 +71,8 @@ const INTERFACE_RULES = {
     [/reflexiones/i, "las notas son lo que escribe quien lee; la Reflexión es el texto del día"],
     [/rescate/i, "una pausa guiada, no un rescate"],
     [/bien hecho/i, "ninguna frase califica a quien lee"],
-    [/miedo baja/i, "el historial informa lo que pasó; no promete que baje"]
+    [/miedo baja/i, "el historial informa lo que pasó; no promete que baje"],
+    [/te mantuviste firme/i, "ninguna frase califica a quien lee"]
   ]
 };
 // Keys whose wording is the day's own text, not the reader's.
@@ -116,6 +118,8 @@ test("the hand-written pages use curly apostrophes, US spelling and the glossary
     for (const m of t.matchAll(/\S*[A-Za-zÀ-ÿ]'[A-Za-zÀ-ÿ]\S*/g)) bad.push(`${file}: straight apostrophe in “${m[0]}”`);
     for (const m of t.matchAll(/\S*(favourite|armour|\.\.\.)\S*/gi)) bad.push(`${file}: “${m[0]}”`);
     for (const m of t.matchAll(/\b(tracks?|SOS|rezado acompañado|Empieza por un miedo|rescue|rescate)\b/gi)) bad.push(`${file}: “${m[0]}”`);
+    // Stand offers a practice; it does not promise what the practice will make of the reader.
+    for (const m of t.matchAll(/harder to shake|makes you (?:stronger|fearless)|te da más firmeza/gi)) bad.push(`${file}: promises an outcome, “${m[0]}”`);
   }
   assert.deepStrictEqual(bad, []);
 });
@@ -156,8 +160,8 @@ test("every prayer the reader prays is set in the one prayer-text style", () => 
 test("the guard itself catches what it retires", () => {
   // A rule that matched nothing would pass forever; each is shown a violation.
   const hits = (lang, s) => INTERFACE_RULES[lang].some(([re]) => re.test(s));
-  for (const s of ["Choose your path", "A five-day track", "The SOS screen", "Share image", "My reflections", "WELL STOOD", "a guided rescue", "your fear drops"]) assert.ok(hits("en", s), s);
-  for (const s of ["Rezar acompañado", "El Santo Rosario", "Abrir el devocionario", "Compartir imagen", "Mis reflexiones", "Bien hecho", "un rescate", "tu miedo baja"]) assert.ok(hits("es", s), s);
+  for (const s of ["Choose your path", "A five-day track", "The SOS screen", "Share image", "My reflections", "WELL STOOD", "a guided rescue", "your fear drops", "You stood."]) assert.ok(hits("en", s), s);
+  for (const s of ["Rezar acompañado", "El Santo Rosario", "Abrir el devocionario", "Compartir imagen", "Mis reflexiones", "Bien hecho", "un rescate", "tu miedo baja", "Te mantuviste firme."]) assert.ok(hits("es", s), s);
   assert.ok(visibleText('<p>Don\'t</p><img alt="x">').includes("Don't"));
   assert.ok(!visibleText("<script>var sos = 'SOS'</script><p>ok</p>").includes("SOS"));
 });

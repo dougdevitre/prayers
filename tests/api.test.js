@@ -38,11 +38,15 @@ const request = (server, path, method = "GET") => new Promise((resolve, reject) 
     assert.strictEqual(p.weekdays, false);
     assert.strictEqual(p.lead, 0);
     assert.strictEqual(p.evening, null);
+    assert.strictEqual(p.discreet, false);
     assert.strictEqual(p.startDate.getDate(), 26);
     const full = parseQuery("?track=furnace&from=2&start=2026-09-26&time=21:30&lang=es&weekdays=1&lead=30&evening=21:00");
     assert.strictEqual(full.trackId, "furnace");
     assert.strictEqual(full.track.short, "El horno");
     assert.deepStrictEqual([full.from, full.time, full.lang, full.weekdays, full.lead, full.evening], [2, "21:30", "es", true, 30, "21:00"]);
+    // Only private=1 turns private reminders on; anything else leaves them off.
+    assert.strictEqual(parseQuery("?start=2026-09-26&private=1").discreet, true);
+    for (const v of ["0", "yes", "true", ""]) assert.strictEqual(parseQuery(`?start=2026-09-26&private=${v}`).discreet, false, `private=${v}`);
   });
 
   await test("every bad parameter is named, and nothing else is guessed", () => {
@@ -72,6 +76,14 @@ const request = (server, path, method = "GET") => new Promise((resolve, reject) 
     assert.ok(ics.includes("TRIGGER:-PT10M") && !ics.includes("TRIGGER:PT0S"));
     assert.strictEqual(ics.split("UID:stand-evening-checkin@").length - 1, 5, "one evening master and four overrides");
     assert.ok(ics.includes("DTSTART:20260928T210000"));
+  });
+
+  await test("a private feed carries no day title, verse or page link", () => {
+    const ics = unfold(feedFor(parseQuery("?track=core&from=18&start=2026-09-26&time=07:00&evening=21:00&private=1"), "https://prayers.dougdevitre.org"));
+    assert.ok(ics.includes("URL:https://prayers.dougdevitre.org/app#18"), "it still links straight to the day");
+    assert.ok(!ics.includes("False Accusations") && !ics.includes("/day/"), "Day 18's title, in the summary or a page link");
+    const summaries = ics.split("\r\n").filter(l => l.startsWith("SUMMARY:"));
+    assert.deepStrictEqual([...new Set(summaries)], ["SUMMARY:Stand — daily prayer", "SUMMARY:Stand — evening check-in"]);
   });
 
   await test("the feed is a pure function of its query", () => {

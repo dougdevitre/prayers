@@ -115,7 +115,7 @@ Media Session API (lock-screen play/pause, artwork), a sleep timer for night nar
 **Shipped: audio behaves the same everywhere.** Every surface (the day, the composer, the Prayer Book, the Rosary, SOS) plays through one prayer player: one saved speed, a Listen button that turns to Stop, a lock-screen title, and nothing left talking underneath when another surface opens. Marking the day complete no longer cuts off its narration. Link settings are cleared from the address bar once applied.
 
 ### Safety footer
-A calm, permanent line in settings and SOS: educational/spiritual support framing, plus 988 Suicide & Crisis Lifeline and Crisis Text Line (text HOME to 741741). Trauma-informed wording, never gating, never alarmist.
+A calm, permanent line in settings and SOS: educational/spiritual support framing, plus 988 Suicide & Crisis Lifeline, Crisis Text Line (text HOME to 741741), the National Domestic Violence Hotline and the Childhelp National Child Abuse Hotline. Trauma-informed wording, never gating, never alarmist.
 
 ### SEO day pages
 Pre-render each day and track as a real static page (`/day/8-fear`, `/track/night-fear`) with proper titles and meta. Currently the SPA's hash routes are invisible to search — this unlocks the long-tail acquisition channel at zero cost.

@@ -485,6 +485,64 @@ test("every line of a file with an evening series still folds and escapes cleanl
   }
 });
 
+/* ---------- private reminders ---------- */
+
+// A reader whose calendar others can see asks for nothing but the generic
+// name and a link. Exact equality, not "does not include the title": Day 1
+// of the core journey is called "Stand", which the generic name also says.
+test("private reminders say only the generic name and link into the app, every journey, both series, both languages", () => {
+  for (const [lang, set] of [["en", tracks], ["es", esTracks]]) {
+    const t = tFor(lang);
+    for (const [id, track] of Object.entries(set)) {
+      const { master, overrides, evening } = parse(build({ trackId: id, lang, evening: "21:00", discreet: true }));
+      assert.strictEqual(master.SUMMARY, icsText(t("reminder.summary")));
+      assert.strictEqual(overrides.length, track.days.length);
+      overrides.forEach((ev, k) => {
+        const url = appDayLink(ORIGIN, id, k);
+        assert.strictEqual(ev.SUMMARY, icsText(t("reminder.summary")), `${lang}/${id} day ${k + 1} summary`);
+        assert.strictEqual(ev.DESCRIPTION, icsText(t("reminder.openDay", { n: k + 1, url })), `${lang}/${id} day ${k + 1} notes`);
+        assert.strictEqual(ev.URL, url);
+        assert.strictEqual(ev.alarm.DESCRIPTION, icsText(t("reminder.alarm")), `${lang}/${id} day ${k + 1} alarm`);
+      });
+      evening.overrides.forEach((ev, k) => {
+        assert.strictEqual(ev.SUMMARY, icsText(t("reminder.eveningMaster")), `${lang}/${id} evening ${k + 1} summary`);
+        assert.strictEqual(ev.DESCRIPTION, icsText(t("reminder.eveningOpen", { n: k + 1, url: ev.URL })), `${lang}/${id} evening ${k + 1} notes`);
+        assert.ok(ev.URL.startsWith(`${ORIGIN}/app?checkin=1`), ev.URL);
+        assert.strictEqual(ev.alarm.DESCRIPTION, icsText(t("reminder.eveningMaster")), `${lang}/${id} evening ${k + 1} alarm`);
+      });
+    }
+  }
+});
+
+test("a private reminder names no page, so no day title reaches the calendar through a link", () => {
+  const ics = build({ trackId: "core", evening: "21:00", discreet: true });
+  assert.ok(!ics.includes("/day/") && !ics.includes("/track/"), "a page link, whose slug is the day's title");
+  for (const day of tracks.core.days) assert.ok(!ics.includes(day[1]), `the reference ${day[1]}`);
+});
+
+test("private changes only the words: the same series, dates, alarms and links", () => {
+  const plan = reminderSchedule({ dayCount: 30, completed: [0, 1, 2], time: "07:00", now: NOW, weekdays: true });
+  const open = parse(build({ time: "07:00", evening: "21:00", lead: 30, schedule: plan }));
+  const quiet = parse(build({ time: "07:00", evening: "21:00", lead: 30, schedule: plan, discreet: true }));
+  assert.strictEqual(quiet.events.length, open.events.length);
+  quiet.events.forEach((ev, k) => {
+    for (const key of ["UID", "SEQUENCE", "DTSTART", "RECURRENCE-ID", "RRULE", "DURATION", "TRANSP", "URL"]) {
+      assert.strictEqual(ev[key], open.events[k][key], `event ${k} ${key}`);
+    }
+    assert.strictEqual(ev.alarm.TRIGGER, open.events[k].alarm.TRIGGER);
+  });
+});
+
+test("the private preview entry is exactly what the private file carries", () => {
+  const { overrides } = parse(build({ completed: [0, 1, 2, 3, 4, 5], discreet: true }));
+  const entry = reminderEntry({ track: tracks.core, trackId: "core", lang: "en", origin: ORIGIN, t: tFor("en"), dayIndex: 6, position: 0, discreet: true });
+  assert.strictEqual(entry.summary, "Stand — daily prayer");
+  assert.strictEqual(entry.description, `Open Day 7 in the app: ${ORIGIN}/app#7`);
+  assert.strictEqual(overrides[0].SUMMARY, icsText(entry.summary));
+  assert.strictEqual(overrides[0].DESCRIPTION, icsText(entry.description));
+  assert.strictEqual(overrides[0].alarm.DESCRIPTION, icsText(entry.alarm));
+});
+
 /* ---------- daylight saving ---------- */
 
 // Every calendar day across a DST change must still print the chosen HH:MM,

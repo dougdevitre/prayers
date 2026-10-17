@@ -2,7 +2,7 @@
 // calendar app can subscribe to and poll, so the reader never re-exports.
 //
 //   GET /calendar.ics?track=core&from=7&start=2026-09-26&time=07:00&lang=en
-//       [&weekdays=1][&lead=10|30][&evening=21:00]
+//       [&weekdays=1][&lead=10|30][&evening=21:00][&private=1]
 //
 // Everything is in the query and nothing is stored: journey id, the day to
 // start on, the date of that first reminder, the time, the language, and
@@ -51,7 +51,9 @@ function parseQuery(search) {
   if (!REMINDER_LEADS.includes(lead)) return { error: "lead" };
   const evening = q.get("evening") || null;
   if (evening && !TIME.test(evening)) return { error: "evening" };
-  return { trackId, track, lang, from, time, startDate, weekdays: q.get("weekdays") === "1", lead, evening };
+  // private=1: every event carries only the generic name and the app link
+  // (reminder.js, "Private reminders").
+  return { trackId, track, lang, from, time, startDate, weekdays: q.get("weekdays") === "1", lead, evening, discreet: q.get("private") === "1" };
 }
 
 /** The .ics for a parsed query. Exported so it can be tested without HTTP. */
@@ -61,7 +63,7 @@ function feedFor(p, origin) {
   const schedule = reminderSchedule({ dayCount: p.track.days.length, time: p.time, now: p.startDate, from: p.from - 1, weekdays: p.weekdays });
   return buildReminderIcs({
     track: p.track, trackId: p.trackId, lang: p.lang, time: p.time, seq: 0, now: p.startDate, origin,
-    t: tFor(p.lang), lead: p.lead, evening: p.evening, schedule
+    t: tFor(p.lang), lead: p.lead, evening: p.evening, discreet: p.discreet === true, schedule
   });
 }
 

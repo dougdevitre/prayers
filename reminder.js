@@ -23,6 +23,15 @@
 //   - a client that ignores overrides still shows the master's generic
 //     summary and a description that links into the app.
 //
+// Private reminders (`discreet`) are for a reader whose calendar or lock
+// screen other people can see: a shared family calendar, a work account, a
+// phone left on the table. Every event then carries only the generic summary
+// and alarm ("Stand — daily prayer", "Time to stand") and a link into the
+// app; no day title, verse, practice or declaration, and no web-page link,
+// whose slug is the day's title. The days on Stand's journeys are things like
+// "False Accusations" and "Protect the Vulnerable", so the title alone can
+// say more than a reader means to share.
+//
 // Times are deliberately FLOATING (no Z, no TZID): the reminder fires at the
 // chosen wall-clock time wherever the reader happens to be. Do not "fix" this
 // into UTC. The chosen HH:MM is printed literally and only the calendar day
@@ -159,14 +168,18 @@ function weekLabel(weeks, d) {
  * alarm text. Shared by the file and by the in-app preview, so what the
  * reader sees before tapping is exactly what lands in the calendar.
  *   dayIndex  the day in the journey; position  where it sits in this export
+ *   discreet  a private reminder: generic text and the app link only
  */
-function reminderEntry({ track, trackId, lang, origin, t, dayIndex, position }) {
+function reminderEntry({ track, trackId, lang, origin, t, dayIndex, position, discreet = false }) {
   const total = track.days.length;
   const [title, ref, verse, , , declaration, practice] = track.days[dayIndex];
   const n = dayIndex + 1;
   const appLink = appDayLink(origin, trackId, dayIndex);
   // #practice lands the page on the action itself rather than the top.
   const pageLink = `${origin}${dayPagePath(trackId, track, dayIndex, lang)}#practice`;
+  if (discreet) {
+    return { summary: t("reminder.summary"), description: t("reminder.openDay", { n, url: appLink }), url: appLink, pageUrl: null, alarm: t("reminder.alarm") };
+  }
   const summary = trackId === "core"
     ? t("reminder.daySummary", { n, title })
     : t("reminder.trackDaySummary", { n, title, track: track.short });
@@ -189,12 +202,16 @@ function reminderEntry({ track, trackId, lang, origin, t, dayIndex, position }) 
 }
 
 /** The evening check-in for one day: the practice the morning asked for,
- * a question, and a link that opens the day with the fear check-in in view. */
-function eveningEntry({ track, trackId, lang, origin, t, dayIndex }) {
+ * a question, and a link that opens the day with the fear check-in in view.
+ * A discreet one keeps only the generic name and the link. */
+function eveningEntry({ track, trackId, lang, origin, t, dayIndex, discreet = false }) {
   const total = track.days.length;
   const [title, , , , , declaration, practice] = track.days[dayIndex];
   const n = dayIndex + 1;
   const link = `${appDayLink(origin, trackId, dayIndex).replace("/app", "/app?checkin=1").replace("?checkin=1?", "?checkin=1&")}`;
+  if (discreet) {
+    return { summary: t("reminder.eveningMaster"), description: t("reminder.eveningOpen", { n, url: link }), url: link, alarm: t("reminder.eveningMaster") };
+  }
   const summary = t("reminder.eveningSummary", { n, title });
   const description = [
     t("reminder.dayOf", { n, total, title }),
@@ -225,9 +242,11 @@ function eveningEntry({ track, trackId, lang, origin, t, dayIndex }) {
  *             null for none
  *   cancelEvening  true emits the evening master as CANCELLED (no overrides),
  *             for a reader who had the series and has turned it off
+ *   discreet  private reminders: every event says only "Stand — daily
+ *             prayer" (or "evening check-in") and links into the app
  *   schedule  from reminderSchedule(); computed here when omitted
  */
-function buildReminderIcs({ track, trackId, lang, time, seq, now, origin, t, lead = 0, evening = null, cancelEvening = false, completed, schedule }) {
+function buildReminderIcs({ track, trackId, lang, time, seq, now, origin, t, lead = 0, evening = null, cancelEvening = false, discreet = false, completed, schedule }) {
   const plan = schedule || reminderSchedule({ dayCount: track.days.length, completed, time, now });
   const [hh, mm] = time.split(":");
   const dayStamp = d => `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}T${hh}${mm}00`;
@@ -267,7 +286,7 @@ function buildReminderIcs({ track, trackId, lang, time, seq, now, origin, t, lea
 
   for (let k = 0; k < plan.count; k++) {
     const when = dayStamp(dateAt(k));
-    const entry = reminderEntry({ track, trackId, lang, origin, t, dayIndex: plan.fromDay + k, position: k });
+    const entry = reminderEntry({ track, trackId, lang, origin, t, dayIndex: plan.fromDay + k, position: k, discreet });
     lines.push(
       "BEGIN:VEVENT",
       `UID:${REMINDER_UID}`,
@@ -307,7 +326,7 @@ function buildReminderIcs({ track, trackId, lang, time, seq, now, origin, t, lea
     );
     for (let k = 0; k < plan.count; k++) {
       const when = eveningStamp(dateAt(k));
-      const entry = eveningEntry({ track, trackId, lang, origin, t, dayIndex: plan.fromDay + k });
+      const entry = eveningEntry({ track, trackId, lang, origin, t, dayIndex: plan.fromDay + k, discreet });
       lines.push(
         "BEGIN:VEVENT",
         `UID:${EVENING_UID}`,

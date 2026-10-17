@@ -172,6 +172,8 @@ function sanitizeBackup(raw, deps) {
     // Whether an evening series has been exported, so turning it off can
     // cancel it once.
     reminderEveningExported: raw.reminderEveningExported === true,
+    // Private reminders: generic calendar text only.
+    reminderPrivate: raw.reminderPrivate === true,
     // The narration speed, one of the speeds the app offers.
     voiceRate: VOICE_RATES.includes(raw.voiceRate) ? raw.voiceRate : 1
   };

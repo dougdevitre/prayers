@@ -349,6 +349,15 @@ function mediaPause() {
   }
 }
 
+// What the lock screen calls a playing day: "Guided prayer · Day 12", never
+// the day's title. The lock screen is the one place anyone near the phone can
+// read without unlocking it, and a title like "False Accusations" or "Protect
+// the Vulnerable" can say more than a reader means to share (the same reason
+// as private reminders, reminder.js). Steady me now plays as "Guided prayer"
+// for the same reason; traditional prayers keep their own names, which say
+// nothing about the reader.
+const lockScreenTitle = () => t("audio.lockScreen", { n: day + 1 });
+
 // Called once a recording is playing: title, artwork, and the transport and
 // seek controls a recording can honour.
 function setMediaSession(title) {
@@ -379,7 +388,7 @@ function playRecorded(src) {
   audioEl.currentTime = 0;
   audioEl.play().then(() => {
     setPlayerStatus("playing");
-    setMediaSession(document.title);
+    setMediaSession(lockScreenTitle());
   }).catch(() => {
     // File missing or blocked — fall back to device narration.
     player.mode = "tts";
@@ -429,7 +438,7 @@ function stopAudio() {
 
 function speakDay() {
   player.mode = "tts";
-  setMediaSession(document.title);
+  setMediaSession(lockScreenTitle());
   speechMediaSession();
   const script = narrationScript(day);
   const utterance = new SpeechSynthesisUtterance(script);
@@ -656,7 +665,8 @@ function sosAnchor() {
   listen.dataset.listen = t("sos.listen");
   listen.textContent = t("sos.listen");
   listen.onclick = () => {
-    const title = `${t("sos.button")} · ${sosSet().ref}`;
+    // Only "Guided prayer" on the lock screen: not that this is the pause.
+    const title = t("audio.title");
     const speak = () => speakPrayer([{ text: sosScript(sosSet(), state.lang), pause: 0 }], listen, title);
     const src = recordedUrl(sosItemId(state.lang, sos.i));
     if (src) playPrayerRecording(src, listen, speak, title);
@@ -2014,7 +2024,7 @@ function playPrayerRecording(src, button, fallback, title) {
   audioEl.currentTime = 0;
   audioEl.play().then(() => {
     if (!prayerAudio.recorded) return;
-    setMediaSession(title || document.title);
+    setMediaSession(title || t("audio.title"));
     setMediaPlaybackState("playing");
   }).catch(() => {
     if (!prayerAudio.recorded) return;
@@ -2035,7 +2045,7 @@ function speakPrayer(segments, button, title) {
   stopAudio();
   prayerAudio.playing = true;
   updatePrayerButton(button, true);
-  setMediaSession(title || document.title);
+  setMediaSession(title || t("audio.title"));
   speechMediaSession();
   setMediaPlaybackState("playing");
 

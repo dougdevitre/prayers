@@ -1,10 +1,13 @@
 #!/usr/bin/env node
-// The printable workbook for the 30-day journey: one PDF per language, US
-// Letter portrait, for a reader to print and write in. (Not the pastoral
-// review workbook, scripts/build-review-workbook.js, which is for the reviewer.)
+// The printable workbook for the 30-day journey: US Letter portrait, in two
+// editions per language. The print edition is for a reader to print and write
+// in by hand; the fillable edition has the same pages, with boxes in place of
+// the ruled lines and real form fields to type in, tick and choose on screen
+// (scripts/workbook-form.js). (Not the pastoral review workbook,
+// scripts/build-review-workbook.js, which is for the reviewer.)
 //
-//   npm run build:workbook                  → both, in .workbook/
-//   npm run build:workbook -- --lang es     → the Spanish one only
+//   npm run build:workbook                  → all four, in .workbook/
+//   npm run build:workbook -- --lang es     → the Spanish ones only
 //   CHROMIUM_PATH=/path/to/chrome npm run build:workbook
 //
 // Every devotional word comes from content.js (content.es.js in Spanish) and
@@ -20,6 +23,13 @@
 // as real rules after layout, so they print crisp. The build fails, naming the
 // page, if anything runs off a page: a longer prayer after an edit gets a look
 // at the layout instead of a clipped line.
+//
+// In the fillable edition each place to write, tick or choose carries
+// data-field attributes; the build measures them on the laid-out page and
+// lays a form field over each. A day's check-in is one field shown in three
+// places (the day, the tracker's chart, the week's chart), so the charts fill
+// in on their own. The codes there are also links, for a reader on a tablet.
+// The form runs no script and sends nothing anywhere.
 //
 // The PDFs are written to .workbook/ (ignored by git, never deployed).
 
@@ -104,7 +114,25 @@ const COPY = {
     isnt: page => `Stand offers spiritual encouragement and prayer. It is not medical, mental health, legal or financial advice, and it is not a substitute for a licensed professional. If you need help now, the numbers are on page ${page}.`,
     useTitle: "Using this workbook",
     use: "The text and prayers in Stand belong to the Stand project. You are welcome to print this workbook for your own personal, non-commercial prayer, and to share the link with anyone.",
-    editionTitle: "This edition"
+    editionTitle: "This edition",
+    breath: (n, total) => `Breath ${n} of ${total}`, // tooltips (fillable edition)
+    // The fillable edition: only what differs from the print one.
+    fill: {
+      file: "Stand-30-Day-Workbook-Fillable.pdf",
+      docTitle: "Stand — 30-Day Workbook (fillable)",
+      edition: "First fillable edition, October 2026.", // update with each fillable edition
+      coverKicker: "A prayer workbook to fill in on screen",
+      howLead: "Each day takes about ten minutes. Open this file in a PDF app that can fill in forms; type in the boxes, tap or click the circles and squares, and save after each day. There is no wrong way to do it.",
+      steps: [["Read", "the verse and the reflection, slowly."], ["Pray", "the day’s prayer, aloud if you can."], ["Declare", "speak the declaration, then tick the box."],
+        ["Practice", "one small, concrete step for the day."], ["Check in", "mark where your fear is, before and after you pray."], ["Write", "a few lines. A sentence is enough."]],
+      scan: n => `Tap or scan to listen to Day ${n}`,
+      listenBody: "Every day can be read aloud to you in the Stand app, which is free and needs no account. Tap or scan the code beside any day’s title to open that day. This one opens the app.",
+      privateBody: "This workbook is yours. What you type is kept in this file, which sends none of it anywhere. If you share or upload the file, what you wrote goes with it.",
+      chartHint: "It fills in from each day’s check-in.",
+      weekHint: "It fills in from each day’s check-ins: your fear before (B) and after (A) you prayed.",
+      declsHint: "Mark the one you most want to keep.",
+      use: "The text and prayers in Stand belong to the Stand project. You are welcome to fill in and print this workbook for your own personal, non-commercial prayer, and to share the link with anyone."
+    }
   },
   es: {
     file: "Stand-Cuaderno-30-Dias.pdf",
@@ -167,9 +195,28 @@ const COPY = {
     isnt: page => `Stand ofrece acompañamiento espiritual y oración. No es consejo médico, de salud mental, legal ni financiero, y no sustituye a un profesional con licencia. Si necesitas ayuda ahora, los números están en la página ${page}.`,
     useTitle: "Uso de este cuaderno",
     use: "Los textos y las oraciones de Stand pertenecen al proyecto Stand. Puedes imprimir este cuaderno para tu oración personal, sin fines comerciales, y compartir el enlace con quien quieras.",
-    editionTitle: "Esta edición"
+    editionTitle: "Esta edición",
+    breath: (n, total) => `Respiración ${n} de ${total}`, // descripciones de los campos (edición rellenable)
+    // La edición rellenable: solo lo que cambia respecto de la impresa.
+    fill: {
+      file: "Stand-Cuaderno-30-Dias-Rellenable.pdf",
+      docTitle: "Stand — Cuaderno de 30 días (rellenable)",
+      edition: "Primera edición rellenable, octubre de 2026.", // actualizar en cada edición rellenable
+      coverKicker: "Un cuaderno de oración para rellenar en pantalla",
+      howLead: "Cada día toma unos diez minutos. En una app de PDF que permita rellenar formularios, escribe en los recuadros, marca los círculos y las casillas, y guarda después de cada día. No hay una manera equivocada de hacerlo.",
+      scan: n => `Toca o escanea para escuchar el día ${n}`,
+      listenBody: "Cada día se puede escuchar en voz alta en la app Stand, que es gratuita y no necesita cuenta. Toca o escanea el código junto al título de cualquier día para abrir ese día. Este abre la app.",
+      privateBody: "Este cuaderno es tuyo. Lo que escribas se guarda en este archivo, que no lo envía a ninguna parte. Si compartes o subes el archivo, lo que escribiste va con él.",
+      chartHint: "Se rellena con el registro de cada día.",
+      weekHint: "Se rellena con los registros de cada día: tu miedo antes (A) y después (D) de orar.",
+      declsHint: "Marca la que más quieras conservar.",
+      use: "Los textos y las oraciones de Stand pertenecen al proyecto Stand. Puedes rellenar e imprimir este cuaderno para tu oración personal, sin fines comerciales, y compartir el enlace con quien quieras."
+    }
   }
 };
+
+/** The workbook's own words for one edition: the print wording, with the fillable edition's changes over it. */
+const copyFor = (lang, fillable = false) => fillable ? { ...COPY[lang], ...COPY[lang].fill } : COPY[lang];
 
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 // "WEEK ONE · ESTABLISH THE GROUND" → "Week one · Establish the ground"; the
@@ -215,11 +262,13 @@ async function makeQr(urls = qrTargets()) {
 
 /**
  * The whole workbook in one language as one HTML document. `qr` maps each of
- * qrTargets(lang) to an SVG; `fontBase` is the URL the bundled fonts load from.
- * Returns { html, pages } where pages lists each page's kind, in order.
+ * qrTargets(lang) to an SVG; `fontBase` is the URL the bundled fonts load from;
+ * `fillable` makes the fillable edition, marking each place to write, tick or
+ * choose for the form layer. Returns { html, pages } where pages lists each
+ * page's kind, in order.
  */
-function buildHtml({ qr, lang = "en", fontBase = `file://${path.join(ROOT, "fonts")}/` }) {
-  const C = COPY[lang];
+function buildHtml({ qr, lang = "en", fillable = false, fontBase = `file://${path.join(ROOT, "fonts")}/` }) {
+  const C = copyFor(lang, fillable);
   const ui = appUi[lang];
   const core = coreFor(lang);
   const days = daysFor(lang);
@@ -228,10 +277,25 @@ function buildHtml({ qr, lang = "en", fontBase = `file://${path.join(ROOT, "font
   const [coverTitle, coverSub] = core.name.split(" — ");
   const epigraph = C.epigraph.source.slice(C.epigraph.source.indexOf(C.epigraph.from));
 
+  // The fillable edition only: a form field's name, kind and tooltip, and how
+  // it sits (scripts/workbook-form.js). `f` is { name, tip }; the print
+  // edition gets none of it.
+  const field = (f, kind, extra = {}) => !fillable || !f ? ""
+    : ` data-field="${f.name}" data-kind="${kind}" data-tip="${esc(f.tip)}"` + Object.entries(extra).map(([k, v]) => ` data-${k}="${esc(v)}"`).join("");
+  const markHere = f => fillable && f ? " data-mark" : "";
+  const link = (url, svg) => fillable ? `<a href="${esc(url)}">${svg}</a>` : svg;
+  // A day's fields. Its check-in and its practice tick show in more than one
+  // place, always as the same field.
+  const dayField = (d, key, tip) => ({ name: `day-${String(d.n).padStart(2, "0")}-${key}`, tip: `${C.day(d.n)} · ${tip}` });
+  const before = d => dayField(d, "before", `${C.fearCheckin} · ${C.beforePrayed}`);
+  const after = d => dayField(d, "after", `${C.fearCheckin} · ${C.after}`);
+  const done = d => dayField(d, "done", `${C.practiceLabel} · ${C.done}`);
+
   const STAR = `<svg class="star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4Z"/></svg>`;
-  const box = label => `<span class="tick"><span class="box"></span>${esc(label)}</span>`;
-  const scale = () => `<span class="dots">${[1, 2, 3, 4, 5].map(n => `<span class="dot">${n}</span>`).join("")}</span>`;
-  const lines = (grow = 1, prompt = "") => `<div class="prompt" style="flex-grow:${grow}">${prompt ? `<p class="q">${esc(prompt)}</p>` : ""}<div class="lines"></div></div>`;
+  const box = (label, f) => `<span class="tick"${field(f, "check", { look: "check" })}><span class="box"${markHere(f)}></span>${esc(label)}</span>`;
+  const scale = f => `<span class="dots">${[1, 2, 3, 4, 5].map(n => `<span class="dot"${field(f, "radio", { value: n, look: "ring", grow: 3 })}>${n}</span>`).join("")}</span>`;
+  const lines = (grow = 1, prompt = "", f) => `<div class="prompt" style="flex-grow:${grow}">${prompt ? `<p class="q">${esc(prompt)}</p>` : ""}<div class="lines"${field(f, "text", { multiline: 1, grow: -3 })}></div></div>`;
+  const blank = (cls, f, size) => `<span class="blank${cls ? ` ${cls}` : ""}"${field(f, "text", size ? { size } : {})}></span>`;
 
   const pages = [];
   const page = (cls, body, { footer = true } = {}) => {
@@ -244,8 +308,9 @@ function buildHtml({ qr, lang = "en", fontBase = `file://${path.join(ROOT, "font
     return n;
   };
 
-  // One column of five circles per mark; 5 (overwhelming) at the top.
-  const chart = ({ cols, sub = [""], width = 540, height = 150, label }) => {
+  // One column of five circles per mark; 5 (overwhelming) at the top. In the
+  // fillable edition, fields[i][k] is the field for column i's mark k.
+  const chart = ({ cols, sub = [""], width = 540, height = 150, label, fields = [] }) => {
     const left = 74, bottom = 26, top = 8;
     const plotW = width - left - 6, plotH = height - bottom - top;
     const colW = plotW / cols.length, subW = colW / sub.length;
@@ -262,7 +327,7 @@ function buildHtml({ qr, lang = "en", fontBase = `file://${path.join(ROOT, "font
       if (i) s += `<line x1="${x0}" x2="${x0}" y1="${top}" y2="${top + plotH}" class="divide"/>`;
       sub.forEach((name, k) => {
         const cx = x0 + subW * (k + 0.5);
-        for (const level of [1, 2, 3, 4, 5]) s += `<circle cx="${cx}" cy="${y(level)}" r="${r}" class="pip"/>`;
+        for (const level of [1, 2, 3, 4, 5]) s += `<circle cx="${cx}" cy="${y(level)}" r="${r}" class="pip"${field((fields[i] || [])[k], "radio", { value: level, look: "dot", grow: 2.5 })}/>`;
         if (name) s += `<text x="${cx}" y="${top + plotH + 10}" text-anchor="middle" class="sub">${esc(name)}</text>`;
       });
       s += `<text x="${x0 + colW / 2}" y="${height - 3}" text-anchor="middle" class="axis day">${esc(c)}</text>`;
@@ -294,8 +359,8 @@ function buildHtml({ qr, lang = "en", fontBase = `file://${path.join(ROOT, "font
     <blockquote class="cover-verse">“${esc(epigraph)}”</blockquote>
     <p class="ref cover-ref">${esc(C.epigraph.ref)}</p>
     <div class="fields">
-      <div class="field"><span>${esc(C.belongs)}</span><span class="blank"></span></div>
-      <div class="field"><span>${esc(C.began)}</span><span class="blank"></span></div>
+      <div class="field"><span>${esc(C.belongs)}</span>${blank("", { name: "cover-name", tip: C.belongs })}</div>
+      <div class="field"><span>${esc(C.began)}</span>${blank("", { name: "cover-began", tip: C.began })}</div>
     </div>
     <div class="cover-foot"><span class="brand">${STAR}<span>Stand</span></span><span>prayers.dougdevitre.org</span></div>
   </div>`, { footer: false });
@@ -321,7 +386,7 @@ function buildHtml({ qr, lang = "en", fontBase = `file://${path.join(ROOT, "font
     <div>
       <h2 class="label">${esc(C.listenTitle)}</h2>
       <p>${esc(C.listenBody)}</p>
-      <div class="qr-big">${qr[appLink(lang)]}</div>
+      <div class="qr-big">${link(appLink(lang), qr[appLink(lang)])}</div>
       <h2 class="label">${esc(C.privateTitle)}</h2>
       <p>${esc(C.privateBody)}</p>
     </div>
@@ -336,18 +401,18 @@ function buildHtml({ qr, lang = "en", fontBase = `file://${path.join(ROOT, "font
   <p class="lead">${esc(C.steadyLead)}</p>
   <ol class="pause">
     <li><b>${esc(C.breathe[0])}</b> ${esc(C.breathe[1])}
-      <span class="breaths">${[1, 2, 3].map(() => `<span class="breath"></span>`).join("")}</span></li>
+      <span class="breaths">${[1, 2, 3].map(k => `<span class="breath"${field({ name: `steady-breath-${k}`, tip: C.breath(k, 3) }, "check", { look: "gold", grow: 2 })}></span>`).join("")}</span></li>
     <li><b>${esc(C.anchor)}</b> <span class="verse-inline">“${esc(sos.verse)}”</span> <span class="ref-inline">${esc(sos.ref)}</span></li>
     <li><b>${esc(C.pray)}</b> <span class="serif">${esc(sos.prayer)}</span></li>
     <li><b>${esc(C.declare)}</b> <span class="serif">${esc(sos.declaration)}</span></li>
     <li><b>${esc(C.checkIn[0])}</b> ${esc(C.checkIn[1])} ${esc(ui["sos.closing"])}
-      <span class="inline-checkin">${esc(C.before)} ${scale()} <span class="gap"></span> ${esc(C.after)} ${scale()}</span></li>
+      <span class="inline-checkin">${esc(C.before)} ${scale({ name: "steady-before", tip: `${C.steadyTitle(ui)} · ${C.before}` })} <span class="gap"></span> ${esc(C.after)} ${scale({ name: "steady-after", tip: `${C.steadyTitle(ui)} · ${C.after}` })}</span></li>
   </ol>
   <h2 class="label">${esc(C.steadiesTitle)}</h2>
   <div class="write steadies">
-    ${lines(3, C.steadies[0])}
-    ${lines(2, C.steadies[1])}
-    ${lines(2, C.steadies[2])}
+    ${lines(3, C.steadies[0], { name: "steady-1", tip: C.steadies[0] })}
+    ${lines(2, C.steadies[1], { name: "steady-2", tip: C.steadies[1] })}
+    ${lines(2, C.steadies[2], { name: "steady-3", tip: C.steadies[2] })}
   </div>
   ${support}`);
 
@@ -356,11 +421,11 @@ function buildHtml({ qr, lang = "en", fontBase = `file://${path.join(ROOT, "font
   <p class="kicker">${esc(C.beginKicker)}</p>
   <h1 class="page-title">${esc(C.beginTitle)}</h1>
   <div class="write">
-    ${lines(5, C.afraid)}
-    <div class="checkin solo"><span class="label">${esc(C.today)}</span>${scale()}<span class="legend">${esc(ui["checkin.scale"])}</span></div>
-    ${lines(4, C.hoping)}
-    ${lines(3, C.walking)}
-    <div class="when"><span class="label">${esc(C.when)}</span><span class="blank short"></span><span class="label">${esc(C.where)}</span><span class="blank"></span></div>
+    ${lines(5, C.afraid, { name: "begin-afraid", tip: C.afraid })}
+    <div class="checkin solo"><span class="label">${esc(C.today)}</span>${scale({ name: "begin-fear", tip: C.today })}<span class="legend">${esc(ui["checkin.scale"])}</span></div>
+    ${lines(4, C.hoping, { name: "begin-hoping", tip: C.hoping })}
+    ${lines(3, C.walking, { name: "begin-walking", tip: C.walking })}
+    <div class="when"><span class="label">${esc(C.when)}</span>${blank("short", { name: "begin-when", tip: C.when })}<span class="label">${esc(C.where)}</span>${blank("", { name: "begin-where", tip: C.where })}</div>
   </div>`);
 
   /* ---------- tracker ---------- */
@@ -368,18 +433,18 @@ function buildHtml({ qr, lang = "en", fontBase = `file://${path.join(ROOT, "font
   <p class="kicker">${esc(C.trackerKicker)}</p>
   <h1 class="page-title">${esc(C.trackerTitle)}</h1>
   <p class="lead">${esc(C.trackerLead)}</p>
-  <div class="grid30">${days.map(d => `<div class="cell"><span class="cell-n">${d.n}</span><span class="cell-t">${esc(d.title)}</span><span class="cell-ticks">${box(C.prayed)}${box(C.practiced)}</span></div>`).join("")}</div>
+  <div class="grid30">${days.map(d => `<div class="cell"><span class="cell-n">${d.n}</span><span class="cell-t">${esc(d.title)}</span><span class="cell-ticks">${box(C.prayed, dayField(d, "prayed", C.prayed))}${box(C.practiced, done(d))}</span></div>`).join("")}</div>
   <h2 class="label">${esc(C.chartTitle)}</h2>
   <p class="hint">${esc(C.chartHint)}</p>
-  ${chart({ cols: days.map(d => String(d.n)), label: C.chartLabel })}`);
+  ${chart({ cols: days.map(d => String(d.n)), label: C.chartLabel, fields: days.map(d => [before(d)]) })}`);
 
   /* ---------- the days, with a look back after each week ---------- */
   const dayPage = d => page("day", `
-    <div class="run"><span class="kicker">${esc(C.dayOf(d.n, days.length))} · ${esc(sentence(d.week))}</span><span class="date">${esc(C.date)} <span class="blank tiny"></span></span></div>
+    <div class="run"><span class="kicker">${esc(C.dayOf(d.n, days.length))} · ${esc(sentence(d.week))}</span><span class="date">${esc(C.date)} ${blank("tiny", dayField(d, "date", C.date), 9.5)}</span></div>
     <div class="card">
       <div class="title-row">
         <h1 class="title">${esc(d.title)}</h1>
-        <span class="qr-wrap"><span class="qr-label">${esc(C.scan(d.n))}</span><span class="qr">${qr[d.url]}</span></span>
+        <span class="qr-wrap"><span class="qr-label">${esc(C.scan(d.n))}</span><span class="qr">${link(d.url, qr[d.url])}</span></span>
       </div>
       <blockquote class="verse">“${esc(d.verse)}”</blockquote>
       <p class="ref">${esc(d.ref)}</p>
@@ -388,39 +453,37 @@ function buildHtml({ qr, lang = "en", fontBase = `file://${path.join(ROOT, "font
       <h2 class="label">${esc(C.prayer)}</h2>
       <p class="prayer">${esc(d.prayer)}</p>
       <div class="pair">
-        <div><h2 class="label">${esc(C.declareLabel)}</h2><p class="declare">${esc(d.declaration)}</p>${box(C.saidAloud)}</div>
-        <div><h2 class="label">${esc(C.practiceLabel)}</h2><p class="practice">${esc(d.practice)}</p>${box(C.done)}</div>
+        <div><h2 class="label">${esc(C.declareLabel)}</h2><p class="declare">${esc(d.declaration)}</p>${box(C.saidAloud, dayField(d, "said", `${C.declareLabel} · ${C.saidAloud}`))}</div>
+        <div><h2 class="label">${esc(C.practiceLabel)}</h2><p class="practice">${esc(d.practice)}</p>${box(C.done, done(d))}</div>
       </div>
     </div>
-    <div class="checkin"><span class="label">${esc(C.fearCheckin)}</span><span class="pair-in">${esc(C.beforePrayed)} ${scale()}</span><span class="pair-in">${esc(C.after)} ${scale()}</span><span class="legend">${esc(ui["checkin.scale"])}</span></div>
+    <div class="checkin"><span class="label">${esc(C.fearCheckin)}</span><span class="pair-in">${esc(C.beforePrayed)} ${scale(before(d))}</span><span class="pair-in">${esc(C.after)} ${scale(after(d))}</span><span class="legend">${esc(ui["checkin.scale"])}</span></div>
     <div class="write">
-      ${lines(4, C.prompts[0])}
-      ${lines(3, C.prompts[1])}
-      ${lines(2, C.prompts[2])}
+      ${C.prompts.map((q, i) => lines([4, 3, 2][i], q, dayField(d, `q${i + 1}`, q))).join("\n      ")}
     </div>`);
 
-  const weekPage = group => {
+  const weekPage = (group, g) => {
     const label = sentence(group[0].week);
     const first = group[0].n, last = group[group.length - 1].n;
+    const title = C.weekTitle(label.split(" · ")[0].toLowerCase());
+    const keep = { name: `week-${g + 1}-keep`, tip: `${title} · ${C.declsHint.replace(/\.$/, "")}` };
     return page("week", `
     <p class="kicker">${esc(label)}</p>
-    <h1 class="page-title">${esc(C.weekTitle(label.split(" · ")[0].toLowerCase()))}</h1>
+    <h1 class="page-title">${esc(title)}</h1>
     <h2 class="label">${esc(C.weekChecks(first, last))}</h2>
     <p class="hint">${esc(C.weekHint)}</p>
-    ${chart({ cols: group.map(d => C.day(d.n)), sub: C.sub, height: 160, label: C.weekChartLabel(first, last) })}
+    ${chart({ cols: group.map(d => C.day(d.n)), sub: C.sub, height: 160, label: C.weekChartLabel(first, last), fields: group.map(d => [before(d), after(d)]) })}
     <h2 class="label">${esc(C.decls)}</h2>
     <p class="hint">${esc(C.declsHint)}</p>
-    <ul class="decls">${group.map(d => `<li><span class="ring"></span><span class="decl-n">${esc(C.day(d.n))}</span><span class="serif">${esc(d.declaration)}</span></li>`).join("")}</ul>
+    <ul class="decls">${group.map(d => `<li${field(keep, "radio", { value: d.n, label: C.day(d.n), look: "dot" })}><span class="ring"${markHere(keep)}></span><span class="decl-n">${esc(C.day(d.n))}</span><span class="serif">${esc(d.declaration)}</span></li>`).join("")}</ul>
     <div class="write">
-      ${lines(3, C.weekPrompts[0])}
-      ${lines(3, C.weekPrompts[1])}
-      ${lines(3, C.weekPrompts[2])}
+      ${C.weekPrompts.map((q, i) => lines(3, q, { name: `week-${g + 1}-q${i + 1}`, tip: `${title} · ${q}` })).join("\n      ")}
     </div>`);
   };
 
   groups.forEach((group, g) => {
     for (const d of group) dayPage(d);
-    if (g < groups.length - 1) weekPage(group);
+    if (g < groups.length - 1) weekPage(group, g);
   });
 
   /* ---------- the whole journey ---------- */
@@ -431,10 +494,7 @@ function buildHtml({ qr, lang = "en", fontBase = `file://${path.join(ROOT, "font
   <p class="kicker">${esc(sentence(core.weeks[core.weeks.length - 1]))}</p>
   <h1 class="page-title">${esc(C.finalTitle)}</h1>
   <div class="write">
-    ${lines(3, C.finalPrompts[0])}
-    ${lines(3, C.finalPrompts[1])}
-    ${lines(2, C.finalPrompts[2])}
-    ${lines(3, C.finalPrompts[3])}
+    ${C.finalPrompts.map((q, i) => lines([3, 3, 2, 3][i], q, { name: `final-q${i + 1}`, tip: `${C.finalTitle} · ${q}` })).join("\n    ")}
   </div>
   <div class="next">
     <h2 class="label">${esc(C.nextTitle)}</h2>
@@ -442,7 +502,7 @@ function buildHtml({ qr, lang = "en", fontBase = `file://${path.join(ROOT, "font
   </div>`);
 
   /* ---------- notes ---------- */
-  for (let k = 0; k < 2; k++) page("notes", `<p class="kicker">${esc(C.notes)}</p><div class="write">${lines(1)}</div>`);
+  for (let k = 0; k < 2; k++) page("notes", `<p class="kicker">${esc(C.notes)}</p><div class="write">${lines(1, "", { name: `notes-${k + 1}`, tip: C.notes })}</div>`);
 
   /* ---------- about ---------- */
   const draft = prayerCorpus.meta && prayerCorpus.meta.reviewNote ? ` ${C.draft}` : "";
@@ -468,7 +528,7 @@ ${font("source-serif-4-latin-400-italic.woff", "StandSerif", 400, "italic")}
 ${font("source-serif-4-latin-600-normal.woff", "StandSerif", 600)}
 ${font("source-sans-3-latin-400-normal.woff", "StandSans", 400)}
 ${font("source-sans-3-latin-700-normal.woff", "StandSans", 700)}
-${CSS}</style></head><body>${pages.map(p => p.html).join("\n")}</body></html>`;
+${CSS}${fillable ? FILL_CSS : ""}</style></head><body${fillable ? ' class="fillable"' : ""}>${pages.map(p => p.html).join("\n")}</body></html>`;
   return { html, pages: pages.map(p => p.cls) };
 }
 
@@ -593,24 +653,41 @@ footer{margin-top:auto;padding-top:8pt;display:flex;justify-content:space-betwee
 .about footer{margin-top:0}
 `;
 
-/** Prints one language's workbook to a PDF; fails, naming the page, if anything runs off one. */
-async function build({ lang = "en", out = path.join(OUT_DIR, COPY[lang].file), log = console.log } = {}) {
+// The fillable edition: a soft box to type in where the print edition rules
+// lines (typed text never sits on a ruled line), a date line tall enough for
+// a field, and codes that are also links.
+const FILL_CSS = `
+.fillable .lines{border:.6pt solid var(--rule);border-radius:2pt;background:#fbfcfc}
+.fillable .blank.tiny{height:13pt}
+.fillable .qr a,.fillable .qr-big a{display:block;width:100%;height:100%}
+`;
+
+/**
+ * Prints one edition of one language's workbook to a PDF, with its form when
+ * it is the fillable one; fails, naming the page, if anything runs off one.
+ */
+async function build({ lang = "en", fillable = false, out = path.join(OUT_DIR, copyFor(lang, fillable).file), log = console.log } = {}) {
   const { chromium } = require("playwright");
+  const name = fillable ? `${lang} (fillable)` : lang;
   const qr = await makeQr(qrTargets(lang));
-  const { html } = buildHtml({ qr, lang });
+  const { html } = buildHtml({ qr, lang, fillable });
   fs.mkdirSync(path.dirname(out), { recursive: true });
   const htmlFile = out.replace(/\.pdf$/, ".html");
   fs.writeFileSync(htmlFile, html);
   const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
+  let report, widgets;
   try {
     const tab = await browser.newPage({ viewport: { width: 816, height: 1056 } });
     await tab.goto(`file://${htmlFile}`, { waitUntil: "load" });
     await tab.evaluate(() => document.fonts.ready);
-    // The rules: as many as fit in each writing area, so a page ends on a whole line.
-    const report = await tab.evaluate(() => {
+    // The rules: as many as fit in each writing area, so a page ends on a whole
+    // line. (The fillable edition types into a box instead.)
+    report = await tab.evaluate(fillable => {
       const line = 0.3 * 96;
-      for (const el of document.querySelectorAll(".lines")) {
-        el.innerHTML = '<div class="rule"></div>'.repeat(Math.max(1, Math.floor(el.clientHeight / line)));
+      if (!fillable) {
+        for (const el of document.querySelectorAll(".lines")) {
+          el.innerHTML = '<div class="rule"></div>'.repeat(Math.max(1, Math.floor(el.clientHeight / line)));
+        }
       }
       return [...document.querySelectorAll(".page")].map((p, i) => {
         const box = p.getBoundingClientRect();
@@ -621,17 +698,35 @@ async function build({ lang = "en", out = path.join(OUT_DIR, COPY[lang].file), l
         }).map(e => e.className || e.tagName).slice(0, 3);
         return { page: i + 1, kind: p.className.replace("page ", ""), overflow, clipped: p.scrollHeight > p.clientHeight + 1, rules: p.querySelectorAll(".rule").length };
       });
+    }, fillable);
+    // Where each form field goes, in CSS pixels from its page's corner:
+    // `hit` is the widget, grown or inset by data-grow; `mark` is the printed
+    // box or circle its "on" look fills.
+    widgets = !fillable ? [] : await tab.evaluate(() => {
+      const pages = [...document.querySelectorAll(".page")];
+      return [...document.querySelectorAll("[data-field]")].map(el => {
+        const page = el.closest(".page"), corner = page.getBoundingClientRect(), d = el.dataset;
+        const rect = (r, grow = 0) => ({ x: r.left - corner.left - grow, y: r.top - corner.top - grow, w: r.width + 2 * grow, h: r.height + 2 * grow });
+        return {
+          page: pages.indexOf(page), name: d.field, kind: d.kind, tip: d.tip, value: d.value, label: d.label, look: d.look,
+          multiline: d.multiline === "1", size: d.size ? Number(d.size) : undefined,
+          hit: rect(el.getBoundingClientRect(), Number(d.grow || 0)),
+          mark: rect((el.querySelector("[data-mark]") || el).getBoundingClientRect())
+        };
+      });
     });
     await tab.pdf({ path: out, width: "8.5in", height: "11in", printBackground: true, preferCSSPageSize: true });
     fs.rmSync(htmlFile, { force: true });
-    const bad = report.filter(r => r.overflow.length || r.clipped);
-    for (const r of bad) log(`✗ ${lang} page ${r.page} (${r.kind}) runs off the page: ${r.overflow.join(", ") || "clipped"}`);
-    for (const r of report.filter(r => r.kind === "day" && r.rules < 6)) log(`• ${lang} page ${r.page}: only ${r.rules} writing lines`);
-    log(bad.length ? `✗ ${lang}: ${bad.length} of ${report.length} pages overflow` : `✓ ${lang}: ${report.length} pages, nothing runs off a page → ${path.relative(ROOT, out)}`);
-    return { ok: !bad.length, report, out };
   } finally {
     await browser.close();
   }
+  if (fillable) fs.writeFileSync(out, await require("./workbook-form.js").addFields(fs.readFileSync(out), widgets));
+  const bad = report.filter(r => r.overflow.length || r.clipped);
+  for (const r of bad) log(`✗ ${name} page ${r.page} (${r.kind}) runs off the page: ${r.overflow.join(", ") || "clipped"}`);
+  for (const r of report.filter(r => r.kind === "day" && !fillable && r.rules < 6)) log(`• ${name} page ${r.page}: only ${r.rules} writing lines`);
+  const fields = fillable ? `, ${new Set(widgets.map(w => w.name)).size} fields` : "";
+  log(bad.length ? `✗ ${name}: ${bad.length} of ${report.length} pages overflow` : `✓ ${name}: ${report.length} pages${fields}, nothing runs off a page → ${path.relative(ROOT, out)}`);
+  return { ok: !bad.length, report, widgets, out };
 }
 
 if (require.main === module) {
@@ -640,9 +735,11 @@ if (require.main === module) {
   if (!langs.every(l => COPY[l])) { console.error(`--lang must be one of ${LANGS.join(", ")}`); process.exit(2); }
   (async () => {
     let ok = true;
-    for (const lang of langs) ok = (await build({ lang })).ok && ok;
+    for (const lang of langs) {
+      for (const fillable of [false, true]) ok = (await build({ lang, fillable })).ok && ok;
+    }
     process.exit(ok ? 0 : 1);
   })().catch(e => { console.error(e); process.exit(1); });
 }
 
-module.exports = { SITE, LANGS, COPY, OUT_DIR, daysFor, weekGroups, qrTargets, makeQr, buildHtml, build };
+module.exports = { SITE, LANGS, COPY, OUT_DIR, copyFor, daysFor, weekGroups, qrTargets, makeQr, buildHtml, build };

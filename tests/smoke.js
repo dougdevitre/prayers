@@ -103,6 +103,8 @@ const server = http.createServer((req, res) => {
   const check = (name, cond) => { console.log((cond ? "PASS" : "FAIL") + " " + name); if (!cond) process.exitCode = 1; };
 
   await page.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
+  check("the app has started, with nothing held back", await page.evaluate(() => !document.body.classList.contains("booting")
+    && !document.body.classList.contains("day-pending") && getComputedStyle(document.querySelector("main")).visibility === "visible"));
 
   // first-visit welcome with path choice
   check("welcome shows on first visit", await page.evaluate(() => document.getElementById("welcomeDialog").open));
@@ -1013,15 +1015,73 @@ const server = http.createServer((req, res) => {
       await fresh.click("#libraryButton");
       check("the app's library links to the Spanish pages in Spanish", (await fresh.getAttribute("#libraryFears", "href")) === "/es/fears"
         && (await fresh.getAttribute("#libraryAbout", "href")) === "/es");
-      const { esFearIndex, esTracks } = require("../content.es.js");
+      const { esFearIndex } = require("../content.es.js");
       check("the fear finder lists its phrases in Spanish", (await fresh.$$eval("#fearFinder option", os => os.slice(1).map(o => o.textContent)))
         .join("|") === esFearIndex.filter(([, id]) => tracks[id]).map(([label]) => label).join("|"));
       await fresh.click("#closeLibrary");
-      // A Spanish reader's first paint waits for the Spanish text: no English flash.
-      await fresh.reload({ waitUntil: "domcontentloaded" });
-      await fresh.waitForFunction(() => document.getElementById("dayTitle").textContent !== "", null, { timeout: 5000 }).catch(() => {});
-      check("a Spanish reader's day opens in Spanish", (await fresh.textContent("#dayTitle")) === esTracks.core.days[0][0]);
       await fresh.close();
+    }
+
+    // A Spanish reader never sees the day in English. The shell's markup is
+    // English and paints before any script runs, so it stays out of sight
+    // until the app has put the reader's language on it; with the Spanish
+    // journeys slow to arrive, the interface turns Spanish at once and only
+    // the day's text and Steady me now wait. Each case holds content.es.js
+    // back on purpose (with no service worker in the way), so none of this
+    // depends on how fast the machine is.
+    {
+      const { esTracks } = require("../content.es.js");
+      const { appUi } = require("../ui.js");
+      const context = await browser.newContext({ serviceWorkers: "block" });
+      await context.addInitScript(() => localStorage.setItem("stand-state", JSON.stringify({ lang: "es", welcomed: true })));
+      const shown = (p, selector) => p.evaluate(s => getComputedStyle(document.querySelector(s)).visibility === "visible", selector);
+      const holdSpanish = async p => {
+        let release;
+        const held = new Promise(resolve => { release = resolve; });
+        await p.route("**/content.es.js", async route => { await held; await route.continue(); });
+        return release;
+      };
+
+      // The day has been drawn once its verse is on the page (the markup's is empty).
+      const drawn = (p, timeout) => p.waitForFunction(() => document.getElementById("scriptureText").textContent !== "", null, { timeout })
+        .then(() => true).catch(() => false);
+
+      const slow = await context.newPage();
+      slow.on("pageerror", e => errors.push("pageerror (slow Spanish): " + e.message));
+      const release = await holdSpanish(slow);
+      await slow.goto("http://localhost:8123/app", { waitUntil: "domcontentloaded" });
+      await slow.waitForFunction(() => document.documentElement.lang === "es", null, { timeout: 3000 }).catch(() => {});
+      check("while the Spanish journeys load, the interface is already Spanish", await slow.evaluate(() => document.documentElement.lang) === "es"
+        && await shown(slow, "main") && (await slow.textContent("#completeButton")) === appUi.es["day.complete"]);
+      check("…and the day's text and Steady me now wait, rather than show English",
+        !(await shown(slow, "#dayTitle")) && !(await shown(slow, "#weekLabel")) && !(await shown(slow, "#reflection")) && !(await shown(slow, "#sosButton")));
+      release();
+      check("when they arrive, the day opens in Spanish, with Calma ahora", await drawn(slow, 5000)
+        && (await slow.textContent("#dayTitle")) === esTracks.core.days[0][0] && await shown(slow, "#dayTitle")
+        && await shown(slow, "#sosButton") && (await slow.textContent("#sosButton")) === appUi.es["sos.button"]);
+      await slow.close();
+
+      // A connection that stalls: the app starts in English after four
+      // seconds rather than not at all, and turns Spanish when they come.
+      const stalled = await context.newPage();
+      stalled.on("pageerror", e => errors.push("pageerror (stalled Spanish): " + e.message));
+      const unstall = await holdSpanish(stalled);
+      await stalled.goto("http://localhost:8123/app", { waitUntil: "domcontentloaded" });
+      check("if they stall, the app starts anyway, in English, after a few seconds", await drawn(stalled, 9000)
+        && (await stalled.textContent("#dayTitle")) === tracks.core.days[0][0] && await shown(stalled, "#dayTitle") && await shown(stalled, "#sosButton"));
+      unstall();
+      check("…and turns Spanish when they arrive", await stalled.waitForFunction(title => document.getElementById("dayTitle").textContent === title,
+        esTracks.core.days[0][0], { timeout: 5000 }).then(() => true).catch(() => false));
+      await stalled.close();
+
+      // And if the app cannot start at all, the shell is not hidden for good.
+      const broken = await context.newPage();
+      await broken.route("**/app.js", route => route.abort());
+      await broken.goto("http://localhost:8123/app", { waitUntil: "domcontentloaded" });
+      check("if the app cannot start, its shell still shows after a few seconds", await broken.waitForFunction(() =>
+        getComputedStyle(document.querySelector("main")).visibility === "visible", null, { timeout: 12000 }).then(() => true).catch(() => false));
+      await broken.close();
+      await context.close();
     }
 
     // The Spanish journeys load only for Spanish: an English visit never fetches them.

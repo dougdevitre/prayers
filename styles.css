@@ -369,3 +369,11 @@ h2.section-kicker,.landing-section h2.section-kicker{margin:0;font-family:inheri
 .download-card .landing-fineprint{margin-top:12px}
 .download-links{display:flex;flex-wrap:wrap;gap:10px}
 .download-links .complete-button{flex:1 1 120px;width:auto}
+/* The app shell's markup is in English and paints before any script runs.
+   body.booting keeps the main column and Steady me now out of sight until the
+   app has put the reader's language on them; body.day-pending, for a Spanish
+   reader whose journeys are still loading, holds back only the day's own text
+   and Steady me now. If the app never starts, everything shows after eight
+   seconds, as the markup is (app.js, boot). */
+.booting main,.booting #sosButton,.day-pending :is(#weekLabel,#dayNumber,#dayTitle,.scripture,#reflection,#prayer,#declaration,#action,.progress-copy,#sosButton){visibility:hidden;animation:shell-fallback 0s 8s forwards}
+@keyframes shell-fallback{to{visibility:visible}}

@@ -567,7 +567,7 @@ const appUi = {
     "sos.emergency": "— si estás en peligro físico inmediato",
     "sos.textVerb": "Escribe",
     "sos.textTo": "al",
-    "sos.textKeyword": "AYUDA",
+    "sos.textKeyword": "HOLA",
     "sos.outsideUs": "Fuera de EE. UU.:",
     "sos.findHelpline": "— líneas de ayuda gratuitas y verificadas en más de 175 países",
     "sos.disclaimer": "Stand ofrece acompañamiento espiritual. No es atención médica ni de crisis, y pedir más ayuda es en sí mismo un acto de valor.",

@@ -173,7 +173,7 @@ test("the guard itself catches what it retires", () => {
 // Changing a number means changing it here and in both places.
 const CRISIS = {
   en: [["988"], ["741741", "HOME"], ["1-800-799-7233"], ["88788", "START"], ["1-800-422-4453"], ["911"], ["findahelpline.com"]],
-  es: [["988", "AYUDA"], ["741741", "AYUDA"], ["1-800-799-7233"], ["1-800-422-4453"], ["911"], ["findahelpline.com"]]
+  es: [["988", "AYUDA"], ["741741", "HOLA"], ["1-800-799-7233"], ["1-800-422-4453"], ["911"], ["findahelpline.com"]]
 };
 const flat = s => s.replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
 // "1-800-799-7233" and "18007997233" are the same number; "988" is not part of "19880".

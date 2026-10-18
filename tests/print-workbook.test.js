@@ -121,7 +121,7 @@ const formOf = lang => widgetsIn(fill[lang].html);
         assert.ok(html.includes(esc(appUi[lang][key])), `${name} ${key}`);
       }
     });
-    // Spanish readers get the Spanish routes, as in the app: AYUDA, not HOME.
+    // Spanish readers get the Spanish routes, as in the app: HOLA, not HOME.
     assert.ok(!book.es.text.includes("HOME") && !fill.es.text.includes("HOME"), "HOME in a Spanish workbook");
   });
 

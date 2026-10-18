@@ -295,7 +295,7 @@ test("a core day carries its title, week, scripture, practice, declaration, tip 
   const d = day7.DESCRIPTION.split("\\n");
   assert.strictEqual(day7.SUMMARY, "Stand · Day 7 · The Word");
   assert.strictEqual(d[0], "Day 7 of 30 · The Word");
-  assert.strictEqual(d[1], "WEEK ONE · ESTABLISH THE GROUND");
+  assert.strictEqual(d[1], "Week one · Establish the ground");
   assert.strictEqual(d[2], "Ephesians 6:17 — “The sword of the Spirit\\, which is the word of God.”");
   assert.strictEqual(d[4], "Today’s practice: Choose one short verse and return to it three times today.");
   assert.strictEqual(d[6], "Declare: Truth will remain after today's noise disappears.");
@@ -312,7 +312,7 @@ test("a courage-story day names its journey and links with ?track=", () => {
   assert.strictEqual(overrides[0].SUMMARY, "Stand · The Furnace · Day 1 · The Decree");
   assert.strictEqual(overrides[0].URL, `${ORIGIN}/app?track=furnace#1`);
   assert.ok(overrides[0].DESCRIPTION.includes(`Read it on the web: ${ORIGIN}/track/furnace/01-the-decree#practice`));
-  assert.ok(overrides[0].DESCRIPTION.includes("COURAGE STORY · THE FURNACE"));
+  assert.ok(overrides[0].DESCRIPTION.includes("Courage story · The Furnace · Daniel 3"));
   assert.ok(overrides[3].DESCRIPTION.includes("Tip: This is the last day of this journey."));
 });
 

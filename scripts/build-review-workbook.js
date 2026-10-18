@@ -71,7 +71,7 @@ function collect(root = ROOT) {
   }
 
   // 1. Journeys: every day of every track.
-  const SECTION_OF = { "THE 30-DAY JOURNEY": "journey", "JOURNEYS FOR FEAR": "fear", "COURAGE STORIES": "courage" };
+  const SECTION_OF = { "The 30-Day Journey": "journey", "Journeys for fear": "fear", "Courage stories": "courage" };
   for (const [tid, t] of Object.entries(c.tracks)) {
     const es = e.esTracks[tid];
     t.days.forEach((d, i) => {

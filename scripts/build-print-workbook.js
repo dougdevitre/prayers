@@ -219,9 +219,6 @@ const COPY = {
 const copyFor = (lang, fillable = false) => fillable ? { ...COPY[lang], ...COPY[lang].fill } : COPY[lang];
 
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-// "WEEK ONE · ESTABLISH THE GROUND" → "Week one · Establish the ground"; the
-// stylesheet sets kickers in capitals, so the text itself reads as words.
-const sentence = s => s.split(" · ").map(part => part.charAt(0) + part.slice(1).toLowerCase()).join(" · ");
 
 /** The journey in a language: the English track, with Spanish text over it. */
 const coreFor = lang => lang === "es" ? { ...tracks.core, ...esTracks.core } : tracks.core;
@@ -392,7 +389,7 @@ function buildHtml({ qr, lang = "en", fillable = false, fontBase = `file://${pat
     </div>
   </div>
   <h2 class="label">${esc(C.glanceTitle)}</h2>
-  <ul class="glance">${groups.map(g => `<li><span class="glance-week">${esc(sentence(g[0].week))}</span><span class="glance-days">${esc(g.length > 1 ? C.days(g[0].n, g[g.length - 1].n) : C.day(g[0].n))}</span><span class="glance-titles">${g.map(d => esc(d.title)).join(" · ")}</span></li>`).join("")}</ul>`);
+  <ul class="glance">${groups.map(g => `<li><span class="glance-week">${esc(g[0].week)}</span><span class="glance-days">${esc(g.length > 1 ? C.days(g[0].n, g[g.length - 1].n) : C.day(g[0].n))}</span><span class="glance-titles">${g.map(d => esc(d.title)).join(" · ")}</span></li>`).join("")}</ul>`);
 
   /* ---------- Steady me now ---------- */
   const steadyPage = page("steady", `
@@ -440,7 +437,7 @@ function buildHtml({ qr, lang = "en", fillable = false, fontBase = `file://${pat
 
   /* ---------- the days, with a look back after each week ---------- */
   const dayPage = d => page("day", `
-    <div class="run"><span class="kicker">${esc(C.dayOf(d.n, days.length))} · ${esc(sentence(d.week))}</span><span class="date">${esc(C.date)} ${blank("tiny", dayField(d, "date", C.date), 9.5)}</span></div>
+    <div class="run"><span class="kicker">${esc(C.dayOf(d.n, days.length))} · ${esc(d.week)}</span><span class="date">${esc(C.date)} ${blank("tiny", dayField(d, "date", C.date), 9.5)}</span></div>
     <div class="card">
       <div class="title-row">
         <h1 class="title">${esc(d.title)}</h1>
@@ -463,7 +460,7 @@ function buildHtml({ qr, lang = "en", fillable = false, fontBase = `file://${pat
     </div>`);
 
   const weekPage = (group, g) => {
-    const label = sentence(group[0].week);
+    const label = group[0].week;
     const first = group[0].n, last = group[group.length - 1].n;
     const title = C.weekTitle(label.split(" · ")[0].toLowerCase());
     const keep = { name: `week-${g + 1}-keep`, tip: `${title} · ${C.declsHint.replace(/\.$/, "")}` };
@@ -488,10 +485,10 @@ function buildHtml({ qr, lang = "en", fillable = false, fontBase = `file://${pat
 
   /* ---------- the whole journey ---------- */
   const others = Object.keys(tracks).filter(id => id !== "core").map(id => [id, lang === "es" && esTracks[id] ? { ...tracks[id], ...esTracks[id] } : tracks[id]]);
-  const fear = others.filter(([, t]) => t.group === "JOURNEYS FOR FEAR").map(([, t]) => `${t.short} (${t.days.length} ${C.daysWord})`);
-  const stories = others.filter(([, t]) => t.group === "COURAGE STORIES");
+  const fear = others.filter(([, t]) => t.group === "Journeys for fear").map(([, t]) => `${t.short} (${t.days.length} ${C.daysWord})`);
+  const stories = others.filter(([, t]) => t.group === "Courage stories");
   page("final", `
-  <p class="kicker">${esc(sentence(core.weeks[core.weeks.length - 1]))}</p>
+  <p class="kicker">${esc(core.weeks[core.weeks.length - 1])}</p>
   <h1 class="page-title">${esc(C.finalTitle)}</h1>
   <div class="write">
     ${C.finalPrompts.map((q, i) => lines([3, 3, 2, 3][i], q, { name: `final-q${i + 1}`, tip: `${C.finalTitle} · ${q}` })).join("\n    ")}

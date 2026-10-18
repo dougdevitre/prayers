@@ -1032,7 +1032,7 @@ const TERMS = {
       ]],
       ["Si estás en crisis", [
         para("No tienes que cargar con esto a solas. Si estás en Estados Unidos:"),
-        list(["Llama al <a href=\"tel:988\">988</a> y marca 2, o envía un mensaje de texto con la palabra AYUDA al 988.", "Envía AYUDA por mensaje de texto al 741741.", "Ante la violencia doméstica, llama a la Línea Nacional de Violencia Doméstica al <a href=\"tel:+18007997233\">1-800-799-7233</a>; hay atención en español.", "Si un niño puede estar en riesgo, llama o envía un mensaje de texto a Childhelp, la línea nacional contra el abuso infantil, al <a href=\"tel:+18004224453\">1-800-422-4453</a>; hay intérpretes.", "Si estás en peligro inmediato, llama al <a href=\"tel:911\">911</a>."]),
+        list(["Llama al <a href=\"tel:988\">988</a> y marca 2, o envía un mensaje de texto con la palabra AYUDA al 988.", "Envía HOLA por mensaje de texto al 741741.", "Ante la violencia doméstica, llama a la Línea Nacional de Violencia Doméstica al <a href=\"tel:+18007997233\">1-800-799-7233</a>; hay atención en español.", "Si un niño puede estar en riesgo, llama o envía un mensaje de texto a Childhelp, la línea nacional contra el abuso infantil, al <a href=\"tel:+18004224453\">1-800-422-4453</a>; hay intérpretes.", "Si estás en peligro inmediato, llama al <a href=\"tel:911\">911</a>."]),
         para("Fuera de Estados Unidos, puedes encontrar una línea de ayuda local en <a href=\"https://findahelpline.com\">findahelpline.com</a>.")
       ]],
       ["La Escritura", [
@@ -1054,7 +1054,7 @@ const TERMS = {
         para(`Si tienes alguna pregunta sobre estos términos, puedes escribir a ${contactLink}.`)
       ]]
     ],
-    updated: "Última actualización: 17 de octubre de 2026"
+    updated: "Última actualización: 18 de octubre de 2026"
   }
 };
 

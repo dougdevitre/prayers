@@ -1604,12 +1604,13 @@ const server = http.createServer((req, res) => {
   check("SOS references are Spanish", esAnchor.includes("Salmo 27:1"));
   check("SOS prayers close in Spanish", esAnchor.includes("Amén."));
   // Spanish readers get the Spanish routes: 988 answers in Spanish on 2 or to
-  // AYUDA by text, and Crisis Text Line answers in Spanish to AYUDA. HOME
-  // would reach an English-speaking counselor.
+  // AYUDA by text, and Crisis Text Line answers in Spanish to HOLA, its
+  // current Spanish keyword (AYUDA was the 2021 launch keyword). HOME would
+  // reach an English-speaking counselor.
   await page.click("#sosSupport");
   const esResources = await page.textContent("#sosResources");
   check("Spanish crisis resources give 988's Spanish options", esResources.includes("marca 2 para español") && esResources.includes("AYUDA al 988"));
-  check("Spanish crisis resources text AYUDA, not HOME, to 741741", esResources.includes("Escribe AYUDA al 741741") && !esResources.includes("HOME"));
+  check("Spanish crisis resources text HOLA, not HOME, to 741741", esResources.includes("Escribe HOLA al 741741") && !esResources.includes("HOME"));
   check("Spanish crisis resources point outside the US too", esResources.includes("Fuera de EE. UU.: findahelpline.com"));
   check("Spanish crisis resources name the domestic violence and child abuse lines", esResources.includes("1-800-799-7233 — Línea Nacional de Violencia Doméstica") && esResources.includes("1-800-422-4453 — Childhelp"));
   await page.click("#closeSos");

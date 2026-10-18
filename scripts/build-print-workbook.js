@@ -1,59 +1,199 @@
 #!/usr/bin/env node
-// The printable workbook for the 30-day journey: one PDF, US Letter portrait,
-// for a reader to print and write in. (Not the pastoral review workbook,
-// scripts/build-review-workbook.js, which is for the reviewer.)
+// The printable workbook for the 30-day journey: one PDF per language, US
+// Letter portrait, for a reader to print and write in. (Not the pastoral
+// review workbook, scripts/build-review-workbook.js, which is for the reviewer.)
 //
-//   npm run build:workbook            → .workbook/Stand-30-Day-Workbook.pdf
+//   npm run build:workbook                  → both, in .workbook/
+//   npm run build:workbook -- --lang es     → the Spanish one only
 //   CHROMIUM_PATH=/path/to/chrome npm run build:workbook
 //
-// Every devotional word comes from content.js and every help line from ui.js,
-// so the workbook says what the app says; rebuild it after the content
-// changes (after the pastoral review, for one). Each day carries a QR code
-// that opens that day in the app, where it can be read aloud: a plain link,
-// no tracking parameters. The draft note on the last page follows the app's
-// own draft label (meta.reviewNote in prayers.js) and goes when that does.
+// Every devotional word comes from content.js (content.es.js in Spanish) and
+// every help line from ui.js, so the workbook says what the app says; rebuild
+// it after the content changes (after the pastoral review, for one). Scripture
+// is the World English Bible in English and the Reina-Valera 1909 in Spanish,
+// as in the app. Each day carries a QR code that opens that day in the app,
+// where it can be read aloud: a plain link, with no parameter but the
+// language. The draft note on the last page follows the app's own draft
+// label (meta.reviewNote in prayers.js) and goes when that does.
 //
 // Pages are fixed-size boxes printed by Chromium; the writing lines are drawn
 // as real rules after layout, so they print crisp. The build fails, naming the
 // page, if anything runs off a page: a longer prayer after an edit gets a look
 // at the layout instead of a clipped line.
 //
-// The PDF is written to .workbook/ (ignored by git, never deployed).
+// The PDFs are written to .workbook/ (ignored by git, never deployed).
 
 const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 const { tracks, sosSetsEn } = require("../content.js");
+const { esTracks, esSos } = require("../content.es.js");
 const { appUi } = require("../ui.js");
 const { prayerCorpus } = require("../prayers.js");
-const { weekLabel, appDayLink } = require("../reminder.js");
+const { weekLabel } = require("../reminder.js");
 const web = require("./web-source.json");
+const rv = require("./es-source.json");
 
 const SITE = "https://prayers.dougdevitre.org";
-// Update with each printed edition.
-const EDITION = "First printed edition, October 2026.";
+const LANGS = ["en", "es"];
 const OUT_DIR = path.join(ROOT, ".workbook");
-const OUT_FILE = path.join(OUT_DIR, "Stand-30-Day-Workbook.pdf");
 
-const core = tracks.core;
-const ui = appUi.en;
-const days = core.days.map(([title, ref, verse, reflection, prayer, declaration, practice], i) => ({
-  n: i + 1, title, ref, verse, reflection, prayer, declaration, practice,
-  week: weekLabel(core.weeks, i), url: appDayLink(SITE, "core", i)
-}));
-// The cover's verse, Ephesians 6:13, as the World English Bible words it.
-const EPIGRAPH = (s => s.slice(s.indexOf("Therefore")))(web["Ephesians 6:10–13"]);
+// The workbook's own words, in both languages. Everything else on its pages is
+// the app's text. Spanish follows the app's glossary: camino, Calma ahora, el
+// Devocionario, el Rosario; and it addresses the reader without gender.
+const COPY = {
+  en: {
+    file: "Stand-30-Day-Workbook.pdf",
+    docTitle: "Stand — 30-Day Workbook",
+    edition: "First printed edition, October 2026.", // update with each printed edition
+    draft: "The devotional text is a draft awaiting review by a pastoral advisor; later editions will follow that review.",
+    coverKicker: "A prayer workbook",
+    coverLead: "Thirty days of Scripture, prayer and one small practice, with room to write down what you notice along the way.",
+    epigraph: { source: web["Ephesians 6:10–13"], from: "Therefore", ref: "Ephesians 6:13" },
+    belongs: "This workbook belongs to", began: "I began on",
+    howKicker: "Before you start", howTitle: "How to use this workbook",
+    howLead: "Each day takes about ten minutes, at the kitchen table, before work or last thing at night. There is no wrong way to do it.",
+    rhythm: "The daily rhythm",
+    steps: [["Read", "the verse and the reflection, slowly."], ["Pray", "the day’s prayer, aloud if you can."], ["Declare", "speak the declaration, then tick the box."],
+      ["Practice", "one small, concrete step for the day."], ["Check in", "circle where your fear is, before and after you pray."], ["Write", "a few lines. A sentence is enough."]],
+    checkinTitle: "The fear check-in",
+    checkinBody: "It isn’t a score. It simply records where you are, so you can look back later and see what happened.",
+    missTitle: "If you miss a day", missBody: "Pick up where you left off. Missing a day does not erase your progress.",
+    weeklyTitle: "Look back each week",
+    weeklyBody: (list, last, total) => `After Days ${list} and ${last} there is a page for looking back on the week, and after Day ${total}, one for the whole journey.`,
+    listenTitle: "Listen along",
+    listenBody: "Every day can be read aloud to you in the Stand app, which is free and needs no account. Scan the code beside any day’s title to open that day. This one opens the app.",
+    privateTitle: "Keep it private", privateBody: "This workbook is yours. What you write here is for you, so keep it somewhere you trust.",
+    glanceTitle: "The journey at a glance",
+    day: n => `Day ${n}`, days: (a, b) => `Days ${a}–${b}`, dayOf: (n, total) => `Day ${n} of ${total}`,
+    steadyKicker: "When fear spikes", steadyTitle: ui => ui["sos.button"],
+    steadyLead: "A ninety-second pause for when fear will not sit still. The same steps are one tap away in the app.",
+    breathe: ["Breathe.", "In for four, hold for four, out for six. Three slow breaths."],
+    anchor: "Anchor.", pray: "Pray.", declare: "Declare.", checkIn: ["Check in.", "Steadier? If not, take another round."],
+    before: "Before", after: "After",
+    steadiesTitle: "What steadies me",
+    steadies: ["People I can call or text", "A verse or phrase that steadies me", "Something I can do with my hands or feet"],
+    beginKicker: "Before Day 1", beginTitle: "Where are you right now?",
+    afraid: "What am I afraid of? Name it plainly.", today: "Where is my fear today?", hoping: "What am I hoping for in these thirty days?",
+    walking: "Who is walking with me? (Initials are enough.)", when: "When I’ll pray each day", where: "Where",
+    trackerKicker: "At a glance", trackerTitle: "My thirty days", trackerLead: "Tick each day as you go. Missing a day does not erase your progress.",
+    prayed: "Prayed", practiced: "Practice",
+    chartTitle: "Where my fear was each day, before I prayed", chartHint: "Fill one circle a day.",
+    chartLabel: "Thirty-day fear chart, one column per day", high: "5 overwhelming", low: "1 calm",
+    date: "Date", scan: n => `Scan to listen to Day ${n}`,
+    reflection: "Reflection", prayer: "Prayer", declareLabel: "Declare", practiceLabel: "Today’s practice", saidAloud: "Said aloud", done: "Done",
+    fearCheckin: "Fear check-in", beforePrayed: "Before I prayed",
+    prompts: ["What is fear telling me today? What is true instead?", "Where did I notice help today, from God or from someone?", "One thing I want to carry into tomorrow"],
+    weekTitle: week => `Looking back on ${week}`,
+    weekChecks: (a, b) => `My check-ins, Days ${a}–${b}`,
+    weekHint: "For each day, fill the circle for your fear before (B) and after (A) you prayed.", sub: ["B", "A"],
+    weekChartLabel: (a, b) => `Fear check-ins for Days ${a} to ${b}`,
+    decls: "The declarations", declsHint: "Circle the one you most want to keep.",
+    weekPrompts: ["What shifted this week, even a little?", "Where was it hardest?", "What do I want to bring into next week?"],
+    finalTitle: "Looking back on thirty days",
+    finalPrompts: ["Read what you wrote before Day 1. What do you notice now?", "What has changed, in me or around me?", "Which declaration will I keep?", "What comes next?"],
+    nextTitle: "Where to go from here",
+    next: ({ fear, stories, first, last }) => `In the Stand app: ${fear.join(" · ")} · ${stories} four-day courage stories, from ${first} to ${last} · the Prayer Book and the Rosary · Steady me now, any time. Or begin these thirty days again; the second time through often reads differently.`,
+    daysWord: "days",
+    notes: "Notes",
+    aboutKicker: "About", aboutTitle: "About this workbook",
+    about: "Stand is a free prayer companion for fear, with no account, no advertising and no tracking. Every day in this workbook is also in the app, where it can be read aloud:",
+    scriptureTitle: "Scripture", scripture: "Scripture quotations are from the World English Bible, which is in the public domain.",
+    isntTitle: "What Stand is, and isn’t",
+    isnt: page => `Stand offers spiritual encouragement and prayer. It is not medical, mental health, legal or financial advice, and it is not a substitute for a licensed professional. If you need help now, the numbers are on page ${page}.`,
+    useTitle: "Using this workbook",
+    use: "The text and prayers in Stand belong to the Stand project. You are welcome to print this workbook for your own personal, non-commercial prayer, and to share the link with anyone.",
+    editionTitle: "This edition"
+  },
+  es: {
+    file: "Stand-Cuaderno-30-Dias.pdf",
+    docTitle: "Stand — Cuaderno de 30 días",
+    edition: "Primera edición impresa, octubre de 2026.", // actualizar en cada edición impresa
+    draft: "El texto devocional es un borrador pendiente de revisión por un asesor pastoral; las próximas ediciones seguirán esa revisión.",
+    coverKicker: "Un cuaderno de oración",
+    coverLead: "Treinta días de Escritura, oración y una pequeña práctica, con espacio para escribir lo que vas notando en el camino.",
+    epigraph: { source: rv["Ephesians 6:10–13"], from: "Por tanto", ref: "Efesios 6:13" },
+    belongs: "Este cuaderno pertenece a", began: "Comencé el",
+    howKicker: "Antes de empezar", howTitle: "Cómo usar este cuaderno",
+    howLead: "Cada día toma unos diez minutos: en la mesa de la cocina, antes del trabajo o justo antes de dormir. No hay una manera equivocada de hacerlo.",
+    rhythm: "El ritmo diario",
+    steps: [["Lee", "el versículo y la reflexión, despacio."], ["Ora", "la oración del día, en voz alta si puedes."], ["Declara", "di la declaración y marca la casilla."],
+      ["Practica", "un paso pequeño y concreto para el día."], ["Registra", "marca dónde está tu miedo, antes y después de orar."], ["Escribe", "unas líneas. Con una frase basta."]],
+    checkinTitle: "El registro del miedo",
+    checkinBody: "No es una calificación. Solo anota dónde estás, para que más adelante puedas mirar atrás y ver qué pasó.",
+    missTitle: "Si te saltas un día", missBody: "Retoma donde lo dejaste. Saltarte un día no borra tu progreso.",
+    weeklyTitle: "Repasa cada semana",
+    weeklyBody: (list, last, total) => `Después de los días ${list} y ${last} hay una página para repasar la semana, y después del día ${total}, una para todo el camino.`,
+    listenTitle: "Escucha",
+    listenBody: "Cada día se puede escuchar en voz alta en la app Stand, que es gratuita y no necesita cuenta. Escanea el código junto al título de cualquier día para abrir ese día. Este abre la app.",
+    privateTitle: "Mantenlo en privado", privateBody: "Este cuaderno es tuyo. Lo que escribas aquí es para ti, así que guárdalo en un lugar de confianza.",
+    glanceTitle: "El camino de un vistazo",
+    day: n => `Día ${n}`, days: (a, b) => `Días ${a}–${b}`, dayOf: (n, total) => `Día ${n} de ${total}`,
+    steadyKicker: "Cuando el miedo se dispara", steadyTitle: ui => ui["sos.button"],
+    steadyLead: "Una pausa de noventa segundos para cuando el miedo no se queda quieto. Los mismos pasos están a un toque en la app.",
+    breathe: ["Respira.", "Inhala contando cuatro, mantén el aire contando cuatro y exhala contando seis. Tres respiraciones lentas."],
+    anchor: "Ancla.", pray: "Ora.", declare: "Declara.", checkIn: ["Registra.", "¿Más en calma? Si no, haz otra ronda."],
+    before: "Antes", after: "Después",
+    steadiesTitle: "Lo que me da calma",
+    steadies: ["Personas a las que puedo llamar o escribir", "Un versículo o una frase que me da calma", "Algo que puedo hacer con las manos o los pies"],
+    beginKicker: "Antes del día 1", beginTitle: "¿Dónde estás ahora mismo?",
+    afraid: "¿Qué me da miedo? Nómbralo con sencillez.", today: "¿Dónde está mi miedo hoy?", hoping: "¿Qué espero de estos treinta días?",
+    walking: "¿Quién camina conmigo? (Bastan las iniciales).", when: "Cuándo oraré cada día", where: "Dónde",
+    trackerKicker: "De un vistazo", trackerTitle: "Mis treinta días", trackerLead: "Marca cada día a medida que avanzas. Saltarte un día no borra tu progreso.",
+    prayed: "Oré", practiced: "Práctica",
+    chartTitle: "Dónde estaba mi miedo cada día, antes de orar", chartHint: "Rellena un círculo por día.",
+    chartLabel: "Gráfico del miedo de treinta días, una columna por día", high: "5 abrumador", low: "1 en calma",
+    date: "Fecha", scan: n => `Escanea para escuchar el día ${n}`,
+    reflection: "Reflexión", prayer: "Oración", declareLabel: "Declara", practiceLabel: "Práctica de hoy", saidAloud: "Dicha en voz alta", done: "Hecha",
+    fearCheckin: "Registro del miedo", beforePrayed: "Antes de orar",
+    prompts: ["¿Qué me dice hoy el miedo? ¿Qué es verdad?", "¿Dónde noté ayuda hoy, de Dios o de alguien?", "Algo que quiero llevar a mañana"],
+    weekTitle: week => `Repaso de la ${week}`,
+    weekChecks: (a, b) => `Mis registros, días ${a}–${b}`,
+    weekHint: "Para cada día, rellena el círculo de tu miedo antes (A) y después (D) de orar.", sub: ["A", "D"],
+    weekChartLabel: (a, b) => `Registros del miedo de los días ${a} a ${b}`,
+    decls: "Las declaraciones", declsHint: "Encierra en un círculo la que más quieras conservar.",
+    weekPrompts: ["¿Qué cambió esta semana, aunque sea un poco?", "¿Dónde fue más difícil?", "¿Qué quiero llevar a la próxima semana?"],
+    finalTitle: "Repaso de los treinta días",
+    finalPrompts: ["Lee lo que escribiste antes del día 1. ¿Qué notas ahora?", "¿Qué ha cambiado, en mí o a mi alrededor?", "¿Qué declaración voy a conservar?", "¿Qué sigue?"],
+    nextTitle: "Hacia dónde seguir",
+    next: ({ fear, stories, first, last }) => `En la app Stand: ${fear.join(" · ")} · ${stories} historias de valor de cuatro días, desde ${first} hasta ${last} · el Devocionario y el Rosario · Calma ahora, cuando quieras. O vuelve a empezar estos treinta días; la segunda vez suele leerse distinto.`,
+    daysWord: "días",
+    notes: "Notas",
+    aboutKicker: "Acerca de", aboutTitle: "Acerca de este cuaderno",
+    about: "Stand es un compañero de oración gratuito para el miedo: sin cuenta, sin publicidad y sin rastreo. Cada día de este cuaderno también está en la app, donde se puede escuchar en voz alta:",
+    scriptureTitle: "La Escritura", scripture: "Las citas bíblicas son de la Reina-Valera 1909, que es de dominio público.",
+    isntTitle: "Qué es Stand, y qué no es",
+    isnt: page => `Stand ofrece acompañamiento espiritual y oración. No es consejo médico, de salud mental, legal ni financiero, y no sustituye a un profesional con licencia. Si necesitas ayuda ahora, los números están en la página ${page}.`,
+    useTitle: "Uso de este cuaderno",
+    use: "Los textos y las oraciones de Stand pertenecen al proyecto Stand. Puedes imprimir este cuaderno para tu oración personal, sin fines comerciales, y compartir el enlace con quien quieras.",
+    editionTitle: "Esta edición"
+  }
+};
 
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 // "WEEK ONE · ESTABLISH THE GROUND" → "Week one · Establish the ground"; the
 // stylesheet sets kickers in capitals, so the text itself reads as words.
 const sentence = s => s.split(" · ").map(part => part.charAt(0) + part.slice(1).toLowerCase()).join(" · ");
 
+/** The journey in a language: the English track, with Spanish text over it. */
+const coreFor = lang => lang === "es" ? { ...tracks.core, ...esTracks.core } : tracks.core;
+/** The app, or a day in it, in the workbook's language (/app#7, /app?lang=es#7). */
+const appLink = (lang, n) => `${SITE}/app${lang === "es" ? "?lang=es" : ""}${n ? `#${n}` : ""}`;
+
+/** The thirty days in a language, each with its week label and its link. */
+function daysFor(lang = "en") {
+  const core = coreFor(lang);
+  return core.days.map(([title, ref, verse, reflection, prayer, declaration, practice], i) => ({
+    n: i + 1, title, ref, verse, reflection, prayer, declaration, practice,
+    week: weekLabel(core.weeks, i), url: appLink(lang, i + 1)
+  }));
+}
+
 /** The days grouped by the journey's own week labels (reminder.js weekLabel). */
-function weekGroups() {
+function weekGroups(lang = "en") {
   const groups = [];
-  for (const d of days) {
+  for (const d of daysFor(lang)) {
     if (!groups.length || groups[groups.length - 1][0].week !== d.week) groups.push([]);
     groups[groups.length - 1].push(d);
   }
@@ -61,7 +201,7 @@ function weekGroups() {
 }
 
 /** Every address a QR code in the workbook opens: the app, and each day in it. */
-const qrTargets = () => [`${SITE}/app`, ...days.map(d => d.url)];
+const qrTargets = (lang = "en") => [appLink(lang), ...daysFor(lang).map(d => d.url)];
 
 /** { url: inline SVG } for every target, drawn in the workbook's ink. */
 async function makeQr(urls = qrTargets()) {
@@ -74,11 +214,20 @@ async function makeQr(urls = qrTargets()) {
 }
 
 /**
- * The whole workbook as one HTML document. `qr` maps each of qrTargets() to
- * an SVG; `fontBase` is the URL the bundled fonts are loaded from.
+ * The whole workbook in one language as one HTML document. `qr` maps each of
+ * qrTargets(lang) to an SVG; `fontBase` is the URL the bundled fonts load from.
  * Returns { html, pages } where pages lists each page's kind, in order.
  */
-function buildHtml({ qr, fontBase = `file://${path.join(ROOT, "fonts")}/` }) {
+function buildHtml({ qr, lang = "en", fontBase = `file://${path.join(ROOT, "fonts")}/` }) {
+  const C = COPY[lang];
+  const ui = appUi[lang];
+  const core = coreFor(lang);
+  const days = daysFor(lang);
+  const groups = weekGroups(lang);
+  const sos = lang === "es" ? esSos[0] : sosSetsEn[0];
+  const [coverTitle, coverSub] = core.name.split(" — ");
+  const epigraph = C.epigraph.source.slice(C.epigraph.source.indexOf(C.epigraph.from));
+
   const STAR = `<svg class="star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4Z"/></svg>`;
   const box = label => `<span class="tick"><span class="box"></span>${esc(label)}</span>`;
   const scale = () => `<span class="dots">${[1, 2, 3, 4, 5].map(n => `<span class="dot">${n}</span>`).join("")}</span>`;
@@ -88,7 +237,7 @@ function buildHtml({ qr, fontBase = `file://${path.join(ROOT, "fonts")}/` }) {
   const page = (cls, body, { footer = true } = {}) => {
     const n = pages.length + 1;
     const foot = footer ? `<footer>
-      <span class="brand">${STAR}<span>Stand</span><span class="sep">·</span><span class="series">The 30-Day Journey</span></span>
+      <span class="brand">${STAR}<span>Stand</span><span class="sep">·</span><span class="series">${esc(core.short)}</span></span>
       <span class="num">${n}</span>
     </footer>` : "";
     pages.push({ cls, html: `<section class="page ${cls}">${body}${foot}</section>` });
@@ -104,8 +253,8 @@ function buildHtml({ qr, fontBase = `file://${path.join(ROOT, "fonts")}/` }) {
     let s = `<svg class="chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="${esc(label)}">`;
     for (const level of [1, 2, 3, 4, 5]) {
       s += `<line x1="${left}" x2="${width - 6}" y1="${y(level)}" y2="${y(level)}" class="grid"/>`;
-      const name = level === 5 ? "5 overwhelming" : level === 1 ? "1 calm" : String(level);
-      s += `<text x="${left - 8}" y="${y(level) + 3}" text-anchor="end" class="axis">${name}</text>`;
+      const name = level === 5 ? C.high : level === 1 ? C.low : String(level);
+      s += `<text x="${left - 8}" y="${y(level) + 3}" text-anchor="end" class="axis">${esc(name)}</text>`;
     }
     const r = Math.min(4.2, subW * 0.32);
     cols.forEach((c, i) => {
@@ -114,7 +263,7 @@ function buildHtml({ qr, fontBase = `file://${path.join(ROOT, "fonts")}/` }) {
       sub.forEach((name, k) => {
         const cx = x0 + subW * (k + 0.5);
         for (const level of [1, 2, 3, 4, 5]) s += `<circle cx="${cx}" cy="${y(level)}" r="${r}" class="pip"/>`;
-        if (name) s += `<text x="${cx}" y="${top + plotH + 10}" text-anchor="middle" class="sub">${name}</text>`;
+        if (name) s += `<text x="${cx}" y="${top + plotH + 10}" text-anchor="middle" class="sub">${esc(name)}</text>`;
       });
       s += `<text x="${x0 + colW / 2}" y="${height - 3}" text-anchor="middle" class="axis day">${esc(c)}</text>`;
     });
@@ -138,125 +287,116 @@ function buildHtml({ qr, fontBase = `file://${path.join(ROOT, "fonts")}/` }) {
   /* ---------- cover ---------- */
   page("cover", `
   <div class="cover-frame">
-    <p class="kicker">A prayer workbook</p>
-    <h1 class="cover-title">Stand</h1>
-    <p class="cover-sub">30 Days of Spiritual Combat</p>
-    <p class="cover-lead">Thirty days of Scripture, prayer and one small practice, with room to write down what you notice along the way.</p>
-    <blockquote class="cover-verse">“${esc(EPIGRAPH)}”</blockquote>
-    <p class="ref cover-ref">Ephesians 6:13</p>
+    <p class="kicker">${esc(C.coverKicker)}</p>
+    <h1 class="cover-title">${esc(coverTitle)}</h1>
+    <p class="cover-sub">${esc(coverSub)}</p>
+    <p class="cover-lead">${esc(C.coverLead)}</p>
+    <blockquote class="cover-verse">“${esc(epigraph)}”</blockquote>
+    <p class="ref cover-ref">${esc(C.epigraph.ref)}</p>
     <div class="fields">
-      <div class="field"><span>This workbook belongs to</span><span class="blank"></span></div>
-      <div class="field"><span>I began on</span><span class="blank"></span></div>
+      <div class="field"><span>${esc(C.belongs)}</span><span class="blank"></span></div>
+      <div class="field"><span>${esc(C.began)}</span><span class="blank"></span></div>
     </div>
     <div class="cover-foot"><span class="brand">${STAR}<span>Stand</span></span><span>prayers.dougdevitre.org</span></div>
   </div>`, { footer: false });
 
   /* ---------- how to use ---------- */
-  const steps = [
-    ["Read", "the verse and the reflection, slowly."],
-    ["Pray", "the day’s prayer, aloud if you can."],
-    ["Declare", "speak the declaration, then tick the box."],
-    ["Practice", "one small, concrete step for the day."],
-    ["Check in", "circle where your fear is, before and after you pray."],
-    ["Write", "a few lines. A sentence is enough."]
-  ];
-  const reviews = weekGroups().slice(0, -1).map(g => g[g.length - 1].n);
+  const reviews = groups.slice(0, -1).map(g => g[g.length - 1].n);
   page("howto", `
-  <p class="kicker">Before you start</p>
-  <h1 class="page-title">How to use this workbook</h1>
-  <p class="lead">Each day takes about ten minutes, at the kitchen table, before work or last thing at night. There is no wrong way to do it.</p>
-  <h2 class="label">The daily rhythm</h2>
-  <ol class="steps">${steps.map(([k, v]) => `<li><b>${k}</b> ${v}</li>`).join("")}</ol>
+  <p class="kicker">${esc(C.howKicker)}</p>
+  <h1 class="page-title">${esc(C.howTitle)}</h1>
+  <p class="lead">${esc(C.howLead)}</p>
+  <h2 class="label">${esc(C.rhythm)}</h2>
+  <ol class="steps">${C.steps.map(([k, v]) => `<li><b>${esc(k)}</b> ${esc(v)}</li>`).join("")}</ol>
   <div class="two">
     <div>
-      <h2 class="label">The fear check-in</h2>
-      <p>${esc(ui["checkin.scale"])}. It isn’t a score. It simply records where you are, so you can look back later and see what happened.</p>
+      <h2 class="label">${esc(C.checkinTitle)}</h2>
+      <p>${esc(ui["checkin.scale"])}. ${esc(C.checkinBody)}</p>
       <p class="example">${scale()}</p>
-      <h2 class="label">If you miss a day</h2>
-      <p>Pick up where you left off. Missing a day does not erase your progress.</p>
-      <h2 class="label">Look back each week</h2>
-      <p>After Days ${reviews.slice(0, -1).join(", ")} and ${reviews[reviews.length - 1]} there is a page for looking back on the week, and after Day ${days.length}, one for the whole journey.</p>
+      <h2 class="label">${esc(C.missTitle)}</h2>
+      <p>${esc(C.missBody)}</p>
+      <h2 class="label">${esc(C.weeklyTitle)}</h2>
+      <p>${esc(C.weeklyBody(reviews.slice(0, -1).join(", "), reviews[reviews.length - 1], days.length))}</p>
     </div>
     <div>
-      <h2 class="label">Listen along</h2>
-      <p>Every day can be read aloud to you in the Stand app, which is free and needs no account. Scan the code beside any day’s title to open that day. This one opens the app.</p>
-      <div class="qr-big">${qr[`${SITE}/app`]}</div>
-      <h2 class="label">Keep it private</h2>
-      <p>This workbook is yours. What you write here is for you, so keep it somewhere you trust.</p>
+      <h2 class="label">${esc(C.listenTitle)}</h2>
+      <p>${esc(C.listenBody)}</p>
+      <div class="qr-big">${qr[appLink(lang)]}</div>
+      <h2 class="label">${esc(C.privateTitle)}</h2>
+      <p>${esc(C.privateBody)}</p>
     </div>
   </div>
-  <h2 class="label">The journey at a glance</h2>
-  <ul class="glance">${weekGroups().map(g => `<li><span class="glance-week">${esc(sentence(g[0].week))}</span><span class="glance-days">${g.length > 1 ? `Days ${g[0].n}–${g[g.length - 1].n}` : `Day ${g[0].n}`}</span><span class="glance-titles">${g.map(d => esc(d.title)).join(" · ")}</span></li>`).join("")}</ul>`);
+  <h2 class="label">${esc(C.glanceTitle)}</h2>
+  <ul class="glance">${groups.map(g => `<li><span class="glance-week">${esc(sentence(g[0].week))}</span><span class="glance-days">${esc(g.length > 1 ? C.days(g[0].n, g[g.length - 1].n) : C.day(g[0].n))}</span><span class="glance-titles">${g.map(d => esc(d.title)).join(" · ")}</span></li>`).join("")}</ul>`);
 
   /* ---------- Steady me now ---------- */
-  const sos = sosSetsEn[0];
   const steadyPage = page("steady", `
-  <p class="kicker">When fear spikes</p>
-  <h1 class="page-title">Steady me now</h1>
-  <p class="lead">A ninety-second pause for when fear will not sit still. The same steps are one tap away in the app.</p>
+  <p class="kicker">${esc(C.steadyKicker)}</p>
+  <h1 class="page-title">${esc(C.steadyTitle(ui))}</h1>
+  <p class="lead">${esc(C.steadyLead)}</p>
   <ol class="pause">
-    <li><b>Breathe.</b> In for four, hold for four, out for six. Three slow breaths.
+    <li><b>${esc(C.breathe[0])}</b> ${esc(C.breathe[1])}
       <span class="breaths">${[1, 2, 3].map(() => `<span class="breath"></span>`).join("")}</span></li>
-    <li><b>Anchor.</b> <span class="verse-inline">“${esc(sos.verse)}”</span> <span class="ref-inline">${esc(sos.ref)}</span></li>
-    <li><b>Pray.</b> <span class="serif">${esc(sos.prayer)}</span></li>
-    <li><b>Declare.</b> <span class="serif">${esc(sos.declaration)}</span></li>
-    <li><b>Check in.</b> Steadier? If not, take another round. ${esc(ui["sos.closing"])}
-      <span class="inline-checkin">Before ${scale()} <span class="gap"></span> After ${scale()}</span></li>
+    <li><b>${esc(C.anchor)}</b> <span class="verse-inline">“${esc(sos.verse)}”</span> <span class="ref-inline">${esc(sos.ref)}</span></li>
+    <li><b>${esc(C.pray)}</b> <span class="serif">${esc(sos.prayer)}</span></li>
+    <li><b>${esc(C.declare)}</b> <span class="serif">${esc(sos.declaration)}</span></li>
+    <li><b>${esc(C.checkIn[0])}</b> ${esc(C.checkIn[1])} ${esc(ui["sos.closing"])}
+      <span class="inline-checkin">${esc(C.before)} ${scale()} <span class="gap"></span> ${esc(C.after)} ${scale()}</span></li>
   </ol>
-  <h2 class="label">What steadies me</h2>
+  <h2 class="label">${esc(C.steadiesTitle)}</h2>
   <div class="write steadies">
-    ${lines(3, "People I can call or text")}
-    ${lines(2, "A verse or phrase that steadies me")}
-    ${lines(2, "Something I can do with my hands or feet")}
+    ${lines(3, C.steadies[0])}
+    ${lines(2, C.steadies[1])}
+    ${lines(2, C.steadies[2])}
   </div>
   ${support}`);
 
   /* ---------- before Day 1 ---------- */
   page("begin", `
-  <p class="kicker">Before Day 1</p>
-  <h1 class="page-title">Where are you right now?</h1>
+  <p class="kicker">${esc(C.beginKicker)}</p>
+  <h1 class="page-title">${esc(C.beginTitle)}</h1>
   <div class="write">
-    ${lines(5, "What am I afraid of? Name it plainly.")}
-    <div class="checkin solo"><span class="label">Where is my fear today?</span>${scale()}<span class="legend">${esc(ui["checkin.scale"])}</span></div>
-    ${lines(4, "What am I hoping for in these thirty days?")}
-    ${lines(3, "Who is walking with me? (Initials are enough.)")}
-    <div class="when"><span class="label">When I’ll pray each day</span><span class="blank short"></span><span class="label">Where</span><span class="blank"></span></div>
+    ${lines(5, C.afraid)}
+    <div class="checkin solo"><span class="label">${esc(C.today)}</span>${scale()}<span class="legend">${esc(ui["checkin.scale"])}</span></div>
+    ${lines(4, C.hoping)}
+    ${lines(3, C.walking)}
+    <div class="when"><span class="label">${esc(C.when)}</span><span class="blank short"></span><span class="label">${esc(C.where)}</span><span class="blank"></span></div>
   </div>`);
 
   /* ---------- tracker ---------- */
   page("tracker", `
-  <p class="kicker">At a glance</p>
-  <h1 class="page-title">My thirty days</h1>
-  <p class="lead">Tick each day as you go. Missing a day does not erase your progress.</p>
-  <div class="grid30">${days.map(d => `<div class="cell"><span class="cell-n">${d.n}</span><span class="cell-t">${esc(d.title)}</span><span class="cell-ticks">${box("Prayed")}${box("Practice")}</span></div>`).join("")}</div>
-  <h2 class="label">Where my fear was each day, before I prayed</h2>
-  <p class="hint">Fill one circle a day.</p>
-  ${chart({ cols: days.map(d => String(d.n)), label: "Thirty-day fear chart, one column per day" })}`);
+  <p class="kicker">${esc(C.trackerKicker)}</p>
+  <h1 class="page-title">${esc(C.trackerTitle)}</h1>
+  <p class="lead">${esc(C.trackerLead)}</p>
+  <div class="grid30">${days.map(d => `<div class="cell"><span class="cell-n">${d.n}</span><span class="cell-t">${esc(d.title)}</span><span class="cell-ticks">${box(C.prayed)}${box(C.practiced)}</span></div>`).join("")}</div>
+  <h2 class="label">${esc(C.chartTitle)}</h2>
+  <p class="hint">${esc(C.chartHint)}</p>
+  ${chart({ cols: days.map(d => String(d.n)), label: C.chartLabel })}`);
 
   /* ---------- the days, with a look back after each week ---------- */
   const dayPage = d => page("day", `
-    <div class="run"><span class="kicker">Day ${d.n} of ${days.length} · ${esc(sentence(d.week))}</span><span class="date">Date <span class="blank tiny"></span></span></div>
+    <div class="run"><span class="kicker">${esc(C.dayOf(d.n, days.length))} · ${esc(sentence(d.week))}</span><span class="date">${esc(C.date)} <span class="blank tiny"></span></span></div>
     <div class="card">
       <div class="title-row">
         <h1 class="title">${esc(d.title)}</h1>
-        <span class="qr-wrap"><span class="qr-label">Scan to listen to Day ${d.n}</span><span class="qr">${qr[d.url]}</span></span>
+        <span class="qr-wrap"><span class="qr-label">${esc(C.scan(d.n))}</span><span class="qr">${qr[d.url]}</span></span>
       </div>
       <blockquote class="verse">“${esc(d.verse)}”</blockquote>
       <p class="ref">${esc(d.ref)}</p>
-      <h2 class="label">Reflection</h2>
+      <h2 class="label">${esc(C.reflection)}</h2>
       <p class="reflection">${esc(d.reflection)}</p>
-      <h2 class="label">Prayer</h2>
+      <h2 class="label">${esc(C.prayer)}</h2>
       <p class="prayer">${esc(d.prayer)}</p>
       <div class="pair">
-        <div><h2 class="label">Declare</h2><p class="declare">${esc(d.declaration)}</p>${box("Said aloud")}</div>
-        <div><h2 class="label">Today’s practice</h2><p class="practice">${esc(d.practice)}</p>${box("Done")}</div>
+        <div><h2 class="label">${esc(C.declareLabel)}</h2><p class="declare">${esc(d.declaration)}</p>${box(C.saidAloud)}</div>
+        <div><h2 class="label">${esc(C.practiceLabel)}</h2><p class="practice">${esc(d.practice)}</p>${box(C.done)}</div>
       </div>
     </div>
-    <div class="checkin"><span class="label">Fear check-in</span><span class="pair-in">Before I prayed ${scale()}</span><span class="pair-in">After ${scale()}</span><span class="legend">${esc(ui["checkin.scale"])}</span></div>
+    <div class="checkin"><span class="label">${esc(C.fearCheckin)}</span><span class="pair-in">${esc(C.beforePrayed)} ${scale()}</span><span class="pair-in">${esc(C.after)} ${scale()}</span><span class="legend">${esc(ui["checkin.scale"])}</span></div>
     <div class="write">
-      ${lines(4, "What is fear telling me today? What is true instead?")}
-      ${lines(3, "Where did I notice help today, from God or from someone?")}
-      ${lines(2, "One thing I want to carry into tomorrow")}
+      ${lines(4, C.prompts[0])}
+      ${lines(3, C.prompts[1])}
+      ${lines(2, C.prompts[2])}
     </div>`);
 
   const weekPage = group => {
@@ -264,67 +404,65 @@ function buildHtml({ qr, fontBase = `file://${path.join(ROOT, "fonts")}/` }) {
     const first = group[0].n, last = group[group.length - 1].n;
     return page("week", `
     <p class="kicker">${esc(label)}</p>
-    <h1 class="page-title">Looking back on ${esc(label.split(" · ")[0].toLowerCase())}</h1>
-    <h2 class="label">My check-ins, Days ${first}–${last}</h2>
-    <p class="hint">For each day, fill the circle for your fear before (B) and after (A) you prayed.</p>
-    ${chart({ cols: group.map(d => `Day ${d.n}`), sub: ["B", "A"], height: 160, label: `Fear check-ins for Days ${first} to ${last}` })}
-    <h2 class="label">The declarations</h2>
-    <p class="hint">Circle the one you most want to keep.</p>
-    <ul class="decls">${group.map(d => `<li><span class="ring"></span><span class="decl-n">Day ${d.n}</span><span class="serif">${esc(d.declaration)}</span></li>`).join("")}</ul>
+    <h1 class="page-title">${esc(C.weekTitle(label.split(" · ")[0].toLowerCase()))}</h1>
+    <h2 class="label">${esc(C.weekChecks(first, last))}</h2>
+    <p class="hint">${esc(C.weekHint)}</p>
+    ${chart({ cols: group.map(d => C.day(d.n)), sub: C.sub, height: 160, label: C.weekChartLabel(first, last) })}
+    <h2 class="label">${esc(C.decls)}</h2>
+    <p class="hint">${esc(C.declsHint)}</p>
+    <ul class="decls">${group.map(d => `<li><span class="ring"></span><span class="decl-n">${esc(C.day(d.n))}</span><span class="serif">${esc(d.declaration)}</span></li>`).join("")}</ul>
     <div class="write">
-      ${lines(3, "What shifted this week, even a little?")}
-      ${lines(3, "Where was it hardest?")}
-      ${lines(3, "What do I want to bring into next week?")}
+      ${lines(3, C.weekPrompts[0])}
+      ${lines(3, C.weekPrompts[1])}
+      ${lines(3, C.weekPrompts[2])}
     </div>`);
   };
 
-  const groups = weekGroups();
   groups.forEach((group, g) => {
     for (const d of group) dayPage(d);
     if (g < groups.length - 1) weekPage(group);
   });
 
   /* ---------- the whole journey ---------- */
-  const others = Object.entries(tracks).filter(([id]) => id !== "core");
-  const fearJourneys = others.filter(([, t]) => t.group === "JOURNEYS FOR FEAR").map(([, t]) => `${esc(t.short)} (${t.days.length} days)`);
+  const others = Object.keys(tracks).filter(id => id !== "core").map(id => [id, lang === "es" && esTracks[id] ? { ...tracks[id], ...esTracks[id] } : tracks[id]]);
+  const fear = others.filter(([, t]) => t.group === "JOURNEYS FOR FEAR").map(([, t]) => `${t.short} (${t.days.length} ${C.daysWord})`);
   const stories = others.filter(([, t]) => t.group === "COURAGE STORIES");
   page("final", `
   <p class="kicker">${esc(sentence(core.weeks[core.weeks.length - 1]))}</p>
-  <h1 class="page-title">Looking back on thirty days</h1>
+  <h1 class="page-title">${esc(C.finalTitle)}</h1>
   <div class="write">
-    ${lines(3, "Read what you wrote before Day 1. What do you notice now?")}
-    ${lines(3, "What has changed, in me or around me?")}
-    ${lines(2, "Which declaration will I keep?")}
-    ${lines(3, "What comes next?")}
+    ${lines(3, C.finalPrompts[0])}
+    ${lines(3, C.finalPrompts[1])}
+    ${lines(2, C.finalPrompts[2])}
+    ${lines(3, C.finalPrompts[3])}
   </div>
   <div class="next">
-    <h2 class="label">Where to go from here</h2>
-    <p>In the Stand app: ${fearJourneys.join(" · ")} · ${stories.length} four-day courage stories, from ${esc(stories[0][1].short.toLowerCase())} to ${esc(stories[stories.length - 1][1].short.toLowerCase())} · the Prayer Book and the Rosary · Steady me now, any time. Or begin these thirty days again; the second time through often reads differently.</p>
+    <h2 class="label">${esc(C.nextTitle)}</h2>
+    <p>${esc(C.next({ fear, stories: stories.length, first: stories[0][1].short.toLowerCase(), last: stories[stories.length - 1][1].short.toLowerCase() }))}</p>
   </div>`);
 
   /* ---------- notes ---------- */
-  for (let k = 0; k < 2; k++) page("notes", `<p class="kicker">Notes</p><div class="write">${lines(1)}</div>`);
+  for (let k = 0; k < 2; k++) page("notes", `<p class="kicker">${esc(C.notes)}</p><div class="write">${lines(1)}</div>`);
 
   /* ---------- about ---------- */
-  const draft = prayerCorpus.meta && prayerCorpus.meta.reviewNote
-    ? " The devotional text is a draft awaiting review by a pastoral advisor; later editions will follow that review." : "";
+  const draft = prayerCorpus.meta && prayerCorpus.meta.reviewNote ? ` ${C.draft}` : "";
   page("about", `
-  <p class="kicker">About</p>
-  <h1 class="page-title">About this workbook</h1>
-  <p>Stand is a free prayer companion for fear, with no account, no advertising and no tracking. Every day in this workbook is also in the app, where it can be read aloud: <b>prayers.dougdevitre.org</b>.</p>
-  <h2 class="label">Scripture</h2>
-  <p>Scripture quotations are from the World English Bible, which is in the public domain.</p>
-  <h2 class="label">What Stand is, and isn’t</h2>
-  <p>Stand offers spiritual encouragement and prayer. It is not medical, mental health, legal or financial advice, and it is not a substitute for a licensed professional. If you need help now, the numbers are on page ${steadyPage}.</p>
-  <h2 class="label">Using this workbook</h2>
-  <p>The text and prayers in Stand belong to the Stand project. You are welcome to print this workbook for your own personal, non-commercial prayer, and to share the link with anyone.</p>
-  <h2 class="label">This edition</h2>
-  <p>${esc(EDITION)}${draft}</p>
+  <p class="kicker">${esc(C.aboutKicker)}</p>
+  <h1 class="page-title">${esc(C.aboutTitle)}</h1>
+  <p>${esc(C.about)} <b>prayers.dougdevitre.org</b>.</p>
+  <h2 class="label">${esc(C.scriptureTitle)}</h2>
+  <p>${esc(C.scripture)}</p>
+  <h2 class="label">${esc(C.isntTitle)}</h2>
+  <p>${esc(C.isnt(steadyPage))}</p>
+  <h2 class="label">${esc(C.useTitle)}</h2>
+  <p>${esc(C.use)}</p>
+  <h2 class="label">${esc(C.editionTitle)}</h2>
+  <p>${esc(C.edition + draft)}</p>
   ${support}`);
 
   const font = (file, family, weight, style = "normal") =>
     `@font-face{font-family:"${family}";src:url("${fontBase}${file}") format("woff");font-weight:${weight};font-style:${style}}`;
-  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Stand — 30-Day Workbook</title><style>
+  const html = `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><title>${esc(C.docTitle)}</title><style>
 ${font("source-serif-4-latin-400-normal.woff", "StandSerif", 400)}
 ${font("source-serif-4-latin-400-italic.woff", "StandSerif", 400, "italic")}
 ${font("source-serif-4-latin-600-normal.woff", "StandSerif", 600)}
@@ -360,7 +498,7 @@ footer{margin-top:auto;padding-top:8pt;display:flex;justify-content:space-betwee
 .star{width:9pt;height:9pt;fill:var(--gold)}
 .num{font-weight:700;color:var(--ink)}
 .qr-wrap{display:inline-flex;align-items:center;gap:6pt}
-.qr-label{font-size:7.5pt;color:var(--muted);text-align:right;max-width:.8in;line-height:1.25}
+.qr-label{font-size:7.5pt;color:var(--muted);text-align:right;max-width:.85in;line-height:1.25}
 .qr{display:inline-block;width:.78in;height:.78in;flex:none}
 .title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12pt}
 .title-row .qr-wrap{margin:-4pt -6pt 0 0}
@@ -455,11 +593,11 @@ footer{margin-top:auto;padding-top:8pt;display:flex;justify-content:space-betwee
 .about footer{margin-top:0}
 `;
 
-/** Prints the workbook to a PDF; fails, naming the page, if anything runs off one. */
-async function build({ out = OUT_FILE, log = console.log } = {}) {
+/** Prints one language's workbook to a PDF; fails, naming the page, if anything runs off one. */
+async function build({ lang = "en", out = path.join(OUT_DIR, COPY[lang].file), log = console.log } = {}) {
   const { chromium } = require("playwright");
-  const qr = await makeQr();
-  const { html } = buildHtml({ qr });
+  const qr = await makeQr(qrTargets(lang));
+  const { html } = buildHtml({ qr, lang });
   fs.mkdirSync(path.dirname(out), { recursive: true });
   const htmlFile = out.replace(/\.pdf$/, ".html");
   fs.writeFileSync(htmlFile, html);
@@ -487,10 +625,9 @@ async function build({ out = OUT_FILE, log = console.log } = {}) {
     await tab.pdf({ path: out, width: "8.5in", height: "11in", printBackground: true, preferCSSPageSize: true });
     fs.rmSync(htmlFile, { force: true });
     const bad = report.filter(r => r.overflow.length || r.clipped);
-    for (const r of bad) log(`✗ page ${r.page} (${r.kind}) runs off the page: ${r.overflow.join(", ") || "clipped"}`);
-    const thin = report.filter(r => r.kind === "day" && r.rules < 6);
-    for (const r of thin) log(`• page ${r.page}: only ${r.rules} writing lines`);
-    log(bad.length ? `✗ ${bad.length} of ${report.length} pages overflow` : `✓ ${report.length} pages, nothing runs off a page → ${path.relative(ROOT, out)}`);
+    for (const r of bad) log(`✗ ${lang} page ${r.page} (${r.kind}) runs off the page: ${r.overflow.join(", ") || "clipped"}`);
+    for (const r of report.filter(r => r.kind === "day" && r.rules < 6)) log(`• ${lang} page ${r.page}: only ${r.rules} writing lines`);
+    log(bad.length ? `✗ ${lang}: ${bad.length} of ${report.length} pages overflow` : `✓ ${lang}: ${report.length} pages, nothing runs off a page → ${path.relative(ROOT, out)}`);
     return { ok: !bad.length, report, out };
   } finally {
     await browser.close();
@@ -498,9 +635,14 @@ async function build({ out = OUT_FILE, log = console.log } = {}) {
 }
 
 if (require.main === module) {
-  build({ out: process.argv[2] ? path.resolve(process.argv[2]) : OUT_FILE })
-    .then(r => process.exit(r.ok ? 0 : 1))
-    .catch(e => { console.error(e); process.exit(1); });
+  const i = process.argv.indexOf("--lang");
+  const langs = i >= 0 ? [process.argv[i + 1]] : LANGS;
+  if (!langs.every(l => COPY[l])) { console.error(`--lang must be one of ${LANGS.join(", ")}`); process.exit(2); }
+  (async () => {
+    let ok = true;
+    for (const lang of langs) ok = (await build({ lang })).ok && ok;
+    process.exit(ok ? 0 : 1);
+  })().catch(e => { console.error(e); process.exit(1); });
 }
 
-module.exports = { SITE, EDITION, OUT_FILE, days, weekGroups, qrTargets, makeQr, buildHtml, build };
+module.exports = { SITE, LANGS, COPY, OUT_DIR, daysFor, weekGroups, qrTargets, makeQr, buildHtml, build };

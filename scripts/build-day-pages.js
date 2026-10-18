@@ -903,6 +903,9 @@ const PRIVACY = {
         para("Calendar reminders show each day’s title, verse and practice in your calendar, where anyone who can see your calendar or your lock screen can read them. If you turn on “Private” in the reminder options, each reminder says only “Stand — daily prayer”, with a link into the app."),
         para("If you subscribe to Stand’s calendar feed (/calendar.ics), your calendar app will request a link from time to time. That link contains only the journey, the day to start on, a date, a time, the language and a few option settings. It contains no notes and no personal details. The request is handled by our host.")
       ]],
+      ["Your lock screen", [
+        para("While Stand plays a prayer, your phone may show it on the lock screen and in notifications. There, Stand names a day only as “Guided prayer” with the day’s number, never by its title or what it is about, and Steady me now only as “Guided prayer”. Traditional prayers, such as the Angelus, appear under their own names. Your phone may also show Stand’s name and icon and the website’s address.")
+      ]],
       ["Recorded narration", [
         para("The spoken narration was produced ahead of time with ElevenLabs text-to-speech. Nothing you enter in Stand is ever sent to ElevenLabs or to any AI service.")
       ]],
@@ -919,7 +922,7 @@ const PRIVACY = {
         para(`If you have a question about your privacy, you can write to ${contactLink}.`)
       ]]
     ],
-    updated: "Last updated: 17 October 2026"
+    updated: "Last updated: 18 October 2026"
   },
   es: {
     title: "Privacidad — Stand",
@@ -953,6 +956,9 @@ const PRIVACY = {
         para("Los recordatorios muestran en tu calendario el título, el versículo y la práctica de cada día, y cualquiera que pueda ver tu calendario o tu pantalla bloqueada puede leerlos. Si activas «Privado» en las opciones del recordatorio, cada uno dice solo «Stand — oración diaria», con un enlace a la app."),
         para("Si te suscribes al calendario de Stand (/calendar.ics), tu app de calendario pedirá un enlace de vez en cuando. Ese enlace contiene solo el camino, el día en que empiezas, una fecha, una hora, el idioma y algunas opciones. No contiene notas ni datos personales. La solicitud la atiende nuestro proveedor de alojamiento.")
       ]],
+      ["Tu pantalla bloqueada", [
+        para("Mientras Stand reproduce una oración, tu teléfono puede mostrarla en la pantalla bloqueada y en las notificaciones. Allí, Stand nombra un día solo como «Oración guiada» con el número del día, nunca con su título ni con su tema, y Calma ahora solo como «Oración guiada». Las oraciones tradicionales, como el Ángelus, aparecen con su propio nombre. Tu teléfono también puede mostrar el nombre y el icono de Stand y la dirección del sitio web.")
+      ]],
       ["Narración grabada", [
         para("La narración se grabó de antemano con la tecnología de texto a voz de ElevenLabs. Nada de lo que introduces en Stand se envía nunca a ElevenLabs ni a ningún servicio de inteligencia artificial.")
       ]],
@@ -969,7 +975,7 @@ const PRIVACY = {
         para(`Si tienes alguna pregunta sobre tu privacidad, puedes escribir a ${contactLink}.`)
       ]]
     ],
-    updated: "Última actualización: 17 de octubre de 2026"
+    updated: "Última actualización: 18 de octubre de 2026"
   }
 };
 

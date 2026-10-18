@@ -457,6 +457,8 @@ const server = http.createServer((req, res) => {
       go(0);
     });
     check("a manifest entry labels the day as recorded", (await page.textContent("#audioTime")) === "Recorded narration · about 3 minutes");
+    // Earlier checks leave metadata behind; clear it so the wait below is for this recording's.
+    await page.evaluate(() => { navigator.mediaSession.metadata = null; });
     await page.click("#playButton");
     await page.waitForFunction(() => player.status === "playing", null, { timeout: 5000 }).catch(() => {});
     check("play takes the recording from the manifest", await page.evaluate(() =>
@@ -467,6 +469,8 @@ const server = http.createServer((req, res) => {
     await page.waitForFunction(() => navigator.mediaSession.metadata !== null, null, { timeout: 5000 }).catch(() => {});
     check("the Media Session artwork is an absolute path", await page.evaluate(() =>
       navigator.mediaSession.metadata.artwork[0].src.endsWith("/icon-512.png")));
+    check("the lock screen names a playing day only by its number", await page.evaluate(() =>
+      navigator.mediaSession.metadata.title === "Guided prayer · Day 1"));
     await page.waitForFunction(() => player.status === "idle", null, { timeout: 10000 }).catch(() => {});
     check("a recording ends back at idle", await page.evaluate(() => player.status === "idle"));
     check("an ended recording clears the Media Session playback state", await page.evaluate(() =>
@@ -545,10 +549,10 @@ const server = http.createServer((req, res) => {
     check("opening SOS stops the day's recording", await page.evaluate(() => player.status === "idle" && audioEl.paused));
     await page.evaluate(() => { audioEl.loop = false; });
     await sosListen();
-    check("the SOS recording plays and is named on the lock screen", await page.evaluate(() =>
+    check("the SOS recording plays, named on the lock screen only as a guided prayer", await page.evaluate(() =>
       prayerAudio.recorded && !audioEl.paused && audioEl.src === `${location.origin}/tests/fixtures/silence.mp3`
       && navigator.mediaSession.playbackState === "playing"
-      && /^Steady me now · \S/.test(navigator.mediaSession.metadata && navigator.mediaSession.metadata.title)));
+      && (navigator.mediaSession.metadata && navigator.mediaSession.metadata.title) === "Guided prayer"));
     check("the SOS recording gets lock-screen position like any recording", await page.evaluate(() => recordingInSession()));
     check("…and its button offers to stop", (await page.textContent("#sosListen")) === "■ Stop");
     await page.click("#sosListen");
@@ -604,12 +608,18 @@ const server = http.createServer((req, res) => {
     check("moving to another day stops it", await page.evaluate(() => player.status === "idle" && audioEl.paused));
     await page.evaluate(() => { audioEl.loop = false; stopAudio(); audioManifest.items = {}; audioManifest.base = ""; go(0); });
 
-    // Device speech names the day on the lock screen, without a scrubber.
-    check("device narration names the day on the lock screen", await page.evaluate(() => {
+    // Device speech names the day on the lock screen by its number only, never
+    // by its title (Day 13 is "Despair"), and without a scrubber. The tab
+    // keeps the title.
+    check("device narration names the day on the lock screen by its number, never its title", await page.evaluate(() => {
+      go(12);
       speakDay();
       const title = navigator.mediaSession.metadata && navigator.mediaSession.metadata.title;
       stopAudio();
-      return title === document.title;
+      const dayTitle = document.getElementById("dayTitle").textContent;
+      const tab = document.title;
+      go(0);
+      return title === "Guided prayer · Day 13" && dayTitle === "Despair" && !title.includes(dayTitle) && tab.includes(dayTitle);
     }));
     check("a prayer read by the device voice names itself on the lock screen, and clears it when stopped", await page.evaluate(() => {
       if (!canSpeak) return true;

@@ -226,10 +226,18 @@ const server = http.createServer((req, res) => {
   await page.click("#libraryButton");
   check("track picker lists every journey", (await page.$$("#trackPicker .track-chip")).length === TRACK_COUNT);
   check("track picker groups journeys", (await page.$$(".track-group-label")).length === GROUP_COUNT);
+  check("the library's group names are normal case, capitalized by the stylesheet", await page.$$eval(".track-group-label", els =>
+    els.every(el => el.textContent !== el.textContent.toUpperCase() && el.innerText === el.textContent.toUpperCase())));
   await page.click('.track-chip[data-track="unknown"]');
   check("track day 1 title", (await page.textContent("#dayTitle")) === "The Unwritten Page");
   check("track length is 5", (await page.textContent("#progressLabel")) === "Day 1 of 5");
-  check("track week label", (await page.textContent("#weekLabel")).includes("FEAR OF THE UNKNOWN"));
+  check("track week label", (await page.textContent("#weekLabel")) === "Fear of the Unknown · Five days");
+  // Small labels are written in normal case and capitalized by the stylesheet,
+  // so a screen reader and a copied line get words, not shouting.
+  check("the week label is normal case, capitalized by the stylesheet", await page.evaluate(() => {
+    const el = document.getElementById("weekLabel");
+    return el.textContent !== el.textContent.toUpperCase() && el.innerText === el.textContent.toUpperCase();
+  }));
   await page.click("#completeButton");
   check("track completion isolated", (await page.textContent("#progressPercent")).startsWith("1 of 5"));
   await page.fill("#notes", "track note");
@@ -406,7 +414,7 @@ const server = http.createServer((req, res) => {
   check("?track deep link switches journey", (await page.textContent("#dayTitle")) === "Daily Bread");
   await page.goto("http://localhost:8123/app?track=furnace#2", { waitUntil: "networkidle" });
   check("courage story deep link", (await page.textContent("#dayTitle")) === "Even If");
-  check("courage story week label", (await page.textContent("#weekLabel")).includes("COURAGE STORY"));
+  check("courage story week label", (await page.textContent("#weekLabel")) === "Courage story · The Furnace · Daniel 3");
   check("courage story length is 4", (await page.textContent("#progressLabel")) === "Day 2 of 4");
   await page.goto("http://localhost:8123/app?track=core#1", { waitUntil: "networkidle" });
 
@@ -1493,14 +1501,14 @@ const server = http.createServer((req, res) => {
   check("day switches to Spanish", spanish.title === "Firmeza");
   check("reference is localized", spanish.ref === "Efesios 6:10–13");
   check("verse is Reina-Valera", spanish.verse.includes("Confortaos en el Señor"));
-  check("week label is Spanish", spanish.week.includes("SEMANA UNO"));
+  check("week label is Spanish", spanish.week === "Semana uno · Establecer el terreno");
   check("reflection is Spanish", spanish.reflection.includes("combate espiritual"));
   check("every field actually changed", ["title", "ref", "verse", "week", "reflection"]
     .every(k => spanish[k] !== english[k]));
 
   // The library follows the same choice.
   await page.click("#libraryButton");
-  check("library groups are Spanish", (await page.textContent("#trackPicker")).includes("HISTORIAS DE VALOR"));
+  check("library groups are Spanish", (await page.textContent("#trackPicker")).includes("Historias de valor"));
   check("library counts are Spanish", (await page.textContent("#trackPicker")).includes(" días"));
   await page.click("#closeLibrary");
 
@@ -1908,7 +1916,7 @@ const server = http.createServer((req, res) => {
   await page.goto("http://localhost:8123/es/fears", { waitUntil: "networkidle" });
   check("Spanish fear index loads", (await page.textContent("h1")).includes("¿Dónde estás"));
   check("Spanish fear index lists every situation", (await page.$$(".feature-card")).length === fearIndex.length);
-  check("Spanish fear index groups in Spanish", (await page.textContent("main")).includes("HISTORIAS DE VALOR"));
+  check("Spanish fear index groups in Spanish", (await page.textContent("main")).includes("Historias de valor"));
   const esFearHrefs = await page.$$eval(".feature-card h3 a", els => els.map(e => e.getAttribute("href")));
   check("every Spanish fear links under /es", esFearHrefs.every(h => h.startsWith("/es/")));
   let esBroken = 0;

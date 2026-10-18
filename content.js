@@ -34,11 +34,11 @@ const themes = [
 ];
 
 const weeks = [
-  "WEEK ONE · ESTABLISH THE GROUND",
-  "WEEK TWO · CONFRONT THE INNER BATTLE",
-  "WEEK THREE · COMBAT IN RELATIONSHIPS",
-  "WEEK FOUR · TRANSFORMATION",
-  "DAY THIRTY · THE FINAL BATTLE IS CHARACTER"
+  "Week one · Establish the ground",
+  "Week two · Confront the inner battle",
+  "Week three · Combat in relationships",
+  "Week four · Transformation",
+  "Day thirty · The final battle is character"
 ];
 
 // Focused short tracks. Each day follows the same shape as `themes`:
@@ -46,7 +46,7 @@ const weeks = [
 const tracks = {
   core: {
     id: "core",
-    group: "THE 30-DAY JOURNEY",
+    group: "The 30-Day Journey",
     name: "Stand — 30 Days of Spiritual Combat",
     short: "The 30-Day Journey",
     days: themes,
@@ -54,10 +54,10 @@ const tracks = {
   },
   unknown: {
     id: "unknown",
-    group: "JOURNEYS FOR FEAR",
+    group: "Journeys for fear",
     name: "Fear of the Unknown",
     short: "Fear of the Unknown",
-    weeks: ["FEAR OF THE UNKNOWN · FIVE DAYS"],
+    weeks: ["Fear of the Unknown · Five days"],
     days: [
       ["The Unwritten Page","Proverbs 3:5–6","Trust in the LORD with all your heart, and don’t lean on your own understanding. In all your ways acknowledge him, and he will make your paths straight.","Fear of the unknown writes confident endings to stories that have not begun. Trust does not demand the whole plot; it takes the next line with the Author.","Father, I keep trying to read pages that have not been written. Teach me to trust You with the chapters I cannot see, and give me faithfulness for the page in front of me.","I do not need to know the ending to trust the Author.","Write down one unknown you keep rehearsing, and beside it the one step that is actually yours today."],
       ["Daily Bread","Matthew 6:11","Give us today our daily bread.","Provision arrives daily, not in advance — which is exactly why the unknown feels underfunded. Grace for tomorrow will be issued tomorrow.","Lord, I confess I want a stockpile and You offer bread for today. Feed me for this day's needs, and quiet the hunger for guarantees You never promised.","Today has enough grace in it for today.","Name today's actual needs — not tomorrow's possible ones — and pray only for those."],
@@ -68,10 +68,10 @@ const tracks = {
   },
   night: {
     id: "night",
-    group: "JOURNEYS FOR FEAR",
+    group: "Journeys for fear",
     name: "Night Fear & Sleep",
     short: "Night Fear & Sleep",
-    weeks: ["NIGHT FEAR & SLEEP · FIVE DAYS"],
+    weeks: ["Night Fear & Sleep · Five days"],
     days: [
       ["Lying Down","Psalm 4:8","In peace I will both lay myself down and sleep, for you, the LORD alone, make me live in safety.","Sleep is an act of trust: for a few hours you stop managing the world, and it goes on being held. Lying down in peace is not denial — it is a handoff.","Father, as I lie down I resign as night watchman. What I did not finish today, You are not worried about. Let my body rest under Your safety, not my vigilance.","I can end this day; God does not end with it.","Choose a consistent handoff moment tonight — lights, prayer, done — and keep it."],
       ["The Watchman","Psalm 121:3–4","He who keeps you will not slumber. Behold, he who keeps Israel will neither slumber nor sleep.","Someone is up all night, and it does not have to be you. The watch is already staffed; your shift ends at bedtime.","Lord, You stay awake so I do not have to. Take the night shift — the replaying, the pre-living, the listening for trouble — and let me sleep like someone who is guarded.","The night watch is God's shift, not mine.","When you wake in the night, say once: 'You are awake, so I don't have to be' — then let the thought pass."],
@@ -85,10 +85,10 @@ const tracks = {
   // Scripture here is public domain (World English Bible, lightly modernized).
   furnace: {
     id: "furnace",
-    group: "COURAGE STORIES",
+    group: "Courage stories",
     name: "The Furnace — Daniel 3",
     short: "The Furnace",
-    weeks: ["COURAGE STORY · THE FURNACE · DANIEL 3"],
+    weeks: ["Courage story · The Furnace · Daniel 3"],
     days: [
       ["The Decree","Daniel 3:15","Who is that god that will deliver you out of my hands?","Three men are given a public choice with a private cost: bow, or burn. Fear grows loudest where the pressure is legitimate — real authority, real consequence, no exit that keeps everything intact.","God, I am standing in front of something that can actually cost me. Keep me from pretending the danger is smaller than it is, and keep me from deciding who I am based on what it threatens.","Pressure can set my circumstances; it does not get to set my character.","Name the exact thing you are being pressured to bow to, and write down what it would cost you to refuse."],
       ["Even If","Daniel 3:17–18","Our God whom we serve is able to deliver us from the burning fiery furnace; and he will deliver us out of your hand, O king. But if not, let it be known to you, O king, that we will not serve your gods.","Their courage did not depend on a guaranteed rescue. 'But if not' is the sentence that frees you: obedience decided before the outcome is known cannot be bought by fear later.","Father, I want assurance before I will commit, and You are asking for commitment before assurance. Give me an 'even if' faith — one that holds when the answer is not the one I asked for.","I will do what is right even if the outcome is not what I hoped.","Finish this sentence in your notes: 'Even if this does not go the way I want, I will still ______.'"],
@@ -98,10 +98,10 @@ const tracks = {
   },
   giant: {
     id: "giant",
-    group: "COURAGE STORIES",
+    group: "Courage stories",
     name: "The Giant — 1 Samuel 17",
     short: "The Giant",
-    weeks: ["COURAGE STORY · THE GIANT · 1 SAMUEL 17"],
+    weeks: ["Courage story · The Giant · 1 Samuel 17"],
     days: [
       ["Forty Days of Shouting","1 Samuel 17:16","The Philistine came near morning and evening, and presented himself forty days.","An army stayed paralyzed for forty days because a threat kept repeating itself. Fear rarely needs new material; it just needs the same voice, morning and evening, until the whole camp organizes around it.","Lord, something has been shouting at me every morning and every evening, and I have arranged my life around it. Quiet the repetition long enough for me to hear what is actually true.","A threat repeated daily is still only one threat.","Write the sentence fear repeats to you. Count how many days it has been saying it — and then write what it has actually done."],
       ["Five Smooth Stones","1 Samuel 17:40","He took his staff in his hand, and chose for himself five smooth stones out of the brook, and put them in the pouch of his shepherd’s bag which he had.","David refused armor that did not fit and took what he had already proven in ordinary work. Courage is rarely equipped with new weapons; it is equipped with tested ones.","God, keep me from waiting for equipment I do not have. Show me what You have already trained me to do, and give me the humility to use small, proven things.","I will use what I have actually practiced, not what looks impressive.","List five small, proven things you already have — a skill, a person, a habit, a fact, a resource — for the situation you are facing."],
@@ -111,10 +111,10 @@ const tracks = {
   },
   den: {
     id: "den",
-    group: "COURAGE STORIES",
+    group: "Courage stories",
     name: "The Den — Daniel 6",
     short: "The Den",
-    weeks: ["COURAGE STORY · THE DEN · DANIEL 6"],
+    weeks: ["Courage story · The Den · Daniel 6"],
     days: [
       ["The Trap","Daniel 6:5","We won’t find any occasion against this Daniel, unless we find it against him concerning the law of his God.","His accusers could not find wrongdoing, so they engineered a rule he would have to break. Being targeted is not proof you did wrong, and doing right is not a guarantee of being left alone.","God, I am being measured by people looking for a reason. Keep me from living defensively, from shaping my days around their search. Let my conduct be clean and my mind be free.","Being accused and being guilty are not the same thing.","Write down the factual record of one situation — dates, actions, what was actually said — and then stop re-arguing it in your head."],
       ["Windows Open","Daniel 6:10","He kneeled on his knees three times a day, and prayed, and gave thanks before his God, as he did before.","He did not escalate and he did not hide. He continued exactly as before. Under scrutiny, faithfulness often looks like the unremarkable repetition of what you were already doing.","Lord, I am tempted either to perform my integrity or to conceal it. Let me simply keep going — the same prayers, the same standards, the same care — whether or not anyone is watching or waiting.","I will keep doing the right thing at the same pace I always did.","Keep one ordinary good practice today exactly as you kept it before the pressure started."],
@@ -124,10 +124,10 @@ const tracks = {
   },
   storm: {
     id: "storm",
-    group: "COURAGE STORIES",
+    group: "Courage stories",
     name: "The Storm — Mark 4",
     short: "The Storm",
-    weeks: ["COURAGE STORY · THE STORM · MARK 4"],
+    weeks: ["Courage story · The Storm · Mark 4"],
     days: [
       ["Asleep in the Stern","Mark 4:38","Teacher, don’t you care that we are dying?","The boat was filling and Jesus was asleep. Their fear was not only the water; it was the silence — the sense that no one was reacting with the urgency the moment deserved.","Lord, I have prayed and nothing seems to be moving, and part of me reads that as indifference. I am telling You the truth about how this feels instead of pretending. Do not let my fear become the final word about Your character.","Silence is not the same as absence.","Say the honest, unedited sentence to God — the one you have been softening — out loud, once."],
       ["Peace, Be Still","Mark 4:39","He awoke, and rebuked the wind, and said to the sea, “Peace! Be still!” The wind ceased, and there was a great calm.","The calm did not come from the disciples bailing faster. Three words ended what all their effort could not, and the storm's authority turned out to be borrowed.","God, I have been bailing — managing, checking, refreshing, fixing. Speak stillness into the part of this I cannot control, and into the part of me that will not stop working at it.","What is loudest in my life is not what is in charge of it.","Take ninety seconds: breathe slowly and say 'Peace, be still' on each exhale. Use 'Steady me now' if it helps."],
@@ -137,10 +137,10 @@ const tracks = {
   },
   unseen: {
     id: "unseen",
-    group: "COURAGE STORIES",
+    group: "Courage stories",
     name: "The Unseen Army — 2 Kings 6",
     short: "The Unseen Army",
-    weeks: ["COURAGE STORY · THE UNSEEN ARMY · 2 KINGS 6"],
+    weeks: ["Courage story · The Unseen Army · 2 Kings 6"],
     days: [
       ["Surrounded by Morning","2 Kings 6:15","Behold, an army with horses and chariots was around the city. His servant said to him, “Alas, my master! What shall we do?”","He woke up, looked outside, and saw only the threat. That is an honest description of many mornings: the first thing the eyes find is what is arrayed against you.","God, I wake up already counting what is against me. Before I add up the threats today, let me take an accurate count — of help, of provision, of what has already held.","What I see first in the morning is not the whole inventory.","Before checking your phone tomorrow, write three things that are true and steady in your life right now."],
       ["More With Us","2 Kings 6:16","Don’t be afraid; for those who are with us are more than those who are with them.","Elisha did not argue that the army was small. He said the count was incomplete. Fear is often accurate about the threat and wrong about the total.","Lord, my arithmetic keeps leaving You out and leaving out the people You have already given me. Correct the math. Let me feel outnumbered in the right direction.","Fear counts the threat correctly and the help not at all.","List everyone and everything actually on your side right now — people, resources, protections, past evidence. Compare it to your fear's count."],
@@ -150,10 +150,10 @@ const tracks = {
   },
   throne: {
     id: "throne",
-    group: "COURAGE STORIES",
+    group: "Courage stories",
     name: "The Throne Room — Esther 4–5",
     short: "The Throne Room",
-    weeks: ["COURAGE STORY · THE THRONE ROOM · ESTHER 4–5"],
+    weeks: ["Courage story · The Throne Room · Esther 4–5"],
     days: [
       ["For Such a Time","Esther 4:14","Who knows if you haven’t come to the kingdom for such a time as this?","Esther was safe, and the safety was the problem: staying quiet would have preserved her position and cost everyone else. Some fear is not fear of harm but fear of losing a comfortable place.","God, I have been telling myself that silence is prudence. Show me honestly what my quiet is protecting, and give me the courage to break it for someone who cannot speak for themselves.","Staying silent is also a decision, and it also has a cost.","Name the one thing you are positioned to say that no one else in the room can — and who would benefit if you said it."],
       ["If I Perish","Esther 4:16","I will go in to the king, which is against the law; and if I perish, I perish.","She did not go because she felt ready or because she expected to survive. The decision was made before the reception was known, which is the only place courage can be decided.","Lord, I keep waiting to feel brave enough. Let me decide this while I am still afraid, and then keep me steady long enough to actually do it.","I will decide this before I know how it will be received.","Choose the hard conversation and put a date on it today — an actual day, written down."],
@@ -163,10 +163,10 @@ const tracks = {
   },
   wall: {
     id: "wall",
-    group: "COURAGE STORIES",
+    group: "Courage stories",
     name: "The Wall — Nehemiah 4, 6",
     short: "The Wall",
-    weeks: ["COURAGE STORY · THE WALL · NEHEMIAH 4 & 6"],
+    weeks: ["Courage story · The Wall · Nehemiah 4 & 6"],
     days: [
       ["They Laughed at the Work","Nehemiah 4:3","What they are building, if a fox climbed up it, he would break down their stone wall.","Before anyone attacked the wall, they mocked it. Contempt aimed at unfinished work is effective because early work always does look fragile — and the builder knows it better than the critics do.","Lord, someone is making my effort sound ridiculous, and part of me agrees with them. Keep me building through the stage where the work cannot yet defend itself.","Unfinished is not the same as worthless.","Write down the mocking sentence, then write the next brick — the single smallest piece of the work you can lay today."],
       ["A Trowel and a Sword","Nehemiah 4:17","Everyone with one of his hands did the work, and with the other held his weapon.","They did not stop building to deal with the threat, and they did not pretend the threat was imaginary. Both hands were occupied: one with vigilance, one with the work.","God, I keep swinging between denial and total defense. Teach me to hold both — a clear-eyed watch and a steady hand still building — without letting either hand drop.","I can stay alert and keep building at the same time.","Name the one genuine precaution this situation needs. Take it — then return to the work and leave it there."],
@@ -176,10 +176,10 @@ const tracks = {
   },
   water: {
     id: "water",
-    group: "COURAGE STORIES",
+    group: "Courage stories",
     name: "The Water — Matthew 14",
     short: "The Water",
-    weeks: ["COURAGE STORY · THE WATER · MATTHEW 14"],
+    weeks: ["Courage story · The Water · Matthew 14"],
     days: [
       ["A Ghost in the Fourth Watch","Matthew 14:26","When the disciples saw him walking on the sea, they were troubled, saying, “It’s a ghost!” and they cried out for fear.","The help arrived and they screamed. Fear is not only afraid of bad things; when it has been afraid long enough, it misreads the rescue as one more threat.","God, I have been frightened long enough to be suspicious of good news. Steady me enough to look twice at what is approaching before I decide what it is.","Not everything that startles me is against me.","Name one thing you reacted to with dread this week, and check whether the dread was actually warranted."],
       ["Tell Me to Come","Matthew 14:28–29","Lord, if it is you, command me to come to you on the waters.” He said, “Come!” Peter stepped down from the boat, and walked on the waters to come to Jesus.","Peter asked for the harder thing. The safe option — stay in the boat with everyone else — was available the entire time and no one would have blamed him for taking it.","Lord, I have been asking You to calm things down when part of me is being invited out. If this is You, say so, and give me the nerve to put a foot over the side.","The safe option is not always the faithful one.","Name the thing you would attempt if you were sure you would be caught. Take its first small step today."],
@@ -189,10 +189,10 @@ const tracks = {
   },
   basket: {
     id: "basket",
-    group: "COURAGE STORIES",
+    group: "Courage stories",
     name: "The Basket — Exodus 2",
     short: "The Basket",
-    weeks: ["COURAGE STORY · THE BASKET · EXODUS 2"],
+    weeks: ["Courage story · The Basket · Exodus 2"],
     days: [
       ["Three Months Hidden","Exodus 2:2","She hid him three months.","Her first instinct was concealment, and for three months it worked. Most parents know this stretch: the danger is real, the protection is total, and it is quietly running out.","God, I have been holding this child close and keeping the danger away by sheer effort. I am tired, and I am afraid of the day my covering is not enough. Stay with us in that.","I can protect fiercely and still not be able to protect forever.","Name honestly what you are currently protecting your child from by effort alone, and who else could share the weight of it."],
       ["She Placed It in the Reeds","Exodus 2:3","She took a papyrus basket for him, and coated it with tar and with pitch. She put the child in it, and laid it in the reeds by the river’s bank.","She did not simply let go. She built the best basket she could, sealed it, chose the spot — and then released what she could not control. Surrender is what happens after diligence, not instead of it.","Father, let me do everything that is actually mine to do for this child, and then let me put the basket in the water. Hold what my hands cannot.","I will do all that is mine, and release what was never mine.","List what is genuinely in your power for your child this week. Do those. Then name, out loud, the part you are handing over."],
@@ -202,10 +202,10 @@ const tracks = {
   },
   shiloh: {
     id: "shiloh",
-    group: "COURAGE STORIES",
+    group: "Courage stories",
     name: "Shiloh — 1 Samuel 1",
     short: "Shiloh",
-    weeks: ["COURAGE STORY · SHILOH · 1 SAMUEL 1"],
+    weeks: ["Courage story · Shiloh · 1 Samuel 1"],
     days: [
       ["Year After Year","1 Samuel 1:7","So year by year, when she went up to the LORD’s house, her rival provoked her. Therefore she wept, and didn’t eat.","This is the fear that has a calendar: the same unanswered longing, arriving on schedule, worn deeper each time it comes around. Repetition makes an ache feel like a verdict.","God, I have brought this same request back to You for years and it has started to feel like a closed door. Keep me from turning Your silence into a sentence.","A long wait is not a final answer.","Name what you have been asking for the longest. Say it once today without adding an argument for why it should have happened by now."],
       ["She Spoke in Her Heart","1 Samuel 1:13","Hannah spoke in her heart. Only her lips moved, but her voice was not heard.","She prayed so honestly that the priest assumed she was drunk. Real prayer is often unpresentable — and being misjudged while doing the most sincere thing you have done in years is its own wound.","Lord, I would rather be misread by people while being honest with You than composed in front of both. Take this prayer in whatever shape it comes out.","My prayer does not have to be presentable to be heard.","Pray once today with no editing — out loud, unpolished, including the part you would not say in front of anyone."],
@@ -215,10 +215,10 @@ const tracks = {
   },
   turning: {
     id: "turning",
-    group: "COURAGE STORIES",
+    group: "Courage stories",
     name: "Turned to the Wall — Isaiah 38",
     short: "Turned to the Wall",
-    weeks: ["COURAGE STORY · TURNED TO THE WALL · ISAIAH 38"],
+    weeks: ["Courage story · Turned to the Wall · Isaiah 38"],
     days: [
       ["Set Your House in Order","Isaiah 38:1","Set your house in order, for you will die, and not live.","A sentence from a doctor can reorganize a life in an afternoon. Hezekiah was told plainly, and the telling did not wait for him to be ready to hear it.","God, I have been handed news I cannot unhear, and my mind will not stop running. Slow me down enough to face this hour rather than every hour after it.","I only have to face today's part of this.","Write down what is actually being asked of you in the next seven days — appointments, questions, one call. Nothing beyond that."],
       ["He Turned His Face to the Wall","Isaiah 38:2–3","Then Hezekiah turned his face to the wall and prayed to the LORD.","He turned away from the room to pray, and he wept while doing it. There was no composure in it and no performance — which is what makes it a model rather than an embarrassment.","Lord, I have been managing my face for everyone around me. Here, with You, let me stop. Take the fear and the tears without requiring me to arrange them first.","I do not have to be composed in front of God.","Take ten minutes alone and pray without managing how it sounds. Tears are part of the prayer, not an interruption of it."],
@@ -228,10 +228,10 @@ const tracks = {
   },
   hem: {
     id: "hem",
-    group: "COURAGE STORIES",
+    group: "Courage stories",
     name: "The Hem — Mark 5",
     short: "The Hem",
-    weeks: ["COURAGE STORY · THE HEM · MARK 5"],
+    weeks: ["Courage story · The Hem · Mark 5"],
     days: [
       ["Twelve Years, and Worse","Mark 5:26","Had suffered many things by many physicians, and had spent all that she had, and was no better, but rather grew worse.","Twelve years, every specialist, all the money, and the condition still advancing. Chronic illness carries a second weight on top of the first: the exhaustion of having tried everything already.","God, I am tired of explaining this, tired of trying again, and tired of hoping carefully. Meet me in the twelfth year, not just at the beginning when I still had energy for it.","Being tired of hoping does not mean I have failed at faith.","Name the part of this that is exhaustion rather than illness. Tell one person that specific thing today."],
       ["If I Just Touch His Clothes","Mark 5:28","If I just touch his clothes, I will be made well.","She did not ask to be introduced. She came from behind, through a crowd, aiming for the edge of a garment — because when you have been dismissed enough times, you learn to reach in ways that will not be refused.","Lord, I have stopped asking directly because of how the asking has gone so many times. Give me the nerve to reach once more, however small and sideways the reaching has to be.","A small reach still counts as reaching.","Make one request today that you have been talking yourself out of — for help, for a referral, for someone's time."],
@@ -241,10 +241,10 @@ const tracks = {
   },
   zarephath: {
     id: "zarephath",
-    group: "COURAGE STORIES",
+    group: "Courage stories",
     name: "The Last Meal — 1 Kings 17",
     short: "The Last Meal",
-    weeks: ["COURAGE STORY · THE LAST MEAL · 1 KINGS 17"],
+    weeks: ["Courage story · The Last Meal · 1 Kings 17"],
     days: [
       ["A Handful of Meal","1 Kings 17:12","I don’t have a cake, but a handful of meal in a jar, and a little oil in a jar. Behold, I am gathering two sticks, that I may go in and bake it for me and my son, that we may eat it, and die.","She could see the bottom of the jar and she had done the arithmetic. Financial fear is rarely irrational — it is usually a correct calculation carried all the way to a conclusion no one has actually reached yet.","God, I have counted what is left and I do not like the number. Keep me from living the ending before it arrives, and give me enough steadiness to get through today's part.","I have counted correctly and still do not know the ending.","Write the actual numbers down — what is there, what is owed, what is due when. Fear does worse math in the dark."],
       ["Make Me a Little Cake First","1 Kings 17:13","Don’t be afraid. Go and do as you have said; but make me a little cake from it first, and bring it out to me, and afterward make some for you and for your son.","The ask sounds outrageous, and it is worth being plain about what it is not: not a transaction, not a technique for producing money, and not a reason to give away what your family needs. It is one small act of trust at the exact point where fear says to close the hand.","Lord, scarcity has made me grip everything. Show me one honest, proportionate way to open my hand today — not recklessly, but really.","Fear says close the hand; I can open it a little.","Do one small generous thing that is genuinely within your means — a meal, an hour, a skill someone needs. Small and real, not large and reckless."],
@@ -254,10 +254,10 @@ const tracks = {
   },
   jordan: {
     id: "jordan",
-    group: "COURAGE STORIES",
+    group: "Courage stories",
     name: "The River — Joshua 3–4",
     short: "The River",
-    weeks: ["COURAGE STORY · THE RIVER · JOSHUA 3–4"],
+    weeks: ["Courage story · The River · Joshua 3–4"],
     days: [
       ["At Flood Stage","Joshua 3:15","The Jordan overflows all its banks all the time of harvest.","They arrived at the crossing in the one season when the river was highest. The timing feels like a mistake, and it is worth noticing how often the thing you are asked to do arrives when conditions are at their worst.","God, the timing of this is terrible and I keep reading that as a sign I have it wrong. Give me the steadiness to look at the water honestly and still move toward it.","Bad timing is not the same as a closed door.","Write down what specifically makes this the wrong moment. Then ask whether any of it is actually within your control."],
       ["Feet in the Water","Joshua 3:13","When the soles of the feet of the priests who bear the ark of the LORD, the Lord of all the earth, rest in the waters of the Jordan, that the waters of the Jordan will be cut off.","The river parted after they stepped in, not before. The order is the whole lesson: the evidence you are waiting for is on the far side of the move you are refusing to make.","Lord, I have been asking You to part this before I step. Give me the nerve to put a foot in while it is still deep, and meet me there.","The way opens after the step, not before it.","Take the step you have been holding back until you felt sure. Today, not once conditions improve."],
@@ -267,10 +267,10 @@ const tracks = {
   },
   torches: {
     id: "torches",
-    group: "COURAGE STORIES",
+    group: "Courage stories",
     name: "The Three Hundred — Judges 6–7",
     short: "The Three Hundred",
-    weeks: ["COURAGE STORY · THE THREE HUNDRED · JUDGES 6–7"],
+    weeks: ["Courage story · The Three Hundred · Judges 6–7"],
     days: [
       ["The Least in My Father's House","Judges 6:15","O Lord, how shall I save Israel? Behold, my family is the poorest in Manasseh, and I am the least in my father’s house.","His first response was a résumé of reasons he was the wrong person. Fear of inadequacy is persuasive precisely because its facts are usually accurate — he really was the youngest of the smallest family.","God, everything I listed about why this should not be me is true, and You have not withdrawn the ask. Let me stop auditioning for it and simply begin.","Being the wrong person on paper has not disqualified me.","Write your honest list of why you are not the one. Then do the first small piece of it anyway."],
       ["Called in the Winepress","Judges 6:11–12","His son Gideon was beating out wheat in the wine press, to hide it from the Midianites. The LORD’s angel appeared to him, and said to him, “The LORD is with you, you mighty man of valor!”","He was hiding when he was called a mighty man of valor — which was either a joke or a description of something not yet visible. People are regularly named for who they are becoming rather than where they are standing.","Lord, I am being addressed as something I do not recognize. Let me receive it instead of arguing with it, and let me grow toward it slowly.","I can be called something I have not become yet.","Ask someone who knows you well what they see in you that you dismiss. Write down their words verbatim."],
@@ -280,10 +280,10 @@ const tracks = {
   },
   shipwreck: {
     id: "shipwreck",
-    group: "COURAGE STORIES",
+    group: "Courage stories",
     name: "The Shipwreck — Acts 27",
     short: "The Shipwreck",
-    weeks: ["COURAGE STORY · THE SHIPWRECK · ACTS 27"],
+    weeks: ["Courage story · The Shipwreck · Acts 27"],
     days: [
       ["Neither Sun Nor Stars","Acts 27:20","When neither sun nor stars shone on us for many days, and no small storm pressed on us, all hope that we would be saved was now taken away.","Fourteen days with no sky means no navigation and no sense of time passing. The hardest part of a long crisis is rarely the first night; it is the featureless middle, when you can no longer tell whether you are moving.","God, I have lost track of where I am in this. I cannot see anything to steer by. Hold the course I cannot see, and keep me from giving up in the middle.","Losing my bearings does not mean I am lost.","Mark today's date and one true sentence about where things stand. You are building the sky you cannot see."],
       ["I Believe God","Acts 27:22–25","Therefore, sirs, cheer up! For I believe God, that it will be just as it has been spoken to me.","Paul was a prisoner on that ship with no authority over anyone, and he became the calmest person in the hold. In a crisis, one person's steadiness is a resource everybody else draws on.","Lord, make me the steady one in this room. Not falsely cheerful and not pretending — just steady enough that someone frightened can stand near me.","My steadiness is something other people can borrow.","Say one true, calm thing to someone who is frightened today. No forced optimism, no minimizing."],
@@ -293,10 +293,10 @@ const tracks = {
   },
   barley: {
     id: "barley",
-    group: "COURAGE STORIES",
+    group: "Courage stories",
     name: "The Barley Field — Ruth 1–2",
     short: "The Barley Field",
-    weeks: ["COURAGE STORY · THE BARLEY FIELD · RUTH 1–2"],
+    weeks: ["Courage story · The Barley Field · Ruth 1–2"],
     days: [
       ["I Went Out Full","Ruth 1:21","I went out full, and the Lord has brought me home again empty.","Naomi came back to her hometown with less than she left with, and said so out loud without softening it. Starting over in front of people who remember your better years is its own specific fear.","God, I am back at a beginning I did not choose, and I am tired of explaining it. Let me say plainly what I have lost without letting the loss name me.","I can name what I lost without it becoming who I am.","Say or write the honest sentence about what this season has cost you. No silver lining attached to it."],
       ["Where You Go","Ruth 1:16","Where you go, I will go; and where you stay, I will stay. Your people will be my people, and your God my God.","Ruth committed to someone at the exact moment it made no practical sense — two widows, no income, no prospects. The most consequential choices are often made by people with nothing to bargain with.","Lord, I have very little to offer anyone right now. Let me still choose someone, still show up, still commit — and let that be enough.","Having nothing does not disqualify me from showing up.","Make one commitment today that costs you something you do not really have to spare: time, presence, an honest conversation."],

@@ -9,16 +9,16 @@
 // 108 against scripts/es-source.json and fails the build if one is not.
 
 const esGroups = {
-  "THE 30-DAY JOURNEY": "EL CAMINO DE 30 DÍAS",
-  "JOURNEYS FOR FEAR": "CAMINOS PARA EL MIEDO",
-  "COURAGE STORIES": "HISTORIAS DE VALOR"
+  "The 30-Day Journey": "El camino de 30 días",
+  "Journeys for fear": "Caminos para el miedo",
+  "Courage stories": "Historias de valor"
 };
 
 const esTracks = {
   core: {
     name: "Firme — 30 días de combate espiritual",
     short: "El camino de 30 días",
-    weeks: ["SEMANA UNO · ESTABLECER EL TERRENO","SEMANA DOS · ENFRENTAR LA BATALLA INTERIOR","SEMANA TRES · COMBATE EN LAS RELACIONES","SEMANA CUATRO · TRANSFORMACIÓN","DÍA TREINTA · LA BATALLA FINAL ES EL CARÁCTER"],
+    weeks: ["Semana uno · Establecer el terreno","Semana dos · Enfrentar la batalla interior","Semana tres · Combate en las relaciones","Semana cuatro · Transformación","Día treinta · La batalla final es el carácter"],
     days: [
       ["Firmeza","Efesios 6:10–13","Confortaos en el Señor, y en la potencia de su fortaleza.","El primer mandato del combate espiritual no es atacar. Es mantenerse firme. Estar firme significa negarte a que el miedo, la ira, la presión, la acusación o la incertidumbre decidan en quién te conviertes.","Padre, afírmame por dentro antes de que intente cambiar lo que me rodea. Donde tengo miedo, dame valor. Donde estoy confundido, dame claridad. Donde estoy airado, dame dominio propio. Donde estoy agotado, renueva mis fuerzas. No entregaré mi carácter a mis circunstancias. Ayúdame a estar firme.","Estaré firme en la verdad, caminaré en paz y guardaré mi carácter.","Cuando algo te altere, detente y pregunta: ¿cómo sería estar firme en la verdad ahora mismo?"],
       ["Verdad","Efesios 6:14","Estad pues firmes, ceñidos vuestros lomos de verdad.","La verdad es la primera pieza de la armadura. El combate espiritual comienza con honestidad intelectual: separar lo que sabes, lo que crees, lo que supones y lo que temes.","Dios de verdad, quita el engaño de mi alrededor y el autoengaño de mi interior. No me muestres solamente las verdades que quiero encontrar. Muéstrame la verdad misma. Dame valor para cambiar de opinión cuando la evidencia lo exija. Que la verdad me importe más que ganar.","La verdad importa más que mi necesidad de tener razón.","Divide una situación difícil en tres columnas: lo que sabes, lo que crees y lo que ignoras."],
@@ -55,7 +55,7 @@ const esTracks = {
   unknown: {
     name: "Miedo a lo desconocido",
     short: "Miedo a lo desconocido",
-    weeks: ["MIEDO A LO DESCONOCIDO · CINCO DÍAS"],
+    weeks: ["Miedo a lo desconocido · Cinco días"],
     days: [
       ["La página en blanco","Proverbios 3:5–6","Fíate de Jehová de todo tu corazón, y no estribes en tu prudencia. Reconócelo en todos tus caminos, y él enderezará tus veredas.","El miedo a lo desconocido escribe finales seguros para historias que aún no empiezan. La confianza no exige la trama entera; toma el siguiente renglón junto al Autor.","Padre, sigo intentando leer páginas que todavía no se han escrito. Enséñame a confiarte los capítulos que no alcanzo a ver, y dame fidelidad para la página que tengo delante.","No necesito conocer el final para confiar en el Autor.","Escribe algo desconocido que repasas una y otra vez, y al lado el único paso que hoy sí te corresponde."],
       ["El pan de cada día","Mateo 6:11","Danos hoy nuestro pan cotidiano.","La provisión llega cada día, no por adelantado, y por eso lo desconocido se siente sin fondos. La gracia de mañana se entrega mañana.","Señor, confieso que quiero una reserva y Tú ofreces pan para hoy. Aliméntame para las necesidades de este día y aquieta el hambre de garantías que nunca prometiste.","El día de hoy tiene gracia suficiente para hoy.","Nombra tus necesidades reales de hoy, no las posibles de mañana, y ora solo por esas."],
@@ -67,7 +67,7 @@ const esTracks = {
   night: {
     name: "Miedo nocturno y sueño",
     short: "Miedo nocturno y sueño",
-    weeks: ["MIEDO NOCTURNO Y SUEÑO · CINCO DÍAS"],
+    weeks: ["Miedo nocturno y sueño · Cinco días"],
     days: [
       ["Al acostarte","Salmo 4:8","En paz me acostaré, y asimismo dormiré; porque solo tú, Jehová, me harás estar confiado.","Dormir es un acto de confianza: por unas horas dejas de administrar el mundo, y el mundo sigue sostenido. Acostarse en paz no es negación, es una entrega de turno.","Padre, al acostarme renuncio a ser el vigilante de la noche. Lo que no terminé hoy no Te quita el sueño. Que mi cuerpo descanse bajo Tu resguardo y no bajo mi vigilancia.","Puedo terminar este día; Dios no termina con él.","Escoge esta noche un momento fijo de entrega —luces, oración, listo— y respétalo."],
       ["El que vela","Salmo 121:3–4","Ni se dormirá el que te guarda. He aquí, no se adormecerá ni dormirá el que guarda á Israel.","Alguien pasa la noche despierto, y no tienes que ser tú. La guardia ya está cubierta; tu turno termina a la hora de dormir.","Señor, Tú permaneces despierto para que yo no tenga que estarlo. Toma el turno de la noche —lo que repaso, lo que anticipo, lo que escucho por si acaso— y déjame dormir como quien está guardado.","La guardia de la noche es el turno de Dios, no el mío.","Si despiertas de madrugada, di una sola vez: «Tú estás despierto, así que yo no tengo que estarlo», y deja pasar el pensamiento."],
@@ -79,7 +79,7 @@ const esTracks = {
   furnace: {
     name: "El horno — Daniel 3",
     short: "El horno",
-    weeks: ["HISTORIA DE VALOR · EL HORNO · DANIEL 3"],
+    weeks: ["Historia de valor · El horno · Daniel 3"],
     days: [
       ["El decreto","Daniel 3:15","¿Y qué dios será aquel que os libre de mis manos?","A tres hombres se les da una decisión pública con un costo privado: inclinarse o arder. El miedo grita más fuerte donde la presión es legítima: autoridad real, consecuencia real, ninguna salida que deje todo intacto.","Dios, estoy delante de algo que de verdad puede costarme. Guárdame de fingir que el peligro es menor de lo que es, y guárdame de decidir quién soy en función de lo que amenaza.","La presión puede marcar mis circunstancias; no marca mi carácter.","Nombra exactamente aquello ante lo que te presionan a inclinarte, y escribe lo que te costaría negarte."],
       ["Y si no","Daniel 3:17–18","Y si no, sepas, oh rey, que tu dios no adoraremos, ni tampoco honraremos la estatua que has levantado.","Su valor no dependía de un rescate garantizado. «Y si no» es la frase que libera: la obediencia decidida antes de conocer el resultado ya no puede comprarse después con miedo.","Padre, quiero seguridad antes de comprometerme, y Tú pides compromiso antes de la seguridad. Dame una fe de «y si no»: una que se sostenga cuando la respuesta no sea la que pedí.","Haré lo correcto aunque el resultado no sea el que esperaba.","Termina esta frase en tus notas: «Aunque esto no salga como quiero, de todos modos ______»."],
@@ -90,7 +90,7 @@ const esTracks = {
   giant: {
     name: "El gigante — 1 Samuel 17",
     short: "El gigante",
-    weeks: ["HISTORIA DE VALOR · EL GIGANTE · 1 SAMUEL 17"],
+    weeks: ["Historia de valor · El gigante · 1 Samuel 17"],
     days: [
       ["Cuarenta días de gritos","1 Samuel 17:16","Venía pues aquel Filisteo por la mañana y á la tarde, y presentóse por cuarenta días.","Un ejército quedó paralizado cuarenta días porque una amenaza siguió repitiéndose. El miedo rara vez necesita material nuevo; le basta la misma voz, mañana y tarde, hasta que todo el campamento se organiza en torno a ella.","Señor, algo me ha venido gritando cada mañana y cada tarde, y he acomodado mi vida alrededor de eso. Calla la repetición lo suficiente para que yo alcance a oír lo que de verdad es cierto.","Una amenaza repetida a diario sigue siendo una sola amenaza.","Escribe la frase que el miedo te repite. Cuenta cuántos días lleva diciéndola, y después escribe lo que realmente ha hecho."],
       ["Cinco piedras lisas","1 Samuel 17:40","Escogióse cinco piedras lisas del arroyo, y púsolas en el saco pastoril.","David rechazó una armadura que no le quedaba y tomó lo que ya había probado en el trabajo de todos los días. El valor rara vez se equipa con armas nuevas; se equipa con armas probadas.","Dios, guárdame de esperar un equipo que no tengo. Muéstrame lo que ya me has enseñado a hacer, y dame la humildad de usar cosas pequeñas y comprobadas.","Usaré lo que de verdad he practicado, no lo que se ve impresionante.","Enumera cinco cosas pequeñas y probadas que ya tienes —una habilidad, una persona, un hábito, un dato, un recurso— para lo que estás enfrentando."],
@@ -101,7 +101,7 @@ const esTracks = {
   den: {
     name: "El foso — Daniel 6",
     short: "El foso",
-    weeks: ["HISTORIA DE VALOR · EL FOSO · DANIEL 6"],
+    weeks: ["Historia de valor · El foso · Daniel 6"],
     days: [
       ["La trampa","Daniel 6:5","No hallaremos contra este Daniel ocasión alguna, si no la hallamos contra él en la ley de su Dios.","Sus acusadores no encontraron falta, así que fabricaron una regla que él tendría que quebrantar. Ser el blanco no prueba que hiciste mal, y hacer el bien no garantiza que te dejen en paz.","Dios, me están midiendo personas que buscan un motivo. Guárdame de vivir a la defensiva, de armar mis días alrededor de su búsqueda. Que mi conducta esté limpia y mi mente libre.","Ser acusado y ser culpable no son lo mismo.","Escribe el registro de los hechos de una situación —fechas, acciones, lo que en verdad se dijo— y luego deja de volver a discutirla en tu cabeza."],
       ["Las ventanas abiertas","Daniel 6:10","Hincábase de rodillas tres veces al día, y oraba, y confesaba delante de su Dios, como lo solía hacer antes.","No avivó el conflicto ni se escondió. Siguió exactamente igual que antes. Bajo escrutinio, la fidelidad suele verse como la repetición nada llamativa de lo que ya hacías.","Señor, me tienta o exhibir mi integridad o esconderla. Déjame simplemente seguir: las mismas oraciones, los mismos criterios, el mismo cuidado, esté mirando alguien o no.","Seguiré haciendo lo correcto al mismo ritmo de siempre.","Mantén hoy una buena práctica común y corriente exactamente como la mantenías antes de que empezara la presión."],
@@ -112,7 +112,7 @@ const esTracks = {
   storm: {
     name: "La tormenta — Marcos 4",
     short: "La tormenta",
-    weeks: ["HISTORIA DE VALOR · LA TORMENTA · MARCOS 4"],
+    weeks: ["Historia de valor · La tormenta · Marcos 4"],
     days: [
       ["Dormido en la popa","Marcos 4:38","¿Maestro, no tienes cuidado que perecemos?","La barca se llenaba y Jesús dormía. Su miedo no era solo el agua; era el silencio, la sensación de que nadie reaccionaba con la urgencia que el momento merecía.","Señor, he orado y nada parece moverse, y una parte de mí lo lee como indiferencia. Te digo la verdad de cómo se siente esto en lugar de fingir. No dejes que mi miedo sea la última palabra sobre Tu carácter.","El silencio no es lo mismo que la ausencia.","Dile a Dios en voz alta, una vez, esa frase honesta y sin editar que has venido suavizando."],
       ["Calla, enmudece","Marcos 4:39","Increpó al viento, y dijo á la mar: Calla, enmudece. Y cesó el viento, y fué hecha grande bonanza.","La calma no vino de que los discípulos achicaran agua más rápido. Dos palabras terminaron lo que todo su esfuerzo no pudo, y la autoridad de la tormenta resultó ser prestada.","Dios, he estado achicando agua: administrando, revisando, actualizando, arreglando. Habla quietud a la parte de esto que no puedo controlar, y a la parte de mí que no deja de trabajar en ello.","Lo más ruidoso de mi vida no es lo que manda en ella.","Toma noventa segundos: respira despacio y di «calla, enmudece» al exhalar. Usa «Calma ahora» si te ayuda."],
@@ -123,7 +123,7 @@ const esTracks = {
   unseen: {
     name: "El ejército invisible — 2 Reyes 6",
     short: "El ejército invisible",
-    weeks: ["HISTORIA DE VALOR · EL EJÉRCITO INVISIBLE · 2 REYES 6"],
+    weeks: ["Historia de valor · El ejército invisible · 2 Reyes 6"],
     days: [
       ["Rodeado al amanecer","2 Reyes 6:15","He aquí el ejército que tenía cercada la ciudad, con gente de á caballo y carros.","Se levantó, miró afuera y vio solamente la amenaza. Esa es una descripción honesta de muchas mañanas: lo primero que encuentran los ojos es lo que está formado en tu contra.","Dios, despierto ya contando lo que está en mi contra. Antes de sumar las amenazas de hoy, déjame hacer una cuenta exacta: de ayuda, de provisión, de lo que ya me ha sostenido.","Lo que veo primero en la mañana no es el inventario completo.","Antes de mirar el teléfono mañana, escribe tres cosas que sean ciertas y firmes en tu vida ahora mismo."],
       ["Más son los que están con nosotros","2 Reyes 6:16","No hayas miedo: porque más son los que están con nosotros que los que están con ellos.","Eliseo no argumentó que el ejército fuera pequeño. Dijo que la cuenta estaba incompleta. El miedo suele acertar sobre la amenaza y equivocarse en el total.","Señor, mi aritmética sigue dejándote fuera, y deja fuera a las personas que ya me diste. Corrige la cuenta. Déjame sentirme superado en número, pero en la dirección correcta.","El miedo cuenta bien la amenaza y no cuenta nada de la ayuda.","Enumera a todos y todo lo que de verdad está de tu lado ahora: personas, recursos, protecciones, evidencia pasada. Compáralo con la cuenta del miedo."],
@@ -134,7 +134,7 @@ const esTracks = {
   throne: {
     name: "La sala del trono — Ester 4–5",
     short: "La sala del trono",
-    weeks: ["HISTORIA DE VALOR · LA SALA DEL TRONO · ESTER 4–5"],
+    weeks: ["Historia de valor · La sala del trono · Ester 4–5"],
     days: [
       ["Para esta hora","Ester 4:14","¿Y quién sabe si para esta hora te han hecho llegar al reino?","Ester estaba a salvo, y esa seguridad era el problema: callar habría conservado su posición y les habría costado todo a los demás. Hay miedos que no son miedo al daño sino miedo a perder un lugar cómodo.","Dios, me he venido diciendo que el silencio es prudencia. Muéstrame con honestidad qué está protegiendo mi silencio, y dame valor para romperlo por alguien que no puede hablar por sí mismo.","Callar también es una decisión, y también tiene un costo.","Nombra eso que estás en posición de decir y nadie más en la sala puede decir, y quién se beneficiaría si lo dijeras."],
       ["Si perezco, que perezca","Ester 4:16","Y así entraré al rey, aunque no sea conforme á la ley; y si perezco, que perezca.","No fue porque se sintiera lista ni porque esperara sobrevivir. La decisión se tomó antes de conocer la respuesta, que es el único lugar donde puede decidirse el valor.","Señor, sigo esperando sentirme lo bastante valiente. Déjame decidir esto mientras todavía tengo miedo, y luego sostenme firme lo suficiente para hacerlo de verdad.","Decidiré esto antes de saber cómo será recibido.","Escoge la conversación difícil y ponle fecha hoy: un día concreto, escrito."],
@@ -145,7 +145,7 @@ const esTracks = {
   wall: {
     name: "El muro — Nehemías 4 y 6",
     short: "El muro",
-    weeks: ["HISTORIA DE VALOR · EL MURO · NEHEMÍAS 4 Y 6"],
+    weeks: ["Historia de valor · El muro · Nehemías 4 y 6"],
     days: [
       ["Se rieron de la obra","Nehemías 4:3","Aun lo que ellos edifican, si subiere una zorra derribará su muro de piedra.","Antes de que alguien atacara el muro, se burlaron de él. El desprecio dirigido a una obra sin terminar funciona porque el trabajo temprano siempre se ve frágil, y quien construye lo sabe mejor que los críticos.","Señor, alguien está haciendo que mi esfuerzo suene ridículo, y una parte de mí les da la razón. Sostenme construyendo durante la etapa en que la obra todavía no puede defenderse sola.","Sin terminar no es lo mismo que sin valor.","Escribe la frase burlona, y después escribe el siguiente ladrillo: la pieza más pequeña de la obra que puedes poner hoy."],
       ["La llana y la espada","Nehemías 4:17","Con la una mano trabajaban en la obra, y en la otra tenían la espada.","No dejaron de construir para atender la amenaza, ni fingieron que la amenaza fuera imaginaria. Las dos manos estaban ocupadas: una con la vigilancia, otra con la obra.","Dios, oscilo entre la negación y la defensa total. Enséñame a sostener ambas cosas: una guardia lúcida y una mano firme que sigue construyendo, sin soltar ninguna de las dos.","Puedo estar alerta y seguir construyendo al mismo tiempo.","Nombra la única precaución real que esta situación necesita. Tómala, vuelve a la obra y déjala ahí."],
@@ -156,7 +156,7 @@ const esTracks = {
   water: {
     name: "El agua — Mateo 14",
     short: "El agua",
-    weeks: ["HISTORIA DE VALOR · EL AGUA · MATEO 14"],
+    weeks: ["Historia de valor · El agua · Mateo 14"],
     days: [
       ["Un fantasma en la cuarta vigilia","Mateo 14:26","Viéndole andar sobre la mar, se turbaron, diciendo: Fantasma es. Y dieron voces de miedo.","La ayuda llegó y ellos gritaron. El miedo no solo teme las cosas malas; cuando lleva suficiente tiempo asustado, lee mal el rescate como una amenaza más.","Dios, llevo asustado el tiempo suficiente para desconfiar de las buenas noticias. Sostenme lo bastante para mirar dos veces lo que se acerca antes de decidir qué es.","No todo lo que me sobresalta está en mi contra.","Nombra algo a lo que reaccionaste con temor esta semana y comprueba si el temor estaba justificado."],
       ["Manda que yo vaya","Mateo 14:28–29","Señor, si tú eres, manda que yo vaya á ti sobre las aguas. Y él dijo: Ven.","Pedro pidió lo más difícil. La opción segura —quedarse en la barca con todos los demás— estuvo disponible todo el tiempo y nadie lo habría culpado por tomarla.","Señor, Te he estado pidiendo que calmes las cosas cuando una parte de mí está siendo invitada a salir. Si esto eres Tú, dilo, y dame el temple de pasar un pie por la borda.","La opción segura no siempre es la opción fiel.","Nombra lo que intentarías si supieras que te van a sostener. Da hoy su primer paso pequeño."],
@@ -167,7 +167,7 @@ const esTracks = {
   basket: {
     name: "La arquilla — Éxodo 2",
     short: "La arquilla",
-    weeks: ["HISTORIA DE VALOR · LA ARQUILLA · ÉXODO 2"],
+    weeks: ["Historia de valor · La arquilla · Éxodo 2"],
     days: [
       ["Tres meses escondido","Éxodo 2:2","Viéndolo que era hermoso, túvole escondido tres meses.","Su primer instinto fue esconderlo, y durante tres meses funcionó. Casi todos los padres conocen ese tramo: el peligro es real, la protección es total y calladamente se está agotando.","Dios, he tenido a este hijo muy cerca y he mantenido lejos el peligro a pura fuerza. Estoy cansado, y me asusta el día en que mi cobertura no alcance. Quédate con nosotros en eso.","Puedo proteger con fiereza y aun así no poder proteger para siempre.","Nombra con honestidad de qué estás protegiendo hoy a tu hijo solo con esfuerzo, y quién más podría compartir ese peso."],
       ["Lo puso entre los juncos","Éxodo 2:3","Tomó una arquilla de juncos, y calafateóla con pez y betún, y colocó en ella al niño, y púsolo en un carrizal á la orilla del río.","No soltó sin más. Construyó la mejor arquilla que pudo, la selló, eligió el lugar, y entonces entregó lo que no podía controlar. La entrega es lo que ocurre después de la diligencia, no en lugar de ella.","Padre, déjame hacer todo lo que de verdad me toca por este hijo, y luego déjame poner la arquilla en el agua. Sostén Tú lo que mis manos no pueden.","Haré todo lo mío y soltaré lo que nunca fue mío.","Enumera lo que de verdad está en tu mano por tu hijo esta semana. Hazlo. Después nombra en voz alta la parte que entregas."],
@@ -178,7 +178,7 @@ const esTracks = {
   shiloh: {
     name: "Silo — 1 Samuel 1",
     short: "Silo",
-    weeks: ["HISTORIA DE VALOR · SILO · 1 SAMUEL 1"],
+    weeks: ["Historia de valor · Silo · 1 Samuel 1"],
     days: [
       ["Año tras año","1 Samuel 1:7","Por lo cual ella lloraba, y no comía.","Este es el miedo que tiene calendario: el mismo anhelo sin respuesta, llegando puntual, más hondo cada vuelta. La repetición hace que un dolor se sienta como un veredicto.","Dios, he traído esta misma petición durante años y ha empezado a sentirse como una puerta cerrada. Guárdame de convertir Tu silencio en una sentencia.","Una espera larga no es una respuesta definitiva.","Nombra lo que llevas más tiempo pidiendo. Dilo hoy una vez, sin añadir argumentos de por qué ya debería haber ocurrido."],
       ["Hablaba en su corazón","1 Samuel 1:13","Anna hablaba en su corazón, y solamente se movían sus labios, y su voz no se oía.","Oró con tanta honestidad que el sacerdote la creyó ebria. La oración verdadera muchas veces no es presentable, y ser malinterpretado mientras haces lo más sincero que has hecho en años es una herida aparte.","Señor, prefiero que la gente me lea mal mientras soy honesto contigo, antes que estar compuesto delante de ambos. Recibe esta oración en la forma en que salga.","Mi oración no tiene que ser presentable para ser oída.","Ora hoy una vez sin editar: en voz alta, sin pulir, incluyendo la parte que no dirías delante de nadie."],
@@ -189,7 +189,7 @@ const esTracks = {
   turning: {
     name: "Vuelto a la pared — Isaías 38",
     short: "Vuelto a la pared",
-    weeks: ["HISTORIA DE VALOR · VUELTO A LA PARED · ISAÍAS 38"],
+    weeks: ["Historia de valor · Vuelto a la pared · Isaías 38"],
     days: [
       ["Ordena tu casa","Isaías 38:1","Ordena tu casa, porque tú morirás, y no vivirás.","Una frase de un médico puede reorganizar una vida en una tarde. A Ezequías se le dijo sin rodeos, y el decirlo no esperó a que él estuviera listo para oírlo.","Dios, me han dado una noticia que ya no puedo desoír, y mi mente no deja de correr. Hazme ir más despacio para enfrentar esta hora y no todas las horas que vienen después.","Solo tengo que enfrentar la parte de hoy.","Escribe lo que de verdad se te pide en los próximos siete días: citas, preguntas, una llamada. Nada más allá de eso."],
       ["Volvió su rostro a la pared","Isaías 38:2–3","Entonces volvió Ezechîas su rostro á la pared, é hizo oración á Jehová.","Se apartó de la sala para orar, y lloró mientras lo hacía. No hubo compostura ni actuación, y eso es lo que lo vuelve un modelo en lugar de una vergüenza.","Señor, he venido administrando mi cara para todos los que me rodean. Aquí, contigo, déjame parar. Toma el miedo y las lágrimas sin pedirme que primero los acomode.","No tengo que estar compuesto delante de Dios.","Toma diez minutos a solas y ora sin cuidar cómo suena. Las lágrimas son parte de la oración, no una interrupción."],
@@ -200,7 +200,7 @@ const esTracks = {
   hem: {
     name: "El borde del manto — Marcos 5",
     short: "El borde del manto",
-    weeks: ["HISTORIA DE VALOR · EL BORDE DEL MANTO · MARCOS 5"],
+    weeks: ["Historia de valor · El borde del manto · Marcos 5"],
     days: [
       ["Doce años, y peor","Marcos 5:26","Había sufrido mucho de muchos médicos, y había gastado todo lo que tenía, y nada había aprovechado, antes le iba peor.","Doce años, todos los especialistas, todo el dinero, y la enfermedad seguía avanzando. La enfermedad crónica carga un segundo peso sobre el primero: el agotamiento de haberlo intentado ya todo.","Dios, estoy cansado de explicar esto, cansado de volver a intentarlo y cansado de esperar con cautela. Encuéntrame en el año doce, no solo al principio, cuando todavía tenía energía para esto.","Estar cansado de esperar no significa que haya fallado en la fe.","Nombra la parte de esto que es agotamiento y no enfermedad. Dile hoy esa cosa concreta a una persona."],
       ["Si tocare su vestido","Marcos 5:28","Si tocare tan solamente su vestido, seré salva.","No pidió que la presentaran. Vino por detrás, entre la multitud, apuntando al borde de un manto, porque cuando te han desestimado suficientes veces aprendes a alcanzar de maneras que no puedan negarte.","Señor, he dejado de pedir directamente por cómo han ido tantas veces las peticiones. Dame el temple de estirar la mano una vez más, por pequeño y de lado que tenga que ser el gesto.","Un gesto pequeño sigue contando como estirar la mano.","Haz hoy una petición de la que te has venido disuadiendo: ayuda, una derivación médica, el tiempo de alguien."],
@@ -211,7 +211,7 @@ const esTracks = {
   zarephath: {
     name: "La última comida — 1 Reyes 17",
     short: "La última comida",
-    weeks: ["HISTORIA DE VALOR · LA ÚLTIMA COMIDA · 1 REYES 17"],
+    weeks: ["Historia de valor · La última comida · 1 Reyes 17"],
     days: [
       ["Un puñado de harina","1 Reyes 17:12","Solamente un puñado de harina tengo en la tinaja, y un poco de aceite en una botija.","Ella veía el fondo de la tinaja y ya había hecho la cuenta. El miedo financiero rara vez es irracional: suele ser un cálculo correcto llevado hasta una conclusión a la que todavía nadie ha llegado.","Dios, he contado lo que queda y el número no me gusta. Guárdame de vivir el final antes de que llegue, y dame firmeza suficiente para pasar la parte de hoy.","He contado bien y aun así no conozco el final.","Escribe los números reales: lo que hay, lo que se debe, cuándo vence. El miedo hace peores cuentas a oscuras."],
       ["Hazme primero una torta","1 Reyes 17:13","No hayas temor; ve, haz como has dicho.","La petición suena escandalosa, y conviene decir claramente lo que no es: no es un intercambio, no es una técnica para producir dinero y no es razón para regalar lo que tu familia necesita. Es un pequeño acto de confianza justo en el punto donde el miedo dice que cierres la mano.","Señor, la escasez me ha hecho apretarlo todo. Muéstrame una manera honesta y proporcionada de abrir hoy la mano: no con imprudencia, sino de verdad.","El miedo dice cierra la mano; yo puedo abrirla un poco.","Haz una cosa generosa y pequeña que esté de verdad a tu alcance: una comida, una hora, una habilidad que alguien necesita. Pequeña y real, no grande e imprudente."],
@@ -222,7 +222,7 @@ const esTracks = {
   jordan: {
     name: "El río — Josué 3–4",
     short: "El río",
-    weeks: ["HISTORIA DE VALOR · EL RÍO · JOSUÉ 3–4"],
+    weeks: ["Historia de valor · El río · Josué 3–4"],
     days: [
       ["En tiempo de crecida","Josué 3:15","Porque el Jordán suele reverter sobre todos sus bordes todo el tiempo de la siega.","Llegaron al cruce justo en la temporada en que el río venía más alto. El momento parece un error, y vale la pena notar con qué frecuencia lo que se te pide hacer llega cuando las condiciones están peor.","Dios, el momento de esto es pésimo y no dejo de leerlo como señal de que me equivoqué. Dame firmeza para mirar el agua con honestidad y aun así avanzar hacia ella.","Un mal momento no es lo mismo que una puerta cerrada.","Escribe qué hace exactamente que este sea el momento equivocado. Después pregúntate si algo de eso está en tu control."],
       ["Los pies en el agua","Josué 3:13","Las aguas del Jordán se partirán: porque las aguas que vienen de arriba se detendrán en un montón.","El río se partió después de que entraron, no antes. El orden es toda la lección: la evidencia que esperas está del otro lado del paso que te niegas a dar.","Señor, Te he pedido que partas esto antes de dar el paso. Dame el temple de meter un pie mientras aún está hondo, y encuéntrame allí.","El camino se abre después del paso, no antes.","Da el paso que has venido reteniendo hasta sentirte seguro. Hoy, no cuando mejoren las condiciones."],
@@ -233,7 +233,7 @@ const esTracks = {
   torches: {
     name: "Los trescientos — Jueces 6–7",
     short: "Los trescientos",
-    weeks: ["HISTORIA DE VALOR · LOS TRESCIENTOS · JUECES 6–7"],
+    weeks: ["Historia de valor · Los trescientos · Jueces 6–7"],
     days: [
       ["El menor en la casa de mi padre","Jueces 6:15","He aquí que mi familia es pobre en Manasés, y yo el menor en la casa de mi padre.","Su primera respuesta fue un currículum de razones por las que él era la persona equivocada. El miedo a no ser suficiente convence precisamente porque sus datos suelen ser exactos: de verdad era el menor de la familia más pequeña.","Dios, todo lo que enumeré sobre por qué esto no debería tocarme a mí es cierto, y aun así no has retirado el encargo. Déjame dejar de audicionar para esto y simplemente empezar.","Ser la persona equivocada en el papel no me ha descalificado.","Escribe tu lista honesta de por qué no eres el indicado. Después haz de todos modos la primera parte pequeña."],
       ["Llamado en el lagar","Jueces 6:11–12","Jehová es contigo, varón esforzado.","Estaba escondido cuando lo llamaron varón esforzado, lo cual era o una broma o la descripción de algo todavía no visible. A menudo se nombra a las personas por aquello en lo que se están convirtiendo y no por donde están paradas.","Señor, se me nombra como algo que no reconozco. Déjame recibirlo en vez de discutirlo, y déjame crecer hacia ello despacio.","Puedo ser llamado algo en lo que aún no me he convertido.","Pregúntale a alguien que te conozca bien qué ve en ti que tú descartas. Anota sus palabras tal cual."],
@@ -244,7 +244,7 @@ const esTracks = {
   shipwreck: {
     name: "El naufragio — Hechos 27",
     short: "El naufragio",
-    weeks: ["HISTORIA DE VALOR · EL NAUFRAGIO · HECHOS 27"],
+    weeks: ["Historia de valor · El naufragio · Hechos 27"],
     days: [
       ["Ni sol ni estrellas","Hechos 27:20","Y no pareciendo sol ni estrellas por muchos días, y viniendo una tempestad no pequeña.","Catorce días sin cielo significa sin navegación y sin noción del tiempo. Lo más duro de una crisis larga rara vez es la primera noche; es el medio sin rasgos, cuando ya no puedes saber si te estás moviendo.","Dios, he perdido la cuenta de dónde estoy en esto. No veo nada por lo que guiarme. Sostén el rumbo que no alcanzo a ver y guárdame de rendirme a la mitad.","Perder mis referencias no significa que esté perdido.","Marca la fecha de hoy y una frase cierta sobre cómo están las cosas. Estás construyendo el cielo que no puedes ver."],
       ["Yo confío en Dios","Hechos 27:22–25","Os amonesto que tengáis buen ánimo; porque ninguna pérdida habrá de persona de vosotros.","Pablo era un preso en ese barco, sin autoridad sobre nadie, y se volvió la persona más serena de la bodega. En una crisis, la firmeza de una persona es un recurso del que todos los demás toman.","Señor, hazme el sereno de esta sala. No falsamente animado ni fingiendo: solo lo bastante firme para que alguien asustado pueda quedarse cerca de mí.","Mi firmeza es algo que otros pueden tomar prestado.","Dile hoy una cosa cierta y serena a alguien que tenga miedo. Sin optimismo forzado y sin minimizar."],
@@ -255,7 +255,7 @@ const esTracks = {
   barley: {
     name: "El campo de cebada — Rut 1–2",
     short: "El campo de cebada",
-    weeks: ["HISTORIA DE VALOR · EL CAMPO DE CEBADA · RUT 1–2"],
+    weeks: ["Historia de valor · El campo de cebada · Rut 1–2"],
     days: [
       ["Llena me fui","Rut 1:21","Yo me fuí llena, mas vacía me ha vuelto Jehová.","Noemí volvió a su pueblo con menos de lo que se llevó, y lo dijo en voz alta sin suavizarlo. Empezar de nuevo delante de gente que recuerda tus años mejores es un miedo muy específico.","Dios, estoy de vuelta en un comienzo que no elegí, y estoy cansado de explicarlo. Déjame decir claramente lo que he perdido sin que la pérdida me ponga nombre.","Puedo nombrar lo que perdí sin que se vuelva quién soy.","Di o escribe la frase honesta sobre lo que te ha costado esta etapa. Sin añadirle un lado bueno."],
       ["Donde tú fueres","Rut 1:16","Donde quiera que tú fueres, iré yo; y donde quiera que vivieres, viviré. Tu pueblo será mi pueblo, y tu Dios mi Dios.","Rut se comprometió con alguien justo en el momento en que no tenía sentido práctico: dos viudas, sin ingresos, sin perspectivas. Las decisiones más trascendentes suelen tomarlas personas que no tienen con qué negociar.","Señor, ahora mismo tengo muy poco que ofrecerle a nadie. Déjame de todos modos elegir a alguien, presentarme, comprometerme, y que eso baste.","No tener nada no me descalifica para estar presente.","Haz hoy un compromiso que te cueste algo que en realidad no te sobra: tiempo, presencia, una conversación honesta."],

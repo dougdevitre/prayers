@@ -2448,8 +2448,38 @@ function clearLinkParams() {
 
 // app.js is the last script in the body, so parsing is still in progress and
 // DOMContentLoaded has not fired; the microtask is the belt-and-braces path if
-// the script is ever moved or given defer. A Spanish reader's first paint
-// waits for the Spanish text, so the day never flashes in English.
-const boot = () => languageReady().then(start);
+// the script is ever moved or given defer.
+//
+// The shell's markup is in English, and the page paints before any script
+// runs, so it arrives as body.booting, which keeps the main column and Steady
+// me now out of sight (styles.css) until the app has put the reader's
+// language on them. A Spanish reader whose journeys are still on their way
+// gets the interface in Spanish at once, since its words are already here
+// (ui.js), with only the day's own text held back (body.day-pending); the day
+// never shows in English. If the journeys have not come after a few seconds,
+// a stalled connection, the app starts in English rather than not at all and
+// repaints in Spanish when they arrive.
+const SPANISH_WAIT_MS = 4000;
+function boot() {
+  const pending = state.lang === "es" && typeof esTracks === "undefined";
+  if (pending) {
+    applyTheme();
+    applyUi();
+    document.body.classList.remove("booting");
+    document.body.classList.add("day-pending");
+  }
+  let timer;
+  const stalled = new Promise(resolve => { timer = setTimeout(resolve, SPANISH_WAIT_MS); });
+  Promise.race([languageReady(), stalled]).then(() => {
+    clearTimeout(timer);
+    // Shown first, in the same task as the first render, so nothing paints
+    // between; and if starting fails, the shell is not left hidden.
+    document.body.classList.remove("booting", "day-pending");
+    start();
+    if (pending && typeof esTracks === "undefined") {
+      loadSpanish().then(() => { render(); renderTrackPicker(); renderFearFinder(); });
+    }
+  });
+}
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
 else queueMicrotask(boot);

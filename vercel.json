@@ -12,6 +12,10 @@
     {"source": "/about", "destination": "/", "permanent": true}
   ],
   "headers": [
+    {"source": "/workbook/:file", "headers": [
+      {"key": "Content-Disposition", "value": "attachment"},
+      {"key": "X-Robots-Tag", "value": "noindex"}
+    ]},
     {"source": "/og-card.png", "headers": [
       {"key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800"}
     ]},

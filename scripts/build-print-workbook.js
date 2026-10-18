@@ -31,7 +31,9 @@
 // in on their own. The codes there are also links, for a reader on a tablet.
 // The form runs no script and sends nothing anywhere.
 //
-// The PDFs are written to .workbook/ (ignored by git, never deployed).
+// The PDFs are written to .workbook/ (ignored by git, never deployed), for a
+// look. The copies the site offers are built by npm run publish:workbook into
+// workbook/ (scripts/publish-workbook.js), with the flyers.
 
 const fs = require("fs");
 const path = require("path");
@@ -247,6 +249,23 @@ function weekGroups(lang = "en") {
 /** Every address a QR code in the workbook opens: the app, and each day in it. */
 const qrTargets = (lang = "en") => [appLink(lang), ...daysFor(lang).map(d => d.url)];
 
+/** The help lines, worded as the app's support panel words them (the flyers print them too). */
+function supportHtml(lang = "en") {
+  const ui = appUi[lang];
+  return `<div class="support">
+  <p class="support-intro">${esc(ui["sos.supportIntro"])}</p>
+  <ul>
+    <li><b>988</b> ${esc(ui["sos.lifeline"])}</li>
+    <li>${esc(ui["sos.textVerb"])} <b>${esc(ui["sos.textKeyword"])}</b> ${esc(ui["sos.textTo"])} <b>741741</b> ${esc(ui["sos.textLine"])}</li>
+    <li><b>1-800-799-7233</b> ${esc(ui["sos.dvLine"])}</li>
+    <li><b>1-800-422-4453</b> ${esc(ui["sos.childLine"])}</li>
+    <li><b>911</b> ${esc(ui["sos.emergency"])}</li>
+    <li>${esc(ui["sos.outsideUs"])} <b>findahelpline.com</b> ${esc(ui["sos.findHelpline"])}</li>
+  </ul>
+  <p class="fine">${esc(ui["sos.disclaimer"])}</p>
+</div>`;
+}
+
 /** { url: inline SVG } for every target, drawn in the workbook's ink. */
 async function makeQr(urls = qrTargets()) {
   const QRCode = require("qrcode");
@@ -332,19 +351,7 @@ function buildHtml({ qr, lang = "en", fillable = false, fontBase = `file://${pat
     return s + "</svg>";
   };
 
-  // The help lines, worded as the app's support panel words them.
-  const support = `<div class="support">
-  <p class="support-intro">${esc(ui["sos.supportIntro"])}</p>
-  <ul>
-    <li><b>988</b> ${esc(ui["sos.lifeline"])}</li>
-    <li>${esc(ui["sos.textVerb"])} <b>${esc(ui["sos.textKeyword"])}</b> ${esc(ui["sos.textTo"])} <b>741741</b> ${esc(ui["sos.textLine"])}</li>
-    <li><b>1-800-799-7233</b> ${esc(ui["sos.dvLine"])}</li>
-    <li><b>1-800-422-4453</b> ${esc(ui["sos.childLine"])}</li>
-    <li><b>911</b> ${esc(ui["sos.emergency"])}</li>
-    <li>${esc(ui["sos.outsideUs"])} <b>findahelpline.com</b> ${esc(ui["sos.findHelpline"])}</li>
-  </ul>
-  <p class="fine">${esc(ui["sos.disclaimer"])}</p>
-</div>`;
+  const support = supportHtml(lang);
 
   /* ---------- cover ---------- */
   page("cover", `
@@ -517,16 +524,23 @@ function buildHtml({ qr, lang = "en", fillable = false, fontBase = `file://${pat
   <p>${esc(C.edition + draft)}</p>
   ${support}`);
 
-  const font = (file, family, weight, style = "normal") =>
-    `@font-face{font-family:"${family}";src:url("${fontBase}${file}") format("woff");font-weight:${weight};font-style:${style}}`;
   const html = `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><title>${esc(C.docTitle)}</title><style>
-${font("source-serif-4-latin-400-normal.woff", "StandSerif", 400)}
-${font("source-serif-4-latin-400-italic.woff", "StandSerif", 400, "italic")}
-${font("source-serif-4-latin-600-normal.woff", "StandSerif", 600)}
-${font("source-sans-3-latin-400-normal.woff", "StandSans", 400)}
-${font("source-sans-3-latin-700-normal.woff", "StandSans", 700)}
+${fontCss(fontBase)}
 ${CSS}${fillable ? FILL_CSS : ""}</style></head><body${fillable ? ' class="fillable"' : ""}>${pages.map(p => p.html).join("\n")}</body></html>`;
   return { html, pages: pages.map(p => p.cls) };
+}
+
+/** The bundled faces, loaded from `fontBase` (the flyers use them too). */
+function fontCss(fontBase) {
+  const font = (file, family, weight, style = "normal") =>
+    `@font-face{font-family:"${family}";src:url("${fontBase}${file}") format("woff");font-weight:${weight};font-style:${style}}`;
+  return [
+    font("source-serif-4-latin-400-normal.woff", "StandSerif", 400),
+    font("source-serif-4-latin-400-italic.woff", "StandSerif", 400, "italic"),
+    font("source-serif-4-latin-600-normal.woff", "StandSerif", 600),
+    font("source-sans-3-latin-400-normal.woff", "StandSans", 400),
+    font("source-sans-3-latin-700-normal.woff", "StandSans", 700)
+  ].join("\n");
 }
 
 // Family names are distinct on purpose: "Serif" would be read as the generic
@@ -739,4 +753,4 @@ if (require.main === module) {
   })().catch(e => { console.error(e); process.exit(1); });
 }
 
-module.exports = { SITE, LANGS, COPY, OUT_DIR, copyFor, daysFor, weekGroups, qrTargets, makeQr, buildHtml, build };
+module.exports = { SITE, LANGS, COPY, OUT_DIR, copyFor, appLink, daysFor, weekGroups, qrTargets, makeQr, supportHtml, fontCss, buildHtml, build };

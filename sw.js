@@ -1,4 +1,4 @@
-const CACHE = "stand-v72";
+const CACHE = "stand-v73";
 // The app shell is /app, not "./" — the root is the landing page now, and
 // precaching it here would have served the app shell to anyone opening the
 // site. Paths are absolute so they do not depend on where sw.js is fetched.
@@ -37,6 +37,9 @@ self.addEventListener("fetch", event => {
   // app's ".latest." address must reach the network to learn the current
   // one; offline, the app draws its own card instead.
   if (url.pathname.startsWith("/cards/")) return;
+  // The workbook and the flyers are downloads, up to a megabyte or more each:
+  // they go to the network, and no copy is kept here.
+  if (url.pathname.startsWith("/workbook/")) return;
   const isAppNavigation = request.mode === "navigate" && (url.pathname === APP_SHELL || url.pathname === "/app/index.html");
   // Only the app shell is served from cache on navigation; static pages
   // (the landing page at /, the fear index, the crawlable day/ pages) must

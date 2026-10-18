@@ -23,7 +23,10 @@ const DAY_PAGE_COUNT = Object.values(tracks).reduce((n, t) => n + t.days.length,
 // Per language: one page per traditional prayer, the book, and the Roman Catholic page.
 // Plus the Rosary: its overview and one page per set of mysteries.
 const PRAYER_BOOK_PAGE_COUNT = (require("../prayers.js").prayerCorpus.traditional.length + 2 + 1 + require("../rosary.js").rosary.sets.length) * 2;
-const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp", ".xml": "application/xml", ".txt": "text/plain", ".webmanifest": "application/manifest+json", ".mp3": "audio/mpeg" };
+const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp", ".xml": "application/xml", ".txt": "text/plain", ".webmanifest": "application/manifest+json", ".mp3": "audio/mpeg", ".pdf": "application/pdf", ".json": "application/json" };
+// The workbook kit (scripts/publish-workbook.js): its download pages are a
+// preview, out of the sitemap, until the pastoral review is done.
+const kit = require("../scripts/publish-workbook.js");
 
 // Mirrors the redirects in vercel.json, so the suite covers old links too.
 const REDIRECTS = { "/about": "/" };
@@ -714,6 +717,15 @@ const server = http.createServer((req, res) => {
   const firstPrayer = await page.textContent("#prayerCard");
   check("prayer has a title and lines", (await page.$$(".prayer-line")).length >= 3);
   check("prayer footnote shows combinations", (await page.textContent("#prayerMeta")).includes("can be composed"));
+  // Review day: the draft label goes from prayers.js, and the footnote's note with it.
+  const reviewedMeta = await page.evaluate(() => {
+    const note = prayerCorpus.meta.reviewNote;
+    delete prayerCorpus.meta.reviewNote;
+    try { renderPrayer(); return document.getElementById("prayerMeta").textContent; }
+    finally { prayerCorpus.meta.reviewNote = note; renderPrayer(); }
+  });
+  check("the footnote drops the draft label once the review is done", reviewedMeta.includes("can be composed") && !/undefined|Draft|draft/.test(reviewedMeta));
+  check("…and carries it until then", !prayerCorpus.meta.reviewNote || (await page.textContent("#prayerMeta")).includes(prayerCorpus.meta.reviewNote.en.slice(0, 30)));
   await page.click("#prayerAnother");
   check("another prayer composes a different one", (await page.textContent("#prayerCard")) !== firstPrayer);
   check("…and moves focus to it, rather than reading every change aloud", await page.evaluate(() =>
@@ -1448,8 +1460,9 @@ const server = http.createServer((req, res) => {
   const sitemap = await sitemapRes.text();
   const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
   // The two landing pages, the two fear indexes, and the privacy policy and
-  // terms in both languages, plus every day page and the Prayer Book.
-  check("sitemap lists every generated page", locs.length === DAY_PAGE_COUNT * 2 + 8 + PRAYER_BOOK_PAGE_COUNT);
+  // terms in both languages, plus every day page and the Prayer Book; and,
+  // once the pastoral review is done, the workbook's two download pages.
+  check("sitemap lists every generated page", locs.length === DAY_PAGE_COUNT * 2 + 8 + PRAYER_BOOK_PAGE_COUNT + (kit.isPublic() ? 2 : 0));
   check("sitemap is absolute", locs.every(u => u.startsWith(SITE + "/")));
   check("sitemap covers the landing page", locs.includes(`${SITE}/`));
   check("sitemap omits the redirected /about", !locs.includes(`${SITE}/about`));
@@ -1931,7 +1944,7 @@ const server = http.createServer((req, res) => {
   {
     const sitemapRes = await page.request.get("http://localhost:8123/sitemap.xml");
     const locs = [...(await sitemapRes.text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
-    check("sitemap carries both languages", locs.length === DAY_PAGE_COUNT * 2 + 8 + PRAYER_BOOK_PAGE_COUNT);
+    check("sitemap carries both languages", locs.length === DAY_PAGE_COUNT * 2 + 8 + PRAYER_BOOK_PAGE_COUNT + (kit.isPublic() ? 2 : 0));
     check("sitemap covers the Spanish landing page", locs.includes(`${SITE}/es`));
     check("sitemap covers the Spanish fear index", locs.includes(`${SITE}/es/fears`));
     check("sitemap covers the privacy policy and terms in both languages",
@@ -1996,6 +2009,33 @@ const server = http.createServer((req, res) => {
   await page.goto("http://localhost:8123/privacy", { waitUntil: "networkidle" });
   check("the privacy footer links to the terms, not to itself", (await page.$$('.footer-links a[href="/terms"]')).length === 1
     && (await page.$$('.footer-links a[href="/privacy"]')).length === 0);
+
+  // ---------------------------------------------------------------------
+  // The workbook kit's download pages: every file downloads, as a PDF, and
+  // until the pastoral review is done the pages ask not to be indexed and no
+  // menu offers them.
+  for (const [url, other] of [["/workbook", "/es/cuaderno"], ["/es/cuaderno", "/workbook"]]) {
+    await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
+    const links = await page.$$eval('main a[href^="/workbook/"]', els => els.map(e => ({ href: e.getAttribute("href"), download: e.hasAttribute("download") })));
+    check(`${url} offers six downloads, each a download`, links.length === 6 && links.every(l => l.download));
+    let pdfs = 0;
+    for (const { href } of links) {
+      const res = await page.request.get("http://localhost:8123" + href);
+      if (res.ok() && res.headers()["content-type"] === "application/pdf" && (await res.body()).subarray(0, 5).toString() === "%PDF-") pdfs++;
+    }
+    check(`every file ${url} offers is a PDF that exists`, pdfs === links.length);
+    check(`${url} links to its translation`, (await page.$$(`main a[href="${other}"]`)).length === 1
+      && (await page.request.get("http://localhost:8123" + other)).ok());
+    const robots = await page.$$eval('meta[name="robots"]', els => els.map(e => e.content));
+    check(`${url} is ${kit.isPublic() ? "indexed, now the review is done" : "a preview, not indexed"}`,
+      kit.isPublic() ? robots.length === 0 : robots.join() === "noindex");
+    check(`${url} has no horizontal scroll`, !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)));
+    check(`${url} ships no script`, (await page.$$("script")).length === 0);
+  }
+  for (const [url, workbook] of [["/fears", "/workbook"], ["/es/fears", "/es/cuaderno"]]) {
+    await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
+    check(`${url}'s menu ${kit.isPublic() ? "offers" : "does not offer"} the workbook`, (await page.$$(`.nav-menu a[href="${workbook}"]`)).length === (kit.isPublic() ? 1 : 0));
+  }
 
   // ---------------------------------------------------------------------
   // Routing. The root used to be the app, which meant the domain opened a
@@ -2207,7 +2247,7 @@ const server = http.createServer((req, res) => {
   const sweepContrast = () => sweepContrastOn(page);
 
   const SWEEP_PAGES = ["/", "/app", "/fears", "/day/01-stand", "/track/furnace/01-the-decree", "/es", "/es/fears", "/es/day/01-firmeza",
-    "/privacy", "/terms", "/es/privacy", "/es/terms", "/prayers", "/prayers/st-michael", "/es/oraciones/catolicas"];
+    "/privacy", "/terms", "/es/privacy", "/es/terms", "/prayers", "/prayers/st-michael", "/es/oraciones/catolicas", "/workbook", "/es/cuaderno"];
   for (const url of SWEEP_PAGES) {
     await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
     const bad = await sweepContrast();

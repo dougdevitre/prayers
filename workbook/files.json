@@ -1,0 +1,68 @@
+{
+  "files": [
+    {
+      "lang": "en",
+      "kind": "print",
+      "file": "Stand-30-Day-Workbook.pdf",
+      "pages": 43,
+      "bytes": 655480,
+      "source": "e4d084e9232ef320f1c39b0b155a94b05ffcb0f5e431614a7f3fc341171f43b5"
+    },
+    {
+      "lang": "en",
+      "kind": "fillable",
+      "file": "Stand-30-Day-Workbook-Fillable.pdf",
+      "pages": 43,
+      "bytes": 1386400,
+      "source": "6b358b11d787867fc8dc9b18bcd2b274283e81c63991b10b26e54a8193392635"
+    },
+    {
+      "lang": "en",
+      "kind": "flyer",
+      "file": "Stand-Flyer.pdf",
+      "pages": 1,
+      "bytes": 47133,
+      "source": "27fdceb18327dabadbaef8f151166a734d625605070c861b64a6efbda60b976b"
+    },
+    {
+      "lang": "en",
+      "kind": "insert",
+      "file": "Stand-Bulletin-Insert.pdf",
+      "pages": 1,
+      "bytes": 64606,
+      "source": "4cea2c04dc593f28a88202c5249d2399bb2d45027504963576f13af92754d679"
+    },
+    {
+      "lang": "es",
+      "kind": "print",
+      "file": "Stand-Cuaderno-30-Dias.pdf",
+      "pages": 43,
+      "bytes": 664835,
+      "source": "75c7269a982cb2cd6d4980965e9d16ed29cd70de26817a19a52bddcad755db2d"
+    },
+    {
+      "lang": "es",
+      "kind": "fillable",
+      "file": "Stand-Cuaderno-30-Dias-Rellenable.pdf",
+      "pages": 43,
+      "bytes": 1403977,
+      "source": "ab30a578b4edb475986410267fe1e26b3ec532658892bb4f6de1388d12778913"
+    },
+    {
+      "lang": "es",
+      "kind": "flyer",
+      "file": "Stand-Volante.pdf",
+      "pages": 1,
+      "bytes": 48175,
+      "source": "e431130e4c5f2edce0d7373daaec3361ca111211b10bbdf0d2079ae96765d08c"
+    },
+    {
+      "lang": "es",
+      "kind": "insert",
+      "file": "Stand-Media-Hoja-Boletin.pdf",
+      "pages": 1,
+      "bytes": 66585,
+      "source": "eeac9c12d85463e51cd8f680c5d21661b1ef16df3fa3a85d2c0451ebc28db884"
+    }
+  ]
+}

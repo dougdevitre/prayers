@@ -145,9 +145,11 @@ const formOf = lang => widgetsIn(fill[lang].html);
   });
 
   await test("the draft note follows the app's draft label, in both languages and both editions", () => {
-    assert.ok(prayerCorpus.meta.reviewNote, "the app still labels its content a draft");
-    each(({ html, C }, name) => assert.ok(html.includes(esc(`${C.edition} ${C.draft}`)), name));
     const note = prayerCorpus.meta.reviewNote;
+    // Once the review is done, the label is gone and so is the note.
+    each(({ html, C }, name) => assert.strictEqual(html.includes(esc(C.draft)), Boolean(note), name));
+    if (!note) return;
+    each(({ html, C }, name) => assert.ok(html.includes(esc(`${C.edition} ${C.draft}`)), name));
     delete prayerCorpus.meta.reviewNote;
     try {
       each(({ C }, name, lang, edition) => {

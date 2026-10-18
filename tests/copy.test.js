@@ -228,6 +228,20 @@ test("the policy pages write their section headings in normal case", () => {
   assert.deepStrictEqual(bad, []);
 });
 
+test("the flyers and the workbook's download pages follow the glossary, with curly apostrophes", () => {
+  const { COPY: FLYER, counts } = require("../scripts/build-flyer.js");
+  const bad = [];
+  for (const lang of ["en", "es"]) {
+    const C = FLYER[lang];
+    const page = visibleText(fs.readFileSync(path.join(ROOT, lang === "es" ? "es/cuaderno/index.html" : "workbook/index.html"), "utf8"));
+    for (const value of [C.kicker, C.title, C.lead, C.scan, C.free, C.shared, ...C.features(counts(lang)).flat(), page]) {
+      for (const [re, why] of INTERFACE_RULES[lang]) if (re.test(value)) bad.push(`${lang}: “${value.slice(0, 60)}” — ${why}`);
+      if (/[A-Za-zÀ-ÿ]'[A-Za-zÀ-ÿ]/.test(value)) bad.push(`${lang}: straight apostrophe in “${value.slice(0, 60)}”`);
+    }
+  }
+  assert.deepStrictEqual(bad, []);
+});
+
 test("the crisis check notices a number that differs", () => {
   assert.ok(hasRoute("Call 1-800-799-7233 now", "1-800-799-7233"));
   assert.ok(!hasRoute("Call 1-800-799-7234 now", "1-800-799-7233"));

@@ -361,3 +361,11 @@ h2.section-kicker,.landing-section h2.section-kicker{margin:0;font-family:inheri
 .sos-cta:hover,.sos-cta:focus-visible{background:var(--gold);color:var(--on-gold);box-shadow:0 0 0 3px var(--gold-soft)}
 /* "Show both languages", offered in the Prayer Book reader and the Rosary. */
 .book-both{display:flex;gap:8px;align-items:center;font-weight:400;min-height:44px}
+/* The workbook's download page: each card's buttons sit at its foot, level
+   with its neighbour's, and the flyers offer one button per language. */
+.download-card{display:flex;flex-direction:column}
+.download-card h3+p{margin-bottom:18px}
+.download-card>.complete-button,.download-links{margin-top:auto}
+.download-card .landing-fineprint{margin-top:12px}
+.download-links{display:flex;flex-wrap:wrap;gap:10px}
+.download-links .complete-button{flex:1 1 120px;width:auto}

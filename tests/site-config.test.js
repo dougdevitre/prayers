@@ -38,6 +38,19 @@ const siteHeaders = Object.fromEntries(vercel.headers.find(h => h.source === "/(
     assert.ok(!siteHeaders["Content-Security-Policy"].includes("unsafe-inline") && !siteHeaders["Content-Security-Policy"].includes("unsafe-eval"));
   });
 
+  // Downloaded, a workbook or flyer opens in the reader's own PDF app, where the
+  // fillable one can be filled in and saved, rather than in a browser tab under
+  // the site's Content Security Policy. Search engines are sent to the download
+  // page, which says what the files are, rather than to the files themselves.
+  await test("the workbook kit's files download rather than open, and are not indexed", () => {
+    const rule = vercel.headers.find(h => h.source === "/workbook/:file");
+    assert.ok(rule, "no header rule for /workbook/:file");
+    const headers = Object.fromEntries(rule.headers.map(h => [h.key, h.value]));
+    assert.deepStrictEqual(headers, { "Content-Disposition": "attachment", "X-Robots-Tag": "noindex" });
+    // The rule adds to the site's headers; it does not replace the security ones.
+    assert.ok(vercel.headers.indexOf(rule) < vercel.headers.findIndex(h => h.source === "/(.*)"));
+  });
+
   await test("security.txt names a contact and has not expired, with a month's warning", () => {
     // RFC 9116: Contact and Expires are required, and Expires should be under
     // a year away. This fails a month before it lapses, so it gets renewed.

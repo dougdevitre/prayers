@@ -133,7 +133,9 @@ for (const tradition of TRADITIONS) {
   }
 }
 checkBlock("meta.petitionTemplate", prayerCorpus.meta.petitionTemplate);
-checkBlock("meta.reviewNote", prayerCorpus.meta.reviewNote);
+// The draft label, until the pastoral review is done; then it goes, and the
+// workbook, the flyers and their download pages follow (scripts/publish-workbook.js).
+if (prayerCorpus.meta.reviewNote) checkBlock("meta.reviewNote", prayerCorpus.meta.reviewNote);
 
 // --- UI strings -------------------------------------------------------------
 const uiKeys = Object.keys(prayerUi.en);

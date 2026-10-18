@@ -27,6 +27,7 @@ const FILES = [
   ["prayers/index.html", "/prayers"], ["prayers/catholic.html", "/prayers/catholic"], ["es/oraciones/padre-nuestro.html", "/es/oraciones/padre-nuestro"],
   ["prayers/rosary/index.html", "/prayers/rosary"], ["es/oraciones/rosario/gozosos.html", "/es/oraciones/rosario/gozosos"],
   ["privacy/index.html", "/privacy"], ["es/privacy/index.html", "/es/privacy"], ["terms/index.html", "/terms"], ["es/terms/index.html", "/es/terms"],
+  ["workbook/index.html", "/workbook"], ["es/cuaderno/index.html", "/es/cuaderno"], ["workbook/files.json", "/workbook/files.json"],
   ["day/01-stand.html", "/day/01-stand"], ["es/day/01-firmeza.html", "/es/day/01-firmeza"],
   ["track/furnace/01-the-decree.html", "/track/furnace/01-the-decree"],
   ["sw.js", "/sw.js"], ["share.js", "/share.js"], ["report.js", "/report.js"], ["offline-audio.js", "/offline-audio.js"], ["app.js", "/app.js"], ["ui.js", "/ui.js"], ["logic.js", "/logic.js"],

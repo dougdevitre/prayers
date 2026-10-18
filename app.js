@@ -1914,8 +1914,10 @@ function renderPrayer() {
     paintPrayerCard($("prayerCard"), result.title, result.lines, result.note);
   }
   const combos = prayerCombinations(prayerCorpus, prayerState.mode, prayerState.intention, prayerOptions());
+  // The draft label goes from prayers.js when the pastoral review is done.
+  const draft = prayerCorpus.meta.reviewNote;
   $("prayerMeta").textContent =
-    `${ui().combinations.replace("{n}", combos.toLocaleString(state.lang))} ${prayerCorpus.meta.reviewNote[state.lang]}`;
+    `${ui().combinations.replace("{n}", combos.toLocaleString(state.lang))}${draft ? ` ${draft[state.lang]}` : ""}`;
 }
 
 /** Traditional prayers, grouped under their tradition so the Roman Catholic

@@ -16,8 +16,9 @@
 //
 // It also writes the Prayer Book (the traditional prayers, one page each, with
 // a page of their own for the Roman Catholic ones), the privacy policy and
-// terms of use in both languages, and the 404 page Vercel serves for any
-// unknown path.
+// terms of use in both languages, the workbook kit's download page (a preview
+// until the pastoral review is done; scripts/publish-workbook.js), and the 404
+// page Vercel serves for any unknown path.
 
 const fs = require("fs");
 const path = require("path");
@@ -37,6 +38,8 @@ const { shareLinks, shareIcons: ICON } = require("../share.js");
 const { cardFor, prayerCardFor, rosaryCardFor, cardPath } = require("../cards.js");
 const { rosary, rosarySteps, mysteryRef, daysLabel, rosaryPagePath } = require("../rosary.js");
 const { prayerBook } = require("../prayerbook.js");
+const kit = require("./publish-workbook.js");
+const { copyFor: workbookCopy } = require("./build-print-workbook.js");
 const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 // Meta descriptions are cut to 155 characters; at a word, with an ellipsis,
 // rather than mid-word ("…it is to stand. Standing means refu").
@@ -160,6 +163,32 @@ const LOCALES = [
       overviewImageAlt: "The Rosary: the four sets of mysteries and the days they are prayed on, from Stand",
       overviewShareLabel: "Share the Rosary",
       overviewCardAlt: "Share card for the Rosary, with the four sets of mysteries and the days they are prayed on"
+    },
+    // The workbook kit's download page. The file names, page counts, sizes and
+    // edition lines come from the kit itself (workbook/files.json and the
+    // workbook's own copy).
+    workbook: {
+      path: "/workbook", navLabel: "Printable workbook",
+      title: "The 30-day workbook — Stand",
+      description: "The 30-day journey from fear to faith as a free workbook, to print and write in by hand or to fill in on screen, with a flyer for churches.",
+      eyebrow: "Printable workbook", heading: "The 30-day workbook",
+      lead: "Thirty days of Scripture, prayer and one small practice, with room to write down what you notice along the way. Every day is also in the app, where it can be read aloud.",
+      preview: "This is a preview.",
+      editionsKicker: "Download", editionsHeading: "Two editions, the same thirty days",
+      print: { heading: "To print", body: "For pen and paper: lines to write on, circles to fill in, and a tracker for the thirty days.", button: "Download the print edition" },
+      fillable: { heading: "To fill in on screen", body: "The same pages, with boxes to type in and circles to tap. Open it in a PDF app that can fill in forms, and save after each day. What you type stays in your copy of the file, which sends none of it anywhere.", button: "Download the fillable edition" },
+      other: ["En español:", "el cuaderno de 30 días"],
+      groupsKicker: "For churches and groups", groupsHeading: "Share Stand with your congregation",
+      groupsLead: "A flyer for the notice board and a half-sheet insert for the bulletin, each with a code that opens the app and the help lines. Each has a line for your church’s name: type it in before printing, or write it by hand.",
+      flyer: { heading: "Flyer", body: "One page, for a notice board or a table at the back." },
+      insert: { heading: "Bulletin insert", body: "Two half sheets on one page, to cut along the dashed line." },
+      paper: { print: "US Letter", fillable: "US Letter", flyer: "US Letter", insert: "US Letter, landscape" },
+      langNames: { en: "English", es: "Español" },
+      groupsNote: "Print at actual size (100%). You are welcome to print as many flyers and inserts as you need. If a group is praying through the thirty days together, each person can download their own copy of the workbook, or you can share this page’s link.",
+      aboutKicker: "Good to know", aboutHeading: "Plain files, kept private",
+      about: "These are plain PDF files, with no tracking and nothing that runs when you open them. Stand offers spiritual encouragement and prayer. It is not medical, mental health, legal or financial advice, and it is not a substitute for a licensed professional. If you need help now, the numbers are in every file and in the app.",
+      details: ({ pages, paper, size }) => `PDF · ${pages} ${pages === 1 ? "page" : "pages"} · ${paper} · ${size}`,
+      size: bytes => bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)}\u00a0KB` : `${(bytes / 1024 / 1024).toFixed(1)}\u00a0MB`
     }
   },
   {
@@ -246,9 +275,40 @@ const LOCALES = [
       overviewImageAlt: "El Rosario: los cuatro grupos de misterios y los días en que se rezan, de Stand",
       overviewShareLabel: "Compartir el Rosario",
       overviewCardAlt: "Tarjeta para compartir del Rosario, con los cuatro grupos de misterios y los días en que se rezan"
+    },
+    workbook: {
+      path: "/es/cuaderno", navLabel: "Cuaderno para imprimir",
+      title: "El cuaderno de 30 días — Stand",
+      description: "El camino de 30 días del miedo a la fe como cuaderno gratuito, para imprimir y escribir a mano o para rellenar en pantalla, con un volante para iglesias.",
+      eyebrow: "Cuaderno para imprimir", heading: "El cuaderno de 30 días",
+      lead: "Treinta días de Escritura, oración y una pequeña práctica, con espacio para escribir lo que vas notando en el camino. Cada día también está en la app, donde se puede escuchar en voz alta.",
+      preview: "Esta es una vista previa.",
+      editionsKicker: "Descargar", editionsHeading: "Dos ediciones, los mismos treinta días",
+      print: { heading: "Para imprimir", body: "Para papel y lápiz: líneas para escribir, círculos para rellenar y un registro de los treinta días.", button: "Descargar la edición para imprimir" },
+      fillable: { heading: "Para rellenar en pantalla", body: "Las mismas páginas, con recuadros para escribir y círculos para marcar. Ábrelo en una app de PDF que permita rellenar formularios y guarda después de cada día. Lo que escribas se queda en tu copia del archivo, que no lo envía a ninguna parte.", button: "Descargar la edición rellenable" },
+      other: ["In English:", "the 30-day workbook"],
+      groupsKicker: "Para iglesias y grupos", groupsHeading: "Comparte Stand con tu comunidad",
+      groupsLead: "Un volante para el tablón de anuncios y una media hoja para el boletín, cada uno con un código que abre la app y con las líneas de ayuda. Los dos tienen una línea para el nombre de tu iglesia: escríbelo en pantalla antes de imprimir, o a mano.",
+      flyer: { heading: "Volante", body: "Una hoja, para el tablón de anuncios o una mesa a la entrada." },
+      insert: { heading: "Media hoja para el boletín", body: "Dos medias hojas en una página, para cortar por la línea punteada." },
+      paper: { print: "tamaño carta", fillable: "tamaño carta", flyer: "tamaño carta", insert: "tamaño carta, horizontal" },
+      langNames: { en: "English", es: "Español" },
+      groupsNote: "Imprime a tamaño real (100 %). Puedes imprimir todos los volantes y medias hojas que necesites. Si un grupo va a orar junto los treinta días, cada persona puede descargar su propia copia del cuaderno, o pueden compartir el enlace de esta página.",
+      aboutKicker: "Para tener en cuenta", aboutHeading: "Archivos sencillos y privados",
+      about: "Son archivos PDF sencillos, sin rastreo y sin nada que se ejecute al abrirlos. Stand ofrece acompañamiento espiritual y oración. No es consejo médico, de salud mental, legal ni financiero, y no sustituye a un profesional con licencia. Si necesitas ayuda ahora, los números están en cada archivo y en la app.",
+      details: ({ pages, paper, size }) => `PDF · ${pages} ${pages === 1 ? "página" : "páginas"} · ${paper} · ${size}`,
+      size: bytes => bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)}\u00a0KB` : `${(bytes / 1024 / 1024).toFixed(1).replace(".", ",")}\u00a0MB`
     }
   }
 ];
+
+// The workbook's download page joins the menus, the footers and the sitemap
+// once the pastoral review is done (scripts/publish-workbook.js); until then
+// it is a preview, reached only by its link.
+const WORKBOOK_PUBLIC = kit.isPublic();
+if (WORKBOOK_PUBLIC) {
+  for (const L of LOCALES) L.nav.splice(L.nav.length - 1, 0, { href: L.workbook.path, label: L.workbook.navLabel });
+}
 
 // A <details> disclosure rather than a scripted dropdown: these pages carry
 // no JavaScript beyond the deferred share.js enhancement, the production CSP
@@ -1112,6 +1172,81 @@ ${siteFooter(L, relPath)}
   }
 }
 
+// The workbook kit's download page, /workbook and /es/cuaderno: the files
+// scripts/publish-workbook.js built into workbook/, as files.json lists them,
+// each language's workbook first and both languages' flyers. A preview until
+// the pastoral review is done: it asks not to be indexed, and says why.
+const workbookPaths = [];
+{
+  const files = kit.readFiles();
+  const find = (lang, kind) => {
+    const f = files.find(x => x.lang === lang && x.kind === kind);
+    if (!f) throw new Error(`workbook/files.json lists no ${lang} ${kind}: run npm run publish:workbook`);
+    return f;
+  };
+  for (const L of LOCALES) {
+    const W = L.workbook;
+    const other = LOCALES.find(o => o !== L);
+    const relPath = W.path, altPath = other.workbook.path;
+    const fileLink = (f, label) => `<a class="complete-button" href="/workbook/${f.file}" download type="application/pdf"${f.lang === L.code ? "" : ` hreflang="${f.lang}" lang="${f.lang}"`}>${esc(label)}</a>`;
+    const edition = kind => {
+      const f = find(L.code, kind), E = W[kind];
+      return `          <div class="feature-card download-card">
+            <h3>${esc(E.heading)}</h3>
+            <p>${esc(E.body)}</p>
+            ${fileLink(f, E.button)}
+            <p class="landing-fineprint">${esc(W.details({ pages: f.pages, paper: W.paper[kind], size: W.size(f.bytes) }))}. ${esc(workbookCopy(L.code, kind === "fillable").edition)}</p>
+          </div>`;
+    };
+    const share = kind => {
+      const both = [L.code, other.code].map(lang => find(lang, kind));
+      const sizes = both.map(f => `${W.langNames[f.lang]}\u00a0${W.size(f.bytes)}`).join(", ");
+      return `          <div class="feature-card download-card">
+            <h3>${esc(W[kind].heading)}</h3>
+            <p>${esc(W[kind].body)}</p>
+            <div class="download-links">
+              ${both.map(f => fileLink(f, W.langNames[f.lang])).join("\n              ")}
+            </div>
+            <p class="landing-fineprint">${esc(W.details({ pages: both[0].pages, paper: W.paper[kind], size: sizes }))}</p>
+          </div>`;
+    };
+    const main = `      <section class="landing-hero">
+        <p class="eyebrow">${esc(W.eyebrow)}</p>
+        <h1>${esc(W.heading)}</h1>
+        <p class="landing-lead">${esc(W.lead)}</p>${WORKBOOK_PUBLIC ? "" : `
+        <p class="landing-fineprint">${esc(W.preview)} ${esc(workbookCopy(L.code).draft)}</p>`}
+      </section>
+      <section class="landing-section">
+        <p class="section-kicker">${esc(W.editionsKicker)}</p>
+        <h2>${esc(W.editionsHeading)}</h2>
+        <div class="feature-grid">
+${edition("print")}
+${edition("fillable")}
+        </div>
+        <p class="landing-fineprint" lang="${other.code}">${esc(W.other[0])} <a href="${altPath}" hreflang="${other.code}">${esc(W.other[1])}</a></p>
+      </section>
+      <section class="landing-section">
+        <p class="section-kicker">${esc(W.groupsKicker)}</p>
+        <h2>${esc(W.groupsHeading)}</h2>
+        <p>${esc(W.groupsLead)}</p>
+        <div class="feature-grid">
+${share("flyer")}
+${share("insert")}
+        </div>
+        <p class="landing-fineprint">${esc(W.groupsNote)}</p>
+      </section>
+      <section class="landing-section">
+        <p class="section-kicker">${esc(W.aboutKicker)}</p>
+        <h2>${esc(W.aboutHeading)}</h2>
+        <p>${esc(W.about)}</p>
+      </section>`;
+    const head = WORKBOOK_PUBLIC ? "" : `  <meta name="robots" content="noindex" />\n`;
+    fs.mkdirSync(path.join(root, relPath.slice(1)), { recursive: true });
+    fs.writeFileSync(path.join(root, relPath.slice(1), "index.html"), bookPage({ L, title: W.title, description: W.description, relPath, altPath, head, main }));
+    if (WORKBOOK_PUBLIC) workbookPaths.push(relPath);
+  }
+}
+
 // The 404 page. Vercel serves /404.html for any path that matches nothing,
 // at that path, so a reader never knows which language they meant: one
 // page carries both, and every link is absolute. It is never indexed and
@@ -1173,10 +1308,11 @@ ${siteFooter(en, null)}
 // 404 page is deliberately absent.
 const urls = [`${SITE_URL}/`, `${SITE_URL}/es`, `${SITE_URL}/fears`, `${SITE_URL}/es/fears`,
   ...legalPaths.map(p => `${SITE_URL}${p}`),
+  ...workbookPaths.map(p => `${SITE_URL}${p}`),
   ...bookPaths.map(p => `${SITE_URL}${p}`),
   ...allPaths.map(p => `${SITE_URL}${p}`)];
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `  <url><loc>${u}</loc></url>`).join("\n")}\n</urlset>\n`;
 fs.writeFileSync(path.join(root, "sitemap.xml"), sitemap);
 fs.writeFileSync(path.join(root, "robots.txt"), `User-agent: *\nAllow: /\nSitemap: ${SITE_URL}/sitemap.xml\n`);
 
-console.log(`Wrote ${allPaths.length} day pages across ${LOCALES.length} languages, both fear indexes, ${bookPaths.length} Prayer Book pages, ${legalPaths.length} privacy and terms pages, 404.html, sitemap.xml (${urls.length} URLs) and robots.txt`);
+console.log(`Wrote ${allPaths.length} day pages across ${LOCALES.length} languages, both fear indexes, ${bookPaths.length} Prayer Book pages, ${legalPaths.length} privacy and terms pages, the workbook pages (${WORKBOOK_PUBLIC ? "public" : "a preview, until the pastoral review is done"}), 404.html, sitemap.xml (${urls.length} URLs) and robots.txt`);

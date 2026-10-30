@@ -17,8 +17,8 @@
 // is the World English Bible in English and the Reina-Valera 1909 in Spanish,
 // as in the app. Each day carries a QR code that opens that day in the app,
 // where it can be read aloud: a plain link, with no parameter but the
-// language and, for any journey but Stand, the journey (as the app's own
-// day links name it). The draft note on the last page follows the app's own draft
+// language and the journey (as the app's own day links name it, so a
+// reader with another journey open still lands on this one). The draft note on the last page follows the app's own draft
 // label (meta.reviewNote in prayers.js) and goes when that does.
 //
 // Pages are fixed-size boxes printed by Chromium; the writing lines are drawn
@@ -256,12 +256,13 @@ const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(
 
 /** A journey in a language: the English track, with Spanish text over it. */
 const journeyFor = (lang, id = "core") => lang === "es" && esTracks[id] ? { ...tracks[id], ...esTracks[id] } : tracks[id];
-/** The app, or a day in it, in the workbook's language and journey (/app#7,
- *  /app?lang=es#7, /app?track=shelter#7, /app?lang=es&track=shelter#7). */
-function appLink(lang, n, journey = "core") {
+/** The app, or a day in it, in the workbook's language and journey
+ *  (/app?track=core#7, /app?lang=es&track=shelter#7). With no journey, the
+ *  app as the reader left it (/app, /app?lang=es): the flyers' code. */
+function appLink(lang, n, journey) {
   const q = new URLSearchParams();
   if (lang === "es") q.set("lang", "es");
-  if (journey !== "core") q.set("track", journey);
+  if (journey) q.set("track", journey);
   const query = q.toString();
   return `${SITE}/app${query ? `?${query}` : ""}${n ? `#${n}` : ""}`;
 }

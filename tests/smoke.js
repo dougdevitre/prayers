@@ -409,7 +409,7 @@ const server = http.createServer((req, res) => {
   await page.goto("http://localhost:8123/day/08-fear.html", { waitUntil: "networkidle" });
   check("SEO page title", (await page.title()).includes("Day 8: Fear"));
   check("SEO page has prayer", (await page.textContent("body")).includes("worship fear"));
-  check("SEO page links into app", await page.isVisible('a[href="/app#8"]'));
+  check("SEO page links into app, naming Stand", await page.isVisible('a[href="/app?track=core#8"]'));
 
   // static SEO track page + deep link
   await page.goto("http://localhost:8123/track/night/01-lying-down.html", { waitUntil: "networkidle" });
@@ -724,6 +724,10 @@ const server = http.createServer((req, res) => {
   await page.click("#nextJourneyButton");
   check("the offer opens Shelter at its first day", (await page.textContent("#dayTitle")) === tracks.shelter.days[0][0] && (await page.textContent("#progressLabel")) === "Day 1 of 30");
   check("no next journey offered inside Shelter", await page.isHidden("#nextJourney"));
+  // A Stand day link names Stand, so a reader with Shelter open still lands on Stand's day.
+  await page.goto("http://localhost:8123/app?track=core#7", { waitUntil: "networkidle" });
+  check("a Stand day link opens Stand's day even with Shelter open", (await page.textContent("#dayTitle")) === tracks.core.days[6][0] && (await page.textContent("#progressLabel")) === "Day 7 of 30");
+  check("…and the link's ?track= is cleared once applied", await page.evaluate(() => !location.search.includes("track=")));
   // put Stand's Day 30 back as it was and return to the journey the finder opened
   await page.click("#libraryButton");
   await page.selectOption("#fearFinder", "core");
@@ -1793,7 +1797,7 @@ const server = http.createServer((req, res) => {
   check("the series stops when the journey does", ics2.includes(`RRULE:FREQ=DAILY;COUNT=${expected.count}`));
   const firstDay = expected.fromDay + 1;
   check("the first override is the first incomplete day",
-    ics2.includes(`URL:${SITE_ORIGIN}/app#${firstDay}`) && unfold(ics2).includes(`SUMMARY:Stand · Day ${firstDay} · `));
+    ics2.includes(`URL:${SITE_ORIGIN}/app?track=core#${firstDay}`) && unfold(ics2).includes(`SUMMARY:Stand · Day ${firstDay} · `));
   check("an override carries the practice and the page link",
     unfold(ics2).includes("Today’s practice: ") && unfold(ics2).includes(`Read it on the web: ${SITE_ORIGIN}/day/`));
   check("every override names its own occurrence", unfold(ics2).split("BEGIN:VEVENT").slice(2)
@@ -1838,7 +1842,7 @@ const server = http.createServer((req, res) => {
   await page.click("#libraryButton");
   const ics3 = await readIcs();
   check("completing a day drops one override", overrideCount(ics3) === overrideCount(ics2) - 1);
-  check("completing a day moves the first override on", ics3.includes(`URL:${SITE_ORIGIN}/app#${firstDay + 1}`));
+  check("completing a day moves the first override on", ics3.includes(`URL:${SITE_ORIGIN}/app?track=core#${firstDay + 1}`));
   await page.click("#closeLibrary");
   await page.click("#completeButton");   // put it back
   await page.click("#libraryButton");
@@ -1848,7 +1852,7 @@ const server = http.createServer((req, res) => {
   await page.click("#reminderOptions > summary");
   await page.selectOption("#reminderFrom", "start");
   const fromStart = await readIcs();
-  check("\"Day 1\" starts the series at the first day", fromStart.includes(`URL:${SITE_ORIGIN}/app#1`) && overrideCount(fromStart) === await page.evaluate(() => DAYS()));
+  check("\"Day 1\" starts the series at the first day", fromStart.includes(`URL:${SITE_ORIGIN}/app?track=core#1`) && overrideCount(fromStart) === await page.evaluate(() => DAYS()));
   check("the button follows the start option", (await page.textContent("#reminderButton")).includes("Day 1"));
   await page.selectOption("#reminderFrom", "current");
 
@@ -1882,7 +1886,7 @@ const server = http.createServer((req, res) => {
   const eveningEvents = unfold(withEvening).split("BEGIN:VEVENT").filter(ev => ev.includes("UID:stand-evening-checkin@"));
   check("the evening check-in is a second series", eveningEvents.length === overrideCount(withEvening.split("UID:stand-evening-checkin@")[0]) + 1);
   check("the evening series runs at the chosen time", eveningEvents.every(ev => /DTSTART:\d{8}T204500/.test(ev)));
-  check("the evening entries ask how it went and link to the check-in", eveningEvents.slice(1).every(ev => ev.includes("How did it go?") && ev.includes(`URL:${SITE_ORIGIN}/app?checkin=1#`)));
+  check("the evening entries ask how it went and link to the check-in", eveningEvents.slice(1).every(ev => ev.includes("How did it go?") && ev.includes(`URL:${SITE_ORIGIN}/app?checkin=1&track=core#`)));
   check("the status mentions the evening check-in", (await page.textContent("#reminderStatus")).includes("evening check-in at 20:45"));
 
   await page.uncheck("#reminderEvening");
@@ -1899,7 +1903,7 @@ const server = http.createServer((req, res) => {
   const quiet = unfold(await readIcs());
   const quietSummaries = [...new Set(quiet.split("\r\n").filter(l => l.startsWith("SUMMARY:")))];
   check("private reminders carry only the generic name", quietSummaries.length === 1 && quietSummaries[0] === "SUMMARY:Stand — daily prayer");
-  check("private reminders keep the day's notes and page out of the calendar", !quiet.includes("Today’s practice: ") && !quiet.includes("/day/") && quiet.includes(`URL:${SITE_ORIGIN}/app#`));
+  check("private reminders keep the day's notes and page out of the calendar", !quiet.includes("Today’s practice: ") && !quiet.includes("/day/") && quiet.includes(`URL:${SITE_ORIGIN}/app?track=core#`));
   check("the preview shows the private reminder", (await page.textContent("#reminderPreviewTitle")) === "Stand — daily prayer");
   check("the help line says what a private reminder carries", (await page.textContent("#reminderHelp")).includes("Each says only “Stand — daily prayer”"));
   check("the feed link asks for private reminders", /[?&]private=1(&|$)/.test(await page.getAttribute("#subscribeLink", "href")));
@@ -1924,7 +1928,7 @@ const server = http.createServer((req, res) => {
   const firstOf = ics => unfold(ics).split("BEGIN:VEVENT").slice(2)[0].match(/SUMMARY:([^\r\n]+)/)[1];
   check("the feed serves a calendar", feedRes.status === 200 && feedRes.headers.get("content-type").startsWith("text/calendar") && feed.startsWith("BEGIN:VCALENDAR"));
   check("the feed starts on the same day as the download", firstOf(feed) === firstOf(downloaded) && overrideCount(feed) === overrideCount(downloaded));
-  check("the feed's links point at this origin", unfold(feed).includes(`URL:${SITE_ORIGIN}/app#`));
+  check("the feed's links point at this origin", unfold(feed).includes(`URL:${SITE_ORIGIN}/app?track=core#`));
   await page.check("#reminderWeekdays");
   check("changing an option changes the feed link", /[?&]weekdays=1(&|$)/.test(await page.getAttribute("#subscribeLink", "href")));
   await page.uncheck("#reminderWeekdays");

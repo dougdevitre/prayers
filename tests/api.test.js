@@ -65,7 +65,7 @@ const request = (server, path, method = "GET") => new Promise((resolve, reject) 
     assert.ok(ics.includes("RRULE:FREQ=DAILY;COUNT=24"));
     assert.strictEqual(ics.split("RECURRENCE-ID:").length - 1, 24);
     assert.ok(ics.includes("SUMMARY:Stand · Day 7 · The Word"));
-    assert.ok(ics.includes("URL:https://prayers.dougdevitre.org/app#7"));
+    assert.ok(ics.includes("URL:https://prayers.dougdevitre.org/app?track=core#7"));
     assert.ok(!ics.includes("stand-evening-checkin@"));
   });
 
@@ -80,7 +80,7 @@ const request = (server, path, method = "GET") => new Promise((resolve, reject) 
 
   await test("a private feed carries no day title, verse or page link", () => {
     const ics = unfold(feedFor(parseQuery("?track=core&from=18&start=2026-09-26&time=07:00&evening=21:00&private=1"), "https://prayers.dougdevitre.org"));
-    assert.ok(ics.includes("URL:https://prayers.dougdevitre.org/app#18"), "it still links straight to the day");
+    assert.ok(ics.includes("URL:https://prayers.dougdevitre.org/app?track=core#18"), "it still links straight to the day");
     assert.ok(!ics.includes("False Accusations") && !ics.includes("/day/"), "Day 18's title, in the summary or a page link");
     const summaries = ics.split("\r\n").filter(l => l.startsWith("SUMMARY:"));
     assert.deepStrictEqual([...new Set(summaries)], ["SUMMARY:Stand — daily prayer", "SUMMARY:Stand — evening check-in"]);

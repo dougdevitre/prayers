@@ -486,7 +486,8 @@ for (const L of LOCALES) {
     const track = trackFor(L, id);
     const dirRel = id === "core" ? path.join(L.prefix.slice(1), "day") : path.join(L.prefix.slice(1), "track", id);
     const urlBase = urlBaseFor(L, id);
-    const appQuery = id === "core" ? "" : `track=${id}`;
+    // Every journey's days name the journey, Stand's too (reminder.js appDayLink).
+    const appQuery = `track=${id}`;
     fs.mkdirSync(path.join(root, dirRel), { recursive: true });
 
     for (let i = 0; i < track.days.length; i++) {
@@ -570,7 +571,7 @@ ${siteFooter(L, relPath)}
         <div class="feature-grid">
 ${group.rows.map(row => `          <div class="feature-card">
             <h3><a href="${row.href}">${esc(row.label)}</a></h3>
-            <p>${esc(row.track.name)} \u00b7 ${L.daysWord(row.track.days.length)} \u00b7 <a href="${appLink(L.code, row.id === "core" ? "" : `track=${row.id}`)}">${L.openInApp}</a></p>
+            <p>${esc(row.track.name)} \u00b7 ${L.daysWord(row.track.days.length)} \u00b7 <a href="${appLink(L.code, `track=${row.id}`)}">${L.openInApp}</a></p>
           </div>`).join("\n")}
         </div>
       </section>`).join("\n");

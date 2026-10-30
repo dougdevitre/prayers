@@ -82,10 +82,11 @@ function dayPagePath(trackId, track, index, lang) {
   return trackId === "core" ? `${prefix}/day/${name}` : `${prefix}/track/${trackId}/${name}`;
 }
 
-/** The deep link into the app for a day. Mirrors the static pages: the core
- * journey needs no ?track=, every other journey names itself. */
+/** The deep link into the app for a day. Every journey names itself, Stand
+ * (core) included: a bare /app#7 opens day 7 of whatever journey the reader
+ * has open, which since Shelter is often not Stand. Mirrors the static pages. */
 function appDayLink(origin, trackId, index) {
-  return `${origin}/app${trackId === "core" ? "" : `?track=${trackId}`}#${index + 1}`;
+  return `${origin}/app?track=${trackId}#${index + 1}`;
 }
 
 /** The alarm lead times the reader can choose, in minutes before the time. */

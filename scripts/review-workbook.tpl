@@ -152,7 +152,7 @@ textarea{width:100%;min-height:40px;resize:vertical;padding:9px 11px;border:1px 
   const { meta, items } = JSON.parse(document.getElementById("data").textContent);
   const SECTIONS = [
     ["journey", "The 30-day journey", "30 days, each with a reflection, prayer, declaration and practice."],
-    ["draft", "New journeys (draft)", "Written but not yet in the app, so English only for now. The Spanish and the recordings follow once the English is approved."],
+    ["draft", "New journeys (draft)", "Written but not yet in the app. The recordings are made once the text is approved."],
     ["fear", "Fear tracks", "Five-day tracks for fear of the unknown and fear at night."],
     ["courage", "Courage stories", "Four-day tracks, each built on one biblical account."],
     ["sos", "Steady me now", "The 90-second rescue: a verse, a short spoken prayer, a declaration."],
@@ -272,13 +272,13 @@ textarea{width:100%;min-height:40px;resize:vertical;padding:9px 11px;border:1px 
     cards.set(it.id, { el, pill, approve, change, note, who, opts });
     return el;
   }
-  // A draft journey has no Spanish yet by design: say so quietly rather than
+  // A draft journey may not have its Spanish yet: say so quietly rather than
   // warn on every field.
   function text(s, lang, scripture, draft) {
     const p = document.createElement("p");
     p.className = "f-text" + (scripture ? " scripture" : "") + (s ? "" : draft ? " pending" : " missing");
     const l = document.createElement("span"); l.className = "lang"; l.textContent = lang;
-    p.append(l, document.createTextNode(s || (draft ? "Translated once the English is approved." : "Missing in this language.")));
+    p.append(l, document.createTextNode(s || (draft ? "Not translated yet." : "Missing in this language.")));
     if (lang === "ES") p.lang = "es";
     return p;
   }

@@ -14,10 +14,11 @@
 // "to review" again rather than as a stale approval.
 //
 // Journeys still in drafts/ (written, not yet in the app) are included as a
-// "draft" section, English only, so they are reviewed before the Spanish and
-// the recordings are made from them. Each keeps the id it will have once it
-// is live (day.<track>.<nn>); the hash covers both languages, so adding the
-// Spanish asks the reviewer to look at those days again.
+// "draft" section, so they are reviewed before the recordings are made from
+// them. A draft file may carry its Spanish edition as `es: { <id>: ... }`;
+// until it does, the Spanish column reads as to come. Each day keeps the id it
+// will have once live (day.<track>.<nn>); the hash covers both languages, so
+// adding or changing the Spanish asks the reviewer to look at that day again.
 
 const fs = require("fs");
 const path = require("path");
@@ -62,13 +63,17 @@ function attachSuggestions(items, suggestions) {
   }
 }
 
-/** Draft journeys: every export of drafts/*.js shaped like a `tracks` entry. */
+/** Draft journeys: every export of drafts/*.js shaped like a `tracks` entry,
+ *  with its Spanish edition from the file's `es` export when there is one. */
 function draftTracks(root) {
   const dir = path.join(root, "drafts");
   if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir).filter(f => f.endsWith(".js")).sort()
-    .flatMap(f => Object.values(require(path.join(dir, f))))
-    .filter(t => t && typeof t.id === "string" && Array.isArray(t.days));
+  return fs.readdirSync(dir).filter(f => f.endsWith(".js")).sort().flatMap(f => {
+    const mod = require(path.join(dir, f));
+    return Object.values(mod)
+      .filter(t => t && typeof t.id === "string" && Array.isArray(t.days))
+      .map(t => ({ track: t, es: (mod.es || {})[t.id] || null }));
+  });
 }
 
 /** Every reviewable item, in the order the workbook shows them. */
@@ -88,11 +93,10 @@ function collect(root = ROOT) {
   // 1. Journeys: every day of every track, then the drafts.
   const SECTION_OF = { "The 30-Day Journey": "journey", "Journeys for fear": "fear", "Courage stories": "courage" };
   const journeys = [
-    ...Object.entries(c.tracks).map(([tid, t]) => [tid, t, false]),
-    ...draftTracks(root).filter(t => !c.tracks[t.id]).map(t => [t.id, t, true])
+    ...Object.entries(c.tracks).map(([tid, t]) => ({ tid, t, es: e.esTracks[tid], draft: false })),
+    ...draftTracks(root).filter(d => !c.tracks[d.track.id]).map(d => ({ tid: d.track.id, t: d.track, es: d.es, draft: true }))
   ];
-  for (const [tid, t, draft] of journeys) {
-    const es = draft ? null : e.esTracks[tid];
+  for (const { tid, t, es, draft } of journeys) {
     t.days.forEach((d, i) => {
       const s = es && es.days[i] || [];
       const n = String(i + 1).padStart(2, "0");

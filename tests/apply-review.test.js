@@ -103,18 +103,20 @@ test("planning writes nothing", () => {
   assert.strictEqual(fs.readFileSync(path.join(dir, "content.es.js"), "utf8"), before);
 });
 
-test("an approved wording on a draft journey lands in its draft file, not in content.js", () => {
+test("an approved wording on a draft journey lands in its draft file, in either language, not in the content files", () => {
   const id = [...items.keys()].find(k => items.get(k).section === "draft");
   if (!id) return; // no draft journey in progress
   const dir = sandbox();
-  const en = firstSentence(field(id, "Reflection").en);
-  const content = fs.readFileSync(path.join(dir, "content.js"), "utf8");
-  const p = plan(dir, { [id]: change(id, [`Change “${en}” → “Changed.”`]) });
-  assert.strictEqual(p.edits.length, 1, JSON.stringify(p.manual));
-  assert.ok(p.edits[0].file.startsWith("drafts/"), p.edits[0].file);
+  const lines = [`Change “${firstSentence(field(id, "Reflection").en)}” → “Changed.”`];
+  if (field(id, "Prayer").es) lines.push(`Change “${firstSentence(field(id, "Prayer").es)}” → “Cambiado.”`);
+  const before = ["content.js", "content.es.js"].map(f => fs.readFileSync(path.join(dir, f), "utf8"));
+  const p = plan(dir, { [id]: change(id, lines) });
+  assert.strictEqual(p.edits.length, lines.length, JSON.stringify(p.manual));
+  assert.ok(p.edits.every(e => e.file.startsWith("drafts/")), p.edits.map(e => e.file).join());
   apply(dir, p.edits);
-  assert.ok(fs.readFileSync(path.join(dir, p.edits[0].file), "utf8").includes("Changed."));
-  assert.strictEqual(fs.readFileSync(path.join(dir, "content.js"), "utf8"), content);
+  const draft = fs.readFileSync(path.join(dir, p.edits[0].file), "utf8");
+  assert.ok(draft.includes("Changed.") && (lines.length === 1 || draft.includes("Cambiado.")));
+  assert.deepStrictEqual(["content.js", "content.es.js"].map(f => fs.readFileSync(path.join(dir, f), "utf8")), before);
 });
 
 test("decisions read from one file (object or array) or a directory of documents", () => {

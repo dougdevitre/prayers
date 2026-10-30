@@ -24,8 +24,8 @@ const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
 
-// Draft journeys (drafts/*.js) are reviewed in English before they go live,
-// so an approved wording change lands in the draft file itself.
+// Draft journeys (drafts/*.js) are reviewed before they go live, so an
+// approved wording change, in either language, lands in the draft file itself.
 function draftFiles(root) {
   const dir = path.join(root, "drafts");
   return fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => f.endsWith(".js")).sort().map(f => "drafts/" + f) : [];
@@ -53,7 +53,7 @@ function plan(root, decisions) {
   const items = new Map(collect(root).items.map(i => [i.id, i]));
   const src = {};
   const read = f => (src[f] ??= fs.readFileSync(path.join(root, f), "utf8"));
-  const files = { en: [...FILES.en, ...draftFiles(root)], es: FILES.es };
+  const files = { en: [...FILES.en, ...draftFiles(root)], es: [...FILES.es, ...draftFiles(root)] };
   const out = { counts: { approved: 0, change: 0, stale: 0, pending: 0, unknown: 0 }, edits: [], manual: [], stale: [] };
 
   for (const [id, d] of Object.entries(decisions)) {

@@ -122,9 +122,9 @@ test("the Rosary's new text is in the workbook: the Fatima Prayer and all twenty
   });
 });
 
-test("a draft journey is reviewed in English, in its own section, under the id it will have once live", () => {
+test("a draft journey is reviewed in its own section, in both languages once it has its Spanish, under the id it will have once live", () => {
   const drafts = draftTracks(require("path").join(__dirname, ".."));
-  for (const t of drafts) {
+  for (const { track: t, es } of drafts) {
     const items = wb.items.filter(i => i.group === t.name);
     if (c.tracks[t.id]) { assert.ok(items.every(i => i.section !== "draft"), `${t.id} is live and still listed as a draft`); continue; }
     assert.strictEqual(items.length, t.days.length, t.id);
@@ -133,7 +133,11 @@ test("a draft journey is reviewed in English, in its own section, under the id i
       assert.ok(it && it.section === "draft", `${t.id} day ${i + 1}`);
       assert.strictEqual(it.fields[0].en, `${d[2]} (${d[1]})`);
       assert.strictEqual(it.fields[4].en, d[6]);
-      assert.ok(it.fields.every(f => f.es === ""), `${t.id} day ${i + 1} has Spanish before it has a Spanish edition`);
+      const s = es && es.days[i];
+      if (!s) { assert.ok(it.fields.every(f => f.es === ""), `${t.id} day ${i + 1} has Spanish before it has a Spanish edition`); return; }
+      assert.strictEqual(it.fields[0].es, `${s[2]} (${s[1]})`);
+      assert.deepStrictEqual(it.fields.slice(1).map(f => f.es), s.slice(3));
+      assert.strictEqual(it.labelEs, `Día ${i + 1} · ${s[0]}`);
     });
   }
 });

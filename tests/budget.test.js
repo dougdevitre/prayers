@@ -16,14 +16,13 @@ const zlib = require("zlib");
 
 const ROOT = path.join(__dirname, "..");
 // 157 KB when the budget was set; 130 KB once the Spanish journeys loaded
-// only for Spanish readers (28 September 2026). Raised to 152 KB for Shelter,
-// the second 30-day journey (+6 KB): its days are in content.js because the
-// library, reminders and cards read every journey's days directly. Loading a
-// journey's days on demand, as the Spanish ones are, would win this back.
-const TOTAL_BUDGET_KB = 152;
-// The largest single files are the two languages' journeys (~35 KB each with
-// Shelter) and app.js (~30 KB).
-const FILE_BUDGET_KB = 36;
+// only for Spanish readers (28 September 2026); 151 KB with Shelter, the
+// second 30-day journey; 124 KB once every journey's days but Stand's loaded
+// only when that journey is open (content-journeys.js, 30 October 2026).
+const TOTAL_BUDGET_KB = 135;
+// The largest single file a first visit loads is app.js (~30 KB); the
+// journeys' days (~28 KB a language) load on demand.
+const FILE_BUDGET_KB = 32;
 
 let failures = 0;
 function test(name, fn) {
@@ -57,13 +56,25 @@ test(`no single file is over ${FILE_BUDGET_KB} KB gzipped`, () => {
   assert.deepStrictEqual(over, []);
 });
 
-test("the Spanish journeys and the Rosary load on demand, and are still precached for offline", () => {
+test("the other journeys' days, the Spanish journeys and the Rosary load on demand, and are still precached for offline", () => {
   const app = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
   const sw = fs.readFileSync(path.join(ROOT, "sw.js"), "utf8");
-  for (const file of ["content.es.js", "rosary.js", "rosary-ui.js"]) {
+  for (const file of ["content-journeys.js", "content.es.js", "rosary.js", "rosary-ui.js"]) {
     assert.ok(!assets.includes(file), `app/index.html loads ${file} up front again`);
     assert.ok(app.includes(`loadScript("/${file}"`), `app.js no longer loads ${file} on demand`);
     assert.ok(sw.includes(`"/${file}"`), `sw.js no longer precaches ${file}`);
+  }
+});
+
+test("every journey's days but Stand's are in content-journeys.js, and content.js knows how many each has", () => {
+  const src = fs.readFileSync(path.join(ROOT, "content.js"), "utf8");
+  const { journeyDays } = require("../content-journeys.js");
+  const { tracks } = require("../content.js");
+  assert.deepStrictEqual(Object.keys(journeyDays).sort(), Object.keys(tracks).filter(id => id !== "core").sort());
+  for (const [id, days] of Object.entries(journeyDays)) {
+    const declared = src.slice(src.indexOf(`\n  ${id}: {`)).match(/days: pending\((\d+)\)/);
+    assert.ok(declared, `content.js declares ${id}'s days as pending(n)`);
+    assert.strictEqual(Number(declared[1]), days.length, `${id}: pending(${declared[1]}) but ${days.length} days`);
   }
 });
 

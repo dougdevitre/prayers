@@ -11,7 +11,7 @@
 // A "change" decision's note holds one line per chosen wording, written by the
 // workbook as  Change “<sentence>” → “<new sentence>”.  Each such line is
 // applied to the field that contains the sentence: the field's whole string
-// literal is found in content.js, content.es.js, prayers.js or rosary.js (exactly once,
+// literal is found in content.js, content-journeys.js, content.es.js, prayers.js or rosary.js (exactly once,
 // or the swap is not made) and rewritten. Anything else in a note, a decision
 // made on text that has since changed, a traditional prayer (kept identical to
 // REMAM) and a text that appears in more than one place are listed for a
@@ -30,7 +30,7 @@ function draftFiles(root) {
   const dir = path.join(root, "drafts");
   return fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => f.endsWith(".js")).sort().map(f => "drafts/" + f) : [];
 }
-const FILES = { en: ["content.js", "prayers.js", "rosary.js"], es: ["content.es.js", "prayers.js", "rosary.js"] };
+const FILES = { en: ["content.js", "content-journeys.js", "prayers.js", "rosary.js"], es: ["content.es.js", "prayers.js", "rosary.js"] };
 const CHANGE = /^Change “(.+)” → “(.+)”$/;
 
 /** { id: decision } from a JSON file or a directory of <id>.json files. */

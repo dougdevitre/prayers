@@ -95,6 +95,13 @@ const server = http.createServer((req, res) => {
   await new Promise(r => server.listen(8123, r));
   const browser = await chromium.launch(launchOptions);
   const page = await browser.newPage();
+  // A journey other than Stand shows once its days have arrived
+  // (content-journeys.js, fetched the first time one is open on a page):
+  // wait for the day the check expects, then read it.
+  const dayTitleIs = async (expected, p = page) => {
+    await p.waitForFunction(t => document.getElementById("dayTitle").textContent === t, expected, { timeout: 5000 }).catch(() => {});
+    return (await p.textContent("#dayTitle")) === expected;
+  };
   const errors = [];
   page.on("pageerror", e => errors.push("pageerror: " + e.message));
   page.on("console", m => { if (m.type() === "error") errors.push("console: " + m.text()); });
@@ -234,7 +241,7 @@ const server = http.createServer((req, res) => {
   check("the library's group names are normal case, capitalized by the stylesheet", await page.$$eval(".track-group-label", els =>
     els.every(el => el.textContent !== el.textContent.toUpperCase() && el.innerText === el.textContent.toUpperCase())));
   await page.click('.track-chip[data-track="unknown"]');
-  check("track day 1 title", (await page.textContent("#dayTitle")) === "The Unwritten Page");
+  check("track day 1 title", await dayTitleIs("The Unwritten Page"));
   check("track length is 5", (await page.textContent("#progressLabel")) === "Day 1 of 5");
   check("track week label", (await page.textContent("#weekLabel")) === "Fear of the Unknown · Five days");
   // Small labels are written in normal case and capitalized by the stylesheet,
@@ -416,9 +423,9 @@ const server = http.createServer((req, res) => {
   check("track SEO page title", (await page.title()).includes("Lying Down"));
   check("track SEO page links into app", await page.isVisible('a[href="/app?track=night#1"]'));
   await page.goto("http://localhost:8123/app?track=unknown#2", { waitUntil: "networkidle" });
-  check("?track deep link switches journey", (await page.textContent("#dayTitle")) === "Daily Bread");
+  check("?track deep link switches journey", await dayTitleIs("Daily Bread"));
   await page.goto("http://localhost:8123/app?track=furnace#2", { waitUntil: "networkidle" });
-  check("courage story deep link", (await page.textContent("#dayTitle")) === "Even If");
+  check("courage story deep link", await dayTitleIs("Even If"));
   check("courage story week label", (await page.textContent("#weekLabel")) === "Courage story · The Furnace · Daniel 3");
   check("courage story length is 4", (await page.textContent("#progressLabel")) === "Day 2 of 4");
   await page.goto("http://localhost:8123/app?track=core#1", { waitUntil: "networkidle" });
@@ -698,16 +705,30 @@ const server = http.createServer((req, res) => {
   check("erase removed storage", await page.evaluate(() => localStorage.getItem("stand-state") === null || !JSON.parse(localStorage.getItem("stand-state")).completed.length));
   check("erase also forgets the backup reminders", await page.evaluate(() => localStorage.getItem("stand-backup-at") === null && localStorage.getItem("stand-backup-snooze") === null));
 
+  // A first visit downloads Stand's days only; another journey's arrive when
+  // it is first opened (content-journeys.js), and then it shows.
+  {
+    const context = await browser.newContext({ serviceWorkers: "block" });
+    const fresh = await context.newPage();
+    const fetched = [];
+    fresh.on("request", r => fetched.push(new URL(r.url()).pathname));
+    await fresh.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
+    check("a first visit loads Stand's days only, not the other journeys'", !fetched.includes("/content-journeys.js") && (await fresh.textContent("#dayTitle")) === tracks.core.days[0][0]);
+    await fresh.goto("http://localhost:8123/app?track=night#2", { waitUntil: "networkidle" });
+    check("opening another journey loads its days, then shows the day", await dayTitleIs(tracks.night.days[1][0], fresh) && fetched.includes("/content-journeys.js"));
+    await context.close();
+  }
+
   // welcome path selection starts the chosen track
   await page.click('.path-button[data-track="night"]');
-  check("welcome path starts night track", (await page.textContent("#dayTitle")) === "Lying Down");
+  check("welcome path starts night track", await dayTitleIs("Lying Down"));
   check("welcome path shows 5-day progress", (await page.textContent("#progressLabel")) === "Day 1 of 5");
 
   // fear finder: a plain-language situation jumps straight into its track
   await page.click("#libraryButton");
   check("fear finder lists every situation", (await page.$$("#fearFinder option")).length === fearIndex.length + 1);
   await page.selectOption("#fearFinder", "den");
-  check("fear finder opens the mapped track", (await page.textContent("#dayTitle")) === "The Trap");
+  check("fear finder opens the mapped track", await dayTitleIs("The Trap"));
   check("fear finder closed the library", !(await page.evaluate(() => document.getElementById("libraryDialog").open)));
   await page.click("#libraryButton");
   check("fear finder resets after use", (await page.inputValue("#fearFinder")) === "");
@@ -722,7 +743,7 @@ const server = http.createServer((req, res) => {
   await page.click("#completeButton");
   check("completing Stand's Day 30 offers Shelter", await page.isVisible("#nextJourney") && (await page.textContent("#nextJourneyName")) === tracks.shelter.name);
   await page.click("#nextJourneyButton");
-  check("the offer opens Shelter at its first day", (await page.textContent("#dayTitle")) === tracks.shelter.days[0][0] && (await page.textContent("#progressLabel")) === "Day 1 of 30");
+  check("the offer opens Shelter at its first day", await dayTitleIs(tracks.shelter.days[0][0]) && (await page.textContent("#progressLabel")) === "Day 1 of 30");
   check("no next journey offered inside Shelter", await page.isHidden("#nextJourney"));
   // A Stand day link names Stand, so a reader with Shelter open still lands on Stand's day.
   await page.goto("http://localhost:8123/app?track=core#7", { waitUntil: "networkidle" });

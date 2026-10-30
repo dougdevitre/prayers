@@ -151,7 +151,7 @@ textarea{width:100%;min-height:40px;resize:vertical;padding:9px 11px;border:1px 
 (() => {
   const { meta, items } = JSON.parse(document.getElementById("data").textContent);
   const SECTIONS = [
-    ["journey", "The 30-day journey", "30 days, each with a reflection, prayer, declaration and practice."],
+    ["journey", "The 30-day journeys", "Stand and Shelter, 30 days each, every day with a reflection, prayer, declaration and practice."],
     ["draft", "New journeys (draft)", "Written but not yet in the app. The recordings are made once the text is approved."],
     ["fear", "Fear tracks", "Five-day tracks for fear of the unknown and fear at night."],
     ["courage", "Courage stories", "Four-day tracks, each built on one biblical account."],

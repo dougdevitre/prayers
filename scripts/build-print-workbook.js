@@ -1,13 +1,14 @@
 #!/usr/bin/env node
-// The printable workbook for the 30-day journey: US Letter portrait, in two
-// editions per language. The print edition is for a reader to print and write
+// The printable workbook for each 30-day journey (Stand and Shelter): US
+// Letter portrait, in two editions per language. The print edition is for a reader to print and write
 // in by hand; the fillable edition has the same pages, with boxes in place of
 // the ruled lines and real form fields to type in, tick and choose on screen
 // (scripts/workbook-form.js). (Not the pastoral review workbook,
 // scripts/build-review-workbook.js, which is for the reviewer.)
 //
-//   npm run build:workbook                  → all four, in .workbook/
-//   npm run build:workbook -- --lang es     → the Spanish ones only
+//   npm run build:workbook                       → all of them, in .workbook/
+//   npm run build:workbook -- --lang es          → the Spanish ones only
+//   npm run build:workbook -- --journey shelter  → one journey's only
 //   CHROMIUM_PATH=/path/to/chrome npm run build:workbook
 //
 // Every devotional word comes from content.js (content.es.js in Spanish) and
@@ -16,7 +17,8 @@
 // is the World English Bible in English and the Reina-Valera 1909 in Spanish,
 // as in the app. Each day carries a QR code that opens that day in the app,
 // where it can be read aloud: a plain link, with no parameter but the
-// language. The draft note on the last page follows the app's own draft
+// language and, for any journey but Stand, the journey (as the app's own
+// day links name it). The draft note on the last page follows the app's own draft
 // label (meta.reviewNote in prayers.js) and goes when that does.
 //
 // Pages are fixed-size boxes printed by Chromium; the writing lines are drawn
@@ -56,13 +58,10 @@ const OUT_DIR = path.join(ROOT, ".workbook");
 // Devocionario, el Rosario; and it addresses the reader without gender.
 const COPY = {
   en: {
-    file: "Stand-30-Day-Workbook.pdf",
-    docTitle: "Stand — 30-Day Workbook",
     edition: "First printed edition, October 2026.", // update with each printed edition
     draft: "The devotional text is a draft awaiting review by a pastoral advisor; later editions will follow that review.",
     coverKicker: "A prayer workbook",
     coverLead: "Thirty days of Scripture, prayer and one small practice, with room to write down what you notice along the way.",
-    epigraph: { source: web["Ephesians 6:10–13"], from: "Therefore", ref: "Ephesians 6:13" },
     belongs: "This workbook belongs to", began: "I began on",
     howKicker: "Before you start", howTitle: "How to use this workbook",
     howLead: "Each day takes about ten minutes, at the kitchen table, before work or last thing at night. There is no wrong way to do it.",
@@ -120,8 +119,6 @@ const COPY = {
     breath: (n, total) => `Breath ${n} of ${total}`, // tooltips (fillable edition)
     // The fillable edition: only what differs from the print one.
     fill: {
-      file: "Stand-30-Day-Workbook-Fillable.pdf",
-      docTitle: "Stand — 30-Day Workbook (fillable)",
       edition: "First fillable edition, October 2026.", // update with each fillable edition
       coverKicker: "A prayer workbook to fill in on screen",
       howLead: "Each day takes about ten minutes. Open this file in a PDF app that can fill in forms; type in the boxes, tap or click the circles and squares, and save after each day. There is no wrong way to do it.",
@@ -137,13 +134,10 @@ const COPY = {
     }
   },
   es: {
-    file: "Stand-Cuaderno-30-Dias.pdf",
-    docTitle: "Stand — Cuaderno de 30 días",
     edition: "Primera edición impresa, octubre de 2026.", // actualizar en cada edición impresa
     draft: "El texto devocional es un borrador pendiente de revisión por un asesor pastoral; las próximas ediciones seguirán esa revisión.",
     coverKicker: "Un cuaderno de oración",
     coverLead: "Treinta días de Escritura, oración y una pequeña práctica, con espacio para escribir lo que vas notando en el camino.",
-    epigraph: { source: rv["Ephesians 6:10–13"], from: "Por tanto", ref: "Efesios 6:13" },
     belongs: "Este cuaderno pertenece a", began: "Comencé el",
     howKicker: "Antes de empezar", howTitle: "Cómo usar este cuaderno",
     howLead: "Cada día toma unos diez minutos: en la mesa de la cocina, antes del trabajo o justo antes de dormir. No hay una manera equivocada de hacerlo.",
@@ -201,8 +195,6 @@ const COPY = {
     breath: (n, total) => `Respiración ${n} de ${total}`, // descripciones de los campos (edición rellenable)
     // La edición rellenable: solo lo que cambia respecto de la impresa.
     fill: {
-      file: "Stand-Cuaderno-30-Dias-Rellenable.pdf",
-      docTitle: "Stand — Cuaderno de 30 días (rellenable)",
       edition: "Primera edición rellenable, octubre de 2026.", // actualizar en cada edición rellenable
       coverKicker: "Un cuaderno de oración para rellenar en pantalla",
       howLead: "Cada día toma unos diez minutos. En una app de PDF que permita rellenar formularios, escribe en los recuadros, marca los círculos y las casillas, y guarda después de cada día. No hay una manera equivocada de hacerlo.",
@@ -217,29 +209,76 @@ const COPY = {
   }
 };
 
-/** The workbook's own words for one edition: the print wording, with the fillable edition's changes over it. */
-const copyFor = (lang, fillable = false) => fillable ? { ...COPY[lang], ...COPY[lang].fill } : COPY[lang];
+// What differs from one journey's workbook to another's: its files, its title
+// and the verse on its cover. Everything else is COPY, shared.
+const JOURNEYS = {
+  core: {
+    en: {
+      file: "Stand-30-Day-Workbook.pdf",
+      docTitle: "Stand — 30-Day Workbook",
+      epigraph: { source: web["Ephesians 6:10–13"], from: "Therefore", ref: "Ephesians 6:13" },
+      fill: { file: "Stand-30-Day-Workbook-Fillable.pdf", docTitle: "Stand — 30-Day Workbook (fillable)" }
+    },
+    es: {
+      file: "Stand-Cuaderno-30-Dias.pdf",
+      docTitle: "Stand — Cuaderno de 30 días",
+      epigraph: { source: rv["Ephesians 6:10–13"], from: "Por tanto", ref: "Efesios 6:13" },
+      fill: { file: "Stand-Cuaderno-30-Dias-Rellenable.pdf", docTitle: "Stand — Cuaderno de 30 días (rellenable)" }
+    }
+  },
+  shelter: {
+    en: {
+      file: "Shelter-30-Day-Workbook.pdf",
+      docTitle: "Shelter — 30-Day Workbook",
+      epigraph: { source: web["Psalm 23:4"], from: "Even though", ref: "Psalm 23:4" },
+      fill: { file: "Shelter-30-Day-Workbook-Fillable.pdf", docTitle: "Shelter — 30-Day Workbook (fillable)" }
+    },
+    es: {
+      file: "Abrigo-Cuaderno-30-Dias.pdf",
+      docTitle: "Abrigo — Cuaderno de 30 días",
+      epigraph: { source: rv["Psalm 23:4"], from: "Aunque", ref: "Salmo 23:4" },
+      fill: { file: "Abrigo-Cuaderno-30-Dias-Rellenable.pdf", docTitle: "Abrigo — Cuaderno de 30 días (rellenable)" }
+    }
+  }
+};
+/** The journeys that have a workbook, Stand first. */
+const WORKBOOK_JOURNEYS = Object.keys(JOURNEYS);
+for (const id of WORKBOOK_JOURNEYS) if (!tracks[id] || tracks[id].days.length !== 30) throw new Error(`the workbook for "${id}" needs a 30-day journey in content.js`);
+
+/** The workbook's own words for one edition of one journey: the print wording, with the fillable edition's changes over it. */
+function copyFor(lang, fillable = false, journey = "core") {
+  const J = JOURNEYS[journey][lang];
+  const base = { ...COPY[lang], ...J };
+  return fillable ? { ...base, ...COPY[lang].fill, ...J.fill } : base;
+}
 
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-/** The journey in a language: the English track, with Spanish text over it. */
-const coreFor = lang => lang === "es" ? { ...tracks.core, ...esTracks.core } : tracks.core;
-/** The app, or a day in it, in the workbook's language (/app#7, /app?lang=es#7). */
-const appLink = (lang, n) => `${SITE}/app${lang === "es" ? "?lang=es" : ""}${n ? `#${n}` : ""}`;
+/** A journey in a language: the English track, with Spanish text over it. */
+const journeyFor = (lang, id = "core") => lang === "es" && esTracks[id] ? { ...tracks[id], ...esTracks[id] } : tracks[id];
+/** The app, or a day in it, in the workbook's language and journey (/app#7,
+ *  /app?lang=es#7, /app?track=shelter#7, /app?lang=es&track=shelter#7). */
+function appLink(lang, n, journey = "core") {
+  const q = new URLSearchParams();
+  if (lang === "es") q.set("lang", "es");
+  if (journey !== "core") q.set("track", journey);
+  const query = q.toString();
+  return `${SITE}/app${query ? `?${query}` : ""}${n ? `#${n}` : ""}`;
+}
 
 /** The thirty days in a language, each with its week label and its link. */
-function daysFor(lang = "en") {
-  const core = coreFor(lang);
-  return core.days.map(([title, ref, verse, reflection, prayer, declaration, practice], i) => ({
+function daysFor(lang = "en", journey = "core") {
+  const J = journeyFor(lang, journey);
+  return J.days.map(([title, ref, verse, reflection, prayer, declaration, practice], i) => ({
     n: i + 1, title, ref, verse, reflection, prayer, declaration, practice,
-    week: weekLabel(core.weeks, i), url: appLink(lang, i + 1)
+    week: weekLabel(J.weeks, i), url: appLink(lang, i + 1, journey)
   }));
 }
 
 /** The days grouped by the journey's own week labels (reminder.js weekLabel). */
-function weekGroups(lang = "en") {
+function weekGroups(lang = "en", journey = "core") {
   const groups = [];
-  for (const d of daysFor(lang)) {
+  for (const d of daysFor(lang, journey)) {
     if (!groups.length || groups[groups.length - 1][0].week !== d.week) groups.push([]);
     groups[groups.length - 1].push(d);
   }
@@ -247,7 +286,7 @@ function weekGroups(lang = "en") {
 }
 
 /** Every address a QR code in the workbook opens: the app, and each day in it. */
-const qrTargets = (lang = "en") => [appLink(lang), ...daysFor(lang).map(d => d.url)];
+const qrTargets = (lang = "en", journey = "core") => [appLink(lang, 0, journey), ...daysFor(lang, journey).map(d => d.url)];
 
 /** The help lines, worded as the app's support panel words them (the flyers print them too). */
 function supportHtml(lang = "en") {
@@ -283,14 +322,14 @@ async function makeQr(urls = qrTargets()) {
  * choose for the form layer. Returns { html, pages } where pages lists each
  * page's kind, in order.
  */
-function buildHtml({ qr, lang = "en", fillable = false, fontBase = `file://${path.join(ROOT, "fonts")}/` }) {
-  const C = copyFor(lang, fillable);
+function buildHtml({ qr, lang = "en", fillable = false, journey = "core", fontBase = `file://${path.join(ROOT, "fonts")}/` }) {
+  const C = copyFor(lang, fillable, journey);
   const ui = appUi[lang];
-  const core = coreFor(lang);
-  const days = daysFor(lang);
-  const groups = weekGroups(lang);
+  const track = journeyFor(lang, journey);
+  const days = daysFor(lang, journey);
+  const groups = weekGroups(lang, journey);
   const sos = lang === "es" ? esSos[0] : sosSetsEn[0];
-  const [coverTitle, coverSub] = core.name.split(" — ");
+  const [coverTitle, coverSub] = track.name.split(" — ");
   const epigraph = C.epigraph.source.slice(C.epigraph.source.indexOf(C.epigraph.from));
 
   // The fillable edition only: a form field's name, kind and tooltip, and how
@@ -317,7 +356,7 @@ function buildHtml({ qr, lang = "en", fillable = false, fontBase = `file://${pat
   const page = (cls, body, { footer = true } = {}) => {
     const n = pages.length + 1;
     const foot = footer ? `<footer>
-      <span class="brand">${STAR}<span>Stand</span><span class="sep">·</span><span class="series">${esc(core.short)}</span></span>
+      <span class="brand">${STAR}<span>Stand</span><span class="sep">·</span><span class="series">${esc(track.short)}</span></span>
       <span class="num">${n}</span>
     </footer>` : "";
     pages.push({ cls, html: `<section class="page ${cls}">${body}${foot}</section>` });
@@ -390,7 +429,7 @@ function buildHtml({ qr, lang = "en", fillable = false, fontBase = `file://${pat
     <div>
       <h2 class="label">${esc(C.listenTitle)}</h2>
       <p>${esc(C.listenBody)}</p>
-      <div class="qr-big">${link(appLink(lang), qr[appLink(lang)])}</div>
+      <div class="qr-big">${link(appLink(lang, 0, journey), qr[appLink(lang, 0, journey)])}</div>
       <h2 class="label">${esc(C.privateTitle)}</h2>
       <p>${esc(C.privateBody)}</p>
     </div>
@@ -491,11 +530,13 @@ function buildHtml({ qr, lang = "en", fillable = false, fontBase = `file://${pat
   });
 
   /* ---------- the whole journey ---------- */
-  const others = Object.keys(tracks).filter(id => id !== "core").map(id => [id, lang === "es" && esTracks[id] ? { ...tracks[id], ...esTracks[id] } : tracks[id]]);
-  const fear = others.filter(([, t]) => t.group === "Journeys for fear").map(([, t]) => `${t.short} (${t.days.length} ${C.daysWord})`);
+  const others = Object.keys(tracks).filter(id => id !== journey).map(id => [id, journeyFor(lang, id)]);
+  // The other 30-day journey first, by its own name (Stand, Shelter), then the journeys for fear.
+  const thirty = others.filter(([id]) => tracks[id].group === tracks[journey].group).map(([, t]) => `${t.name.split(" — ")[0]} (${t.days.length} ${C.daysWord})`);
+  const fear = [...thirty, ...others.filter(([, t]) => t.group === "Journeys for fear").map(([, t]) => `${t.short} (${t.days.length} ${C.daysWord})`)];
   const stories = others.filter(([, t]) => t.group === "Courage stories");
   page("final", `
-  <p class="kicker">${esc(core.weeks[core.weeks.length - 1])}</p>
+  <p class="kicker">${esc(track.weeks[track.weeks.length - 1])}</p>
   <h1 class="page-title">${esc(C.finalTitle)}</h1>
   <div class="write">
     ${C.finalPrompts.map((q, i) => lines([3, 3, 2, 3][i], q, { name: `final-q${i + 1}`, tip: `${C.finalTitle} · ${q}` })).join("\n    ")}
@@ -677,11 +718,11 @@ const FILL_CSS = `
  * Prints one edition of one language's workbook to a PDF, with its form when
  * it is the fillable one; fails, naming the page, if anything runs off one.
  */
-async function build({ lang = "en", fillable = false, out = path.join(OUT_DIR, copyFor(lang, fillable).file), log = console.log } = {}) {
+async function build({ lang = "en", fillable = false, journey = "core", out = path.join(OUT_DIR, copyFor(lang, fillable, journey).file), log = console.log } = {}) {
   const { chromium } = require("playwright");
-  const name = fillable ? `${lang} (fillable)` : lang;
-  const qr = await makeQr(qrTargets(lang));
-  const { html } = buildHtml({ qr, lang, fillable });
+  const name = `${journey === "core" ? "" : `${journey} `}${lang}${fillable ? " (fillable)" : ""}`;
+  const qr = await makeQr(qrTargets(lang, journey));
+  const { html } = buildHtml({ qr, lang, fillable, journey });
   fs.mkdirSync(path.dirname(out), { recursive: true });
   const htmlFile = out.replace(/\.pdf$/, ".html");
   fs.writeFileSync(htmlFile, html);
@@ -741,16 +782,18 @@ async function build({ lang = "en", fillable = false, out = path.join(OUT_DIR, c
 }
 
 if (require.main === module) {
-  const i = process.argv.indexOf("--lang");
-  const langs = i >= 0 ? [process.argv[i + 1]] : LANGS;
+  const arg = flag => { const i = process.argv.indexOf(flag); return i >= 0 ? process.argv[i + 1] : null; };
+  const langs = arg("--lang") ? [arg("--lang")] : LANGS;
+  const journeys = arg("--journey") ? [arg("--journey")] : WORKBOOK_JOURNEYS;
   if (!langs.every(l => COPY[l])) { console.error(`--lang must be one of ${LANGS.join(", ")}`); process.exit(2); }
+  if (!journeys.every(j => JOURNEYS[j])) { console.error(`--journey must be one of ${WORKBOOK_JOURNEYS.join(", ")}`); process.exit(2); }
   (async () => {
     let ok = true;
-    for (const lang of langs) {
-      for (const fillable of [false, true]) ok = (await build({ lang, fillable })).ok && ok;
+    for (const journey of journeys) for (const lang of langs) {
+      for (const fillable of [false, true]) ok = (await build({ lang, fillable, journey })).ok && ok;
     }
     process.exit(ok ? 0 : 1);
   })().catch(e => { console.error(e); process.exit(1); });
 }
 
-module.exports = { SITE, LANGS, COPY, OUT_DIR, copyFor, appLink, daysFor, weekGroups, qrTargets, makeQr, supportHtml, fontCss, buildHtml, build };
+module.exports = { SITE, LANGS, COPY, JOURNEYS, WORKBOOK_JOURNEYS, OUT_DIR, copyFor, journeyFor, appLink, daysFor, weekGroups, qrTargets, makeQr, supportHtml, fontCss, buildHtml, build };

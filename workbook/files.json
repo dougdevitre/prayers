@@ -3,66 +3,106 @@
     {
       "lang": "en",
       "kind": "print",
+      "journey": "core",
       "file": "Stand-30-Day-Workbook.pdf",
       "pages": 43,
-      "bytes": 655480,
-      "source": "e4d084e9232ef320f1c39b0b155a94b05ffcb0f5e431614a7f3fc341171f43b5"
+      "bytes": 635656,
+      "source": "e1aa0a62e2137844c5c71de2169cdbd5c38959ae3c88f54b511b4537f3c28160"
     },
     {
       "lang": "en",
       "kind": "fillable",
+      "journey": "core",
       "file": "Stand-30-Day-Workbook-Fillable.pdf",
       "pages": 43,
-      "bytes": 1386400,
-      "source": "6b358b11d787867fc8dc9b18bcd2b274283e81c63991b10b26e54a8193392635"
+      "bytes": 1366451,
+      "source": "4ad7ea05d76aae971e4031cf587355d69ea48efbc7aac79d2bf280f0e9ace0d3"
+    },
+    {
+      "lang": "en",
+      "kind": "print",
+      "journey": "shelter",
+      "file": "Shelter-30-Day-Workbook.pdf",
+      "pages": 43,
+      "bytes": 664531,
+      "source": "fb5376e07ae20cfa0aea03f33972816dda1ebacfda0e584c0a2e0404b6662203"
+    },
+    {
+      "lang": "en",
+      "kind": "fillable",
+      "journey": "shelter",
+      "file": "Shelter-30-Day-Workbook-Fillable.pdf",
+      "pages": 43,
+      "bytes": 1386203,
+      "source": "483eb4fa1e99bc0eaead11894f61c6a7faaedf8b967d9e82c4b77cfd58778a9d"
     },
     {
       "lang": "en",
       "kind": "flyer",
       "file": "Stand-Flyer.pdf",
       "pages": 1,
-      "bytes": 40973,
-      "source": "dcebe1a34149179e4166b88ef7bfe3a784445e2f3ab09554994d0e593ed758ef"
+      "bytes": 41033,
+      "source": "1478802178c29aa39924ac94bbcfc99ea7ebdbe02b2d40ba5118ac47dc2c0ef5"
     },
     {
       "lang": "en",
       "kind": "insert",
       "file": "Stand-Bulletin-Insert.pdf",
       "pages": 1,
-      "bytes": 59131,
-      "source": "8b41f2f2cf7475f2f443a644bbe19d51e5f6aed6609fd305db9397525be7d23a"
+      "bytes": 59204,
+      "source": "27acc9b6a25bdbd3ec79c7115d389bd5e22265fa90f099631c4c0add7673ebf2"
     },
     {
       "lang": "es",
       "kind": "print",
+      "journey": "core",
       "file": "Stand-Cuaderno-30-Dias.pdf",
       "pages": 43,
-      "bytes": 664835,
-      "source": "75c7269a982cb2cd6d4980965e9d16ed29cd70de26817a19a52bddcad755db2d"
+      "bytes": 644552,
+      "source": "0d4615203b93571183e8142882c84ef13a9bdced0c04e2f975ea676753a21b2e"
     },
     {
       "lang": "es",
       "kind": "fillable",
+      "journey": "core",
       "file": "Stand-Cuaderno-30-Dias-Rellenable.pdf",
       "pages": 43,
-      "bytes": 1403977,
-      "source": "ab30a578b4edb475986410267fe1e26b3ec532658892bb4f6de1388d12778913"
+      "bytes": 1383575,
+      "source": "bc38b541a87eca96caf219cec0b8e9213f1a01a3e17fc4b7783934bb245836f5"
+    },
+    {
+      "lang": "es",
+      "kind": "print",
+      "journey": "shelter",
+      "file": "Abrigo-Cuaderno-30-Dias.pdf",
+      "pages": 43,
+      "bytes": 667642,
+      "source": "ae2248b7dd05179d58c104a224208b0b85b3f0d5a986748e3f06b96af7c5fce6"
+    },
+    {
+      "lang": "es",
+      "kind": "fillable",
+      "journey": "shelter",
+      "file": "Abrigo-Cuaderno-30-Dias-Rellenable.pdf",
+      "pages": 43,
+      "bytes": 1396871,
+      "source": "79687de883fda89e6f6f5e5128d3e4cedeb6ea4f695499f38b7bb89d0bb4723e"
     },
     {
       "lang": "es",
       "kind": "flyer",
       "file": "Stand-Volante.pdf",
       "pages": 1,
-      "bytes": 41745,
-      "source": "335768f537e6bdcf56ec7b603cee52aa8525a715aacd27fe1cfe0001f6cf7135"
+      "bytes": 41743,
+      "source": "86f5b0878ce9c082ebc891e8da0a2c36f53df92cb14a62ec19493dc2da1f48a2"
     },
     {
       "lang": "es",
       "kind": "insert",
       "file": "Stand-Media-Hoja-Boletin.pdf",
       "pages": 1,
-      "bytes": 60843,
-      "source": "1b4479e10cc2132327cd8681fe8c233745ea8f2c4dba0ea61f5cb088adf02ddb"
+      "bytes": 60835,
+      "source": "0f74b4f73ed62063f37cdfecf7f4b80b76d9185935697b07b6c511e96950f988"
     }
   ]
 }

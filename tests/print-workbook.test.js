@@ -11,7 +11,7 @@
 //   npm run test:unit
 
 const assert = require("assert");
-const { SITE, LANGS, COPY, copyFor, daysFor, weekGroups, qrTargets, makeQr, buildHtml } = require("../scripts/build-print-workbook.js");
+const { SITE, LANGS, COPY, WORKBOOK_JOURNEYS, copyFor, daysFor, weekGroups, qrTargets, makeQr, buildHtml } = require("../scripts/build-print-workbook.js");
 const { addFields } = require("../scripts/workbook-form.js");
 const { PDFDocument, PDFName, PDFDict, PDFArray, PDFStream, PDFRef, AcroButtonFlags } = require("pdf-lib");
 const { tracks, sosSetsEn } = require("../content.js");
@@ -66,6 +66,39 @@ const formOf = lang => widgetsIn(fill[lang].html);
     });
     // The Spanish edition is the Spanish text, not the English with a Spanish frame.
     for (const edition of Object.values(EDITIONS)) assert.ok(!edition.es.html.includes(esc(tracks.core.days[0][4])), "the English Day 1 prayer in a Spanish workbook");
+  });
+
+  // Shelter, the second 30-day journey, has the same workbook: the checks
+  // above and below run on Stand's, and this one holds Shelter's to the same
+  // promises, against Stand's as the reference.
+  await test("Shelter's workbook: every day word for word, the same pages and form, its own codes, files and cover", () => {
+    assert.deepStrictEqual(WORKBOOK_JOURNEYS, ["core", "shelter"]);
+    const days = { en: tracks.shelter.days, es: esTracks.shelter.days };
+    for (const lang of LANGS) {
+      const urls = qrTargets(lang, "shelter");
+      const qr = Object.fromEntries(urls.map(url => [url, `<svg data-for="${url}"></svg>`]));
+      for (const fillable of [false, true]) {
+        const name = `shelter ${lang} ${fillable ? "fillable" : "print"}`;
+        const { html, pages } = buildHtml({ qr, lang, fillable, journey: "shelter", fontBase: "fonts/" });
+        const C = copyFor(lang, fillable, "shelter");
+        days[lang].forEach((day, i) => { for (const field of day) assert.ok(html.includes(esc(field)), `${name} Day ${i + 1}: ${field.slice(0, 40)}`); });
+        assert.ok(!html.includes(esc(tracks.core.days[0][4])) && !html.includes(esc(esTracks.core.days[0][4])), `${name}: Stand's Day 1 prayer`);
+        assert.deepStrictEqual(pages, (fillable ? fill : book)[lang].pages, `${name}: the same pages as Stand's`);
+        if (fillable) assert.deepStrictEqual(widgetsIn(html).map(w => [w.name, w.kind]), formOf(lang).map(w => [w.name, w.kind]), `${name}: the same form as Stand's`);
+        // Every code opens Shelter, in the workbook's language, with nothing else.
+        for (const d of daysFor(lang, "shelter")) assert.ok(html.includes(`<svg data-for="${d.url}">`), `${name} Day ${d.n}`);
+        assert.ok(html.includes(`<div class="qr-big">${fillable ? `<a href="${esc(urls[0])}">` : ""}<svg data-for="${urls[0]}">`), name);
+        assert.ok(html.includes(`<title>${esc(C.docTitle)}</title>`) && C.docTitle.startsWith(lang === "es" ? "Abrigo" : "Shelter"), name);
+        // The cover verse is quoted from the source text, as every verse is.
+        assert.ok((lang === "es" ? rv : web)[C.epigraph.ref.replace(/^Salmo /, "Psalm ")].includes(C.epigraph.from), `${name}: cover verse`);
+        // The last page points to Stand, as Stand's points to Shelter.
+        assert.ok(visible(html).includes(`${lang === "es" ? "Firme" : "Stand"} (30 ${C.daysWord})`), `${name}: Stand on the last page`);
+        assert.ok((fillable ? fill : book)[lang].text.includes(`${lang === "es" ? "Abrigo" : "Shelter"} (30 ${C.daysWord})`), `${lang}: Shelter on Stand's last page`);
+      }
+      for (const url of urls) assert.strictEqual(new URL(url).search, lang === "es" ? "?lang=es&track=shelter" : "?track=shelter", url);
+    }
+    const files = WORKBOOK_JOURNEYS.flatMap(j => LANGS.flatMap(lang => [copyFor(lang, false, j).file, copyFor(lang, true, j).file]));
+    assert.strictEqual(new Set(files).size, files.length, "every workbook file has its own name");
   });
 
   await test("the pages run cover, how-to, Steady me now, before Day 1, tracker, the days with a look back after each week, then the close", () => {

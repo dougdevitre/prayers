@@ -62,11 +62,13 @@ function actionsIn(pdf) {
 }
 
 (async () => {
-  await test("files.json lists the eight files, each language's workbooks and flyers, in order", () => {
-    assert.deepStrictEqual(files.map(f => [f.lang, f.kind, f.file]), kit.publications().map(p => [p.lang, p.kind, p.file]));
+  await test("files.json lists the twelve files, each language's workbooks for both journeys and its flyers, in order", () => {
+    assert.deepStrictEqual(files.map(f => [f.lang, f.kind, f.journey, f.file]), kit.publications().map(p => [p.lang, p.kind, p.journey, p.file]));
     assert.deepStrictEqual(files.map(f => f.file), [
-      "Stand-30-Day-Workbook.pdf", "Stand-30-Day-Workbook-Fillable.pdf", "Stand-Flyer.pdf", "Stand-Bulletin-Insert.pdf",
-      "Stand-Cuaderno-30-Dias.pdf", "Stand-Cuaderno-30-Dias-Rellenable.pdf", "Stand-Volante.pdf", "Stand-Media-Hoja-Boletin.pdf"
+      "Stand-30-Day-Workbook.pdf", "Stand-30-Day-Workbook-Fillable.pdf", "Shelter-30-Day-Workbook.pdf", "Shelter-30-Day-Workbook-Fillable.pdf",
+      "Stand-Flyer.pdf", "Stand-Bulletin-Insert.pdf",
+      "Stand-Cuaderno-30-Dias.pdf", "Stand-Cuaderno-30-Dias-Rellenable.pdf", "Abrigo-Cuaderno-30-Dias.pdf", "Abrigo-Cuaderno-30-Dias-Rellenable.pdf",
+      "Stand-Volante.pdf", "Stand-Media-Hoja-Boletin.pdf"
     ]);
     // Nothing in workbook/ that the kit does not list (but the page and files.json).
     const extra = fs.readdirSync(kit.KIT_DIR).filter(f => !["index.html", "files.json"].includes(f) && !files.some(x => x.file === f));
@@ -99,12 +101,12 @@ function actionsIn(pdf) {
   await test("each file is titled as its edition, and nothing in any of them runs, submits or launches", () => {
     for (const f of files) {
       const { pdf } = pdfs[f.file];
-      const title = f.kind === "print" || f.kind === "fillable" ? workbook.copyFor(f.lang, f.kind === "fillable").docTitle : flyer.COPY[f.lang][f.kind].docTitle;
+      const title = f.kind === "print" || f.kind === "fillable" ? workbook.copyFor(f.lang, f.kind === "fillable", f.journey).docTitle : flyer.COPY[f.lang][f.kind].docTitle;
       assert.strictEqual(pdf.getTitle(), title, f.file);
       const { found, uris } = actionsIn(pdf);
       assert.deepStrictEqual(found, [], `${f.file}: no script and no action`);
       // The fillable workbook's codes are also links, to the app's own days; nothing else links anywhere.
-      const allowed = f.kind === "fillable" ? workbook.qrTargets(f.lang) : [];
+      const allowed = f.kind === "fillable" ? workbook.qrTargets(f.lang, f.journey) : [];
       assert.deepStrictEqual(uris.filter(u => !allowed.includes(u)), [], `${f.file}: links only to the app`);
       if (f.kind === "fillable") assert.strictEqual(new Set(uris).size, allowed.length, `${f.file}: every code is a link`);
     }

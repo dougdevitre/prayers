@@ -56,7 +56,7 @@ const COPY = {
       [`${journeys} guided journeys.`, `Two 30-day journeys, through the armor of Ephesians and the Psalms of trust, ${fear} journeys for fear, and ${stories} four-day courage stories.`],
       ["The Prayer Book and the Rosary.", "Traditional Christian prayers, and the Rosary with its mysteries for each day."],
       ["English and Spanish, read aloud.", "Every day and every prayer can be spoken, at your own pace."],
-      ["A printable workbook.", "The thirty days on paper, or to fill in on screen:"]
+      ["Printable workbooks.", "Both 30-day journeys on paper, or to fill in on screen:"]
     ],
     workbookPath: "/workbook",
     shared: "Shared with you by",
@@ -75,7 +75,7 @@ const COPY = {
       [`${journeys} caminos guiados.`, `Dos caminos de 30 días, por la armadura de Efesios y por los Salmos de confianza, ${fear} caminos para el miedo y ${stories} historias de valor de cuatro días.`],
       ["El Devocionario y el Rosario.", "Oraciones cristianas tradicionales, y el Rosario con sus misterios de cada día."],
       ["En español y en inglés, en voz alta.", "Cada día y cada oración pueden escucharse, a tu ritmo."],
-      ["Un cuaderno para imprimir.", "Los treinta días en papel, o para rellenar en pantalla:"]
+      ["Cuadernos para imprimir.", "Los dos caminos de 30 días en papel, o para rellenar en pantalla:"]
     ],
     workbookPath: "/es/cuaderno",
     shared: "Compartido por",

@@ -2099,7 +2099,8 @@ const server = http.createServer((req, res) => {
   for (const [url, other] of [["/workbook", "/es/cuaderno"], ["/es/cuaderno", "/workbook"]]) {
     await page.goto("http://localhost:8123" + url, { waitUntil: "networkidle" });
     const links = await page.$$eval('main a[href^="/workbook/"]', els => els.map(e => ({ href: e.getAttribute("href"), download: e.hasAttribute("download") })));
-    check(`${url} offers six downloads, each a download`, links.length === 6 && links.every(l => l.download));
+    // Two journeys' workbooks in two editions, and the flyer and insert in both languages.
+    check(`${url} offers eight downloads, each a download`, links.length === 8 && links.every(l => l.download));
     let pdfs = 0;
     for (const { href } of links) {
       const res = await page.request.get("http://localhost:8123" + href);

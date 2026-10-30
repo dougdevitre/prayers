@@ -42,19 +42,24 @@ const KINDS = ["print", "fillable", "flyer", "insert"];
 /** True once the pastoral review is done: the app no longer labels its devotional text a draft. */
 const isPublic = () => !(prayerCorpus.meta && prayerCorpus.meta.reviewNote);
 
-/** Every file in the kit, in the order the pages list them: { file, lang, kind }. */
+const isWorkbook = kind => kind === "print" || kind === "fillable";
+
+/** Every file in the kit, in the order the pages list them: { file, lang, kind }
+ *  and, for a workbook, its journey. Per language: each journey's two
+ *  workbooks (Stand first), then the flyer and the insert. */
 function publications() {
-  return workbook.LANGS.flatMap(lang => KINDS.map(kind => ({
-    lang, kind,
-    file: kind === "print" || kind === "fillable" ? workbook.copyFor(lang, kind === "fillable").file : flyer.COPY[lang][kind].file
-  })));
+  return workbook.LANGS.flatMap(lang => [
+    ...workbook.WORKBOOK_JOURNEYS.flatMap(journey => KINDS.filter(isWorkbook).map(kind =>
+      ({ lang, kind, journey, file: workbook.copyFor(lang, kind === "fillable", journey).file }))),
+    ...KINDS.filter(kind => !isWorkbook(kind)).map(kind => ({ lang, kind, file: flyer.COPY[lang][kind].file }))
+  ]);
 }
 
 /** What a file is built from, hashed: its HTML, and the form layer when it has a form. */
-async function fingerprint({ lang, kind }) {
+async function fingerprint({ lang, kind, journey = "core" }) {
   let html;
-  if (kind === "print" || kind === "fillable") {
-    html = workbook.buildHtml({ qr: await workbook.makeQr(workbook.qrTargets(lang)), lang, fillable: kind === "fillable", fontBase: FONT_BASE }).html;
+  if (isWorkbook(kind)) {
+    html = workbook.buildHtml({ qr: await workbook.makeQr(workbook.qrTargets(lang, journey)), lang, journey, fillable: kind === "fillable", fontBase: FONT_BASE }).html;
   } else {
     html = flyer.buildHtml({ qr: await workbook.makeQr([flyer.qrTarget(lang)]), lang, layout: kind, fontBase: FONT_BASE }).html;
   }
@@ -84,12 +89,12 @@ async function publish({ dir = KIT_DIR, force = false, log = console.log } = {})
     const source = await fingerprint(pub);
     const was = before.find(f => f.file === pub.file);
     if (!force && was && was.source === source && fs.existsSync(out) && fs.statSync(out).size === was.bytes) {
-      log(`· ${pub.lang} ${pub.kind}: unchanged → ${path.relative(ROOT, out)}`);
+      log(`· ${pub.journey && pub.journey !== "core" ? `${pub.journey} ` : ""}${pub.lang} ${pub.kind}: unchanged → ${path.relative(ROOT, out)}`);
       files.push({ ...pub, pages: was.pages, bytes: was.bytes, source });
       continue;
     }
-    const built = pub.kind === "print" || pub.kind === "fillable"
-      ? await workbook.build({ lang: pub.lang, fillable: pub.kind === "fillable", out, log })
+    const built = isWorkbook(pub.kind)
+      ? await workbook.build({ lang: pub.lang, fillable: pub.kind === "fillable", journey: pub.journey, out, log })
       : await flyer.build({ lang: pub.lang, layout: pub.kind, out, log });
     ok = built.ok && ok;
     const bytes = fs.readFileSync(out);

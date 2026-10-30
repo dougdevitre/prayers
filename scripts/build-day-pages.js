@@ -39,7 +39,7 @@ const { cardFor, prayerCardFor, rosaryCardFor, cardPath } = require("../cards.js
 const { rosary, rosarySteps, mysteryRef, daysLabel, rosaryPagePath } = require("../rosary.js");
 const { prayerBook } = require("../prayerbook.js");
 const kit = require("./publish-workbook.js");
-const { copyFor: workbookCopy } = require("./build-print-workbook.js");
+const { copyFor: workbookCopy, journeyFor: workbookJourney, WORKBOOK_JOURNEYS } = require("./build-print-workbook.js");
 const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 // Meta descriptions are cut to 155 characters; at a word, with an ellipsis,
 // rather than mid-word ("…it is to stand. Standing means refu").
@@ -169,15 +169,15 @@ const LOCALES = [
     // workbook's own copy).
     workbook: {
       path: "/workbook", navLabel: "Printable workbook",
-      title: "The 30-day workbook — Stand",
-      description: "The 30-day journey from fear to faith as a free workbook, to print and write in by hand or to fill in on screen, with a flyer for churches.",
-      eyebrow: "Printable workbook", heading: "The 30-day workbook",
+      title: "The 30-day workbooks — Stand",
+      description: "Both 30-day journeys, Stand and Shelter, as free workbooks to print and write in by hand or to fill in on screen, with a flyer for churches.",
+      eyebrow: "Printable workbook", heading: "The 30-day workbooks",
       lead: "Thirty days of Scripture, prayer and one small practice, with room to write down what you notice along the way. Every day is also in the app, where it can be read aloud.",
       preview: "This is a preview.",
-      editionsKicker: "Download", editionsHeading: "Two editions, the same thirty days",
+      editionsKicker: "Download", editionsHeading: "Two journeys, each in two editions",
       print: { heading: "To print", body: "For pen and paper: lines to write on, circles to fill in, and a tracker for the thirty days.", button: "Download the print edition" },
       fillable: { heading: "To fill in on screen", body: "The same pages, with boxes to type in and circles to tap. Open it in a PDF app that can fill in forms, and save after each day. What you type stays in your copy of the file, which sends none of it anywhere.", button: "Download the fillable edition" },
-      other: ["En español:", "el cuaderno de 30 días"],
+      other: ["En español:", "los cuadernos de 30 días"],
       groupsKicker: "For churches and groups", groupsHeading: "Share Stand with your congregation",
       groupsLead: "A flyer for the notice board and a half-sheet insert for the bulletin, each with a code that opens the app and the help lines. Each has a line for your church’s name: type it in before printing, or write it by hand.",
       flyer: { heading: "Flyer", body: "One page, for a notice board or a table at the back." },
@@ -278,15 +278,15 @@ const LOCALES = [
     },
     workbook: {
       path: "/es/cuaderno", navLabel: "Cuaderno para imprimir",
-      title: "El cuaderno de 30 días — Stand",
-      description: "El camino de 30 días del miedo a la fe como cuaderno gratuito, para imprimir y escribir a mano o para rellenar en pantalla, con un volante para iglesias.",
-      eyebrow: "Cuaderno para imprimir", heading: "El cuaderno de 30 días",
+      title: "Los cuadernos de 30 días — Stand",
+      description: "Los dos caminos de 30 días, Firme y Abrigo, como cuadernos gratuitos para imprimir y escribir a mano o rellenar en pantalla, con un volante para iglesias.",
+      eyebrow: "Cuaderno para imprimir", heading: "Los cuadernos de 30 días",
       lead: "Treinta días de Escritura, oración y una pequeña práctica, con espacio para escribir lo que vas notando en el camino. Cada día también está en la app, donde se puede escuchar en voz alta.",
       preview: "Esta es una vista previa.",
-      editionsKicker: "Descargar", editionsHeading: "Dos ediciones, los mismos treinta días",
+      editionsKicker: "Descargar", editionsHeading: "Dos caminos, cada uno en dos ediciones",
       print: { heading: "Para imprimir", body: "Para papel y lápiz: líneas para escribir, círculos para rellenar y un registro de los treinta días.", button: "Descargar la edición para imprimir" },
       fillable: { heading: "Para rellenar en pantalla", body: "Las mismas páginas, con recuadros para escribir y círculos para marcar. Ábrelo en una app de PDF que permita rellenar formularios y guarda después de cada día. Lo que escribas se queda en tu copia del archivo, que no lo envía a ninguna parte.", button: "Descargar la edición rellenable" },
-      other: ["In English:", "the 30-day workbook"],
+      other: ["In English:", "the 30-day workbooks"],
       groupsKicker: "Para iglesias y grupos", groupsHeading: "Comparte Stand con tu comunidad",
       groupsLead: "Un volante para el tablón de anuncios y una media hoja para el boletín, cada uno con un código que abre la app y con las líneas de ayuda. Los dos tienen una línea para el nombre de tu iglesia: escríbelo en pantalla antes de imprimir, o a mano.",
       flyer: { heading: "Volante", body: "Una hoja, para el tablón de anuncios o una mesa a la entrada." },
@@ -1179,9 +1179,9 @@ ${siteFooter(L, relPath)}
 const workbookPaths = [];
 {
   const files = kit.readFiles();
-  const find = (lang, kind) => {
-    const f = files.find(x => x.lang === lang && x.kind === kind);
-    if (!f) throw new Error(`workbook/files.json lists no ${lang} ${kind}: run npm run publish:workbook`);
+  const find = (lang, kind, journey = "core") => {
+    const f = files.find(x => x.lang === lang && x.kind === kind && (x.journey || "core") === journey);
+    if (!f) throw new Error(`workbook/files.json lists no ${lang} ${journey} ${kind}: run npm run publish:workbook`);
     return f;
   };
   for (const L of LOCALES) {
@@ -1189,13 +1189,15 @@ const workbookPaths = [];
     const other = LOCALES.find(o => o !== L);
     const relPath = W.path, altPath = other.workbook.path;
     const fileLink = (f, label) => `<a class="complete-button" href="/workbook/${f.file}" download type="application/pdf"${f.lang === L.code ? "" : ` hreflang="${f.lang}" lang="${f.lang}"`}>${esc(label)}</a>`;
-    const edition = kind => {
-      const f = find(L.code, kind), E = W[kind];
+    // One card per journey and edition: "Stand · To print", "Shelter · To print"…
+    const edition = (journey, kind) => {
+      const f = find(L.code, kind, journey), E = W[kind];
+      const [name, subtitle] = workbookJourney(L.code, journey).name.split(" — ");
       return `          <div class="feature-card download-card">
-            <h3>${esc(E.heading)}</h3>
-            <p>${esc(E.body)}</p>
-            ${fileLink(f, E.button)}
-            <p class="landing-fineprint">${esc(W.details({ pages: f.pages, paper: W.paper[kind], size: W.size(f.bytes) }))}. ${esc(workbookCopy(L.code, kind === "fillable").edition)}</p>
+            <h3>${esc(name)} · ${esc(E.heading)}</h3>
+            <p>${esc(subtitle)}. ${esc(E.body)}</p>
+            ${fileLink(f, `${E.button} (${name})`)}
+            <p class="landing-fineprint">${esc(W.details({ pages: f.pages, paper: W.paper[kind], size: W.size(f.bytes) }))}. ${esc(workbookCopy(L.code, kind === "fillable", journey).edition)}</p>
           </div>`;
     };
     const share = kind => {
@@ -1220,8 +1222,7 @@ const workbookPaths = [];
         <p class="section-kicker">${esc(W.editionsKicker)}</p>
         <h2>${esc(W.editionsHeading)}</h2>
         <div class="feature-grid">
-${edition("print")}
-${edition("fillable")}
+${WORKBOOK_JOURNEYS.flatMap(journey => ["print", "fillable"].map(kind => edition(journey, kind))).join("\n")}
         </div>
         <p class="landing-fineprint" lang="${other.code}">${esc(W.other[0])} <a href="${altPath}" hreflang="${other.code}">${esc(W.other[1])}</a></p>
       </section>

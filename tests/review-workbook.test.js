@@ -5,7 +5,7 @@
 //   npm run test:unit
 
 const assert = require("assert");
-const { collect, render, flagsFor, attachSuggestions } = require("../scripts/build-review-workbook.js");
+const { collect, render, flagsFor, attachSuggestions, draftTracks } = require("../scripts/build-review-workbook.js");
 const c = require("../content.js");
 const e = require("../content.es.js");
 const { prayerCorpus: p } = require("../prayers.js");
@@ -41,11 +41,11 @@ test("every composer block is an item, word for word in both languages", () => {
   assert.ok(n > 50, `only ${n} blocks`);
 });
 
-test("ids are unique and every item has text in both languages", () => {
+test("ids are unique and every item has text in both languages (drafts: English)", () => {
   assert.strictEqual(byId.size, wb.items.length, "duplicate ids");
   for (const i of wb.items) {
     for (const f of i.fields) {
-      assert.ok(f.en && f.es, `${i.id}: ${f.label} is missing ${f.en ? "Spanish" : "English"}`);
+      assert.ok(f.en && (f.es || i.section === "draft"), `${i.id}: ${f.label} is missing ${f.en ? "Spanish" : "English"}`);
     }
   }
   assert.strictEqual(wb.items.filter(i => i.section === "finder")[0].fields.length, e.esFearIndex.length);
@@ -120,6 +120,26 @@ test("the Rosary's new text is in the workbook: the Fatima Prayer and all twenty
     assert.strictEqual(item.fields[0].es, m.name.es);
     assert.ok(item.fields[1].en.startsWith(m.verse.en) && item.fields[1].scripture);
   });
+});
+
+test("a draft journey is reviewed in its own section, in both languages once it has its Spanish, under the id it will have once live", () => {
+  const drafts = draftTracks(require("path").join(__dirname, ".."));
+  for (const { track: t, es } of drafts) {
+    const items = wb.items.filter(i => i.group === t.name);
+    if (c.tracks[t.id]) { assert.ok(items.every(i => i.section !== "draft"), `${t.id} is live and still listed as a draft`); continue; }
+    assert.strictEqual(items.length, t.days.length, t.id);
+    t.days.forEach((d, i) => {
+      const it = byId.get(`day.${t.id}.${String(i + 1).padStart(2, "0")}`);
+      assert.ok(it && it.section === "draft", `${t.id} day ${i + 1}`);
+      assert.strictEqual(it.fields[0].en, `${d[2]} (${d[1]})`);
+      assert.strictEqual(it.fields[4].en, d[6]);
+      const s = es && es.days[i];
+      if (!s) { assert.ok(it.fields.every(f => f.es === ""), `${t.id} day ${i + 1} has Spanish before it has a Spanish edition`); return; }
+      assert.strictEqual(it.fields[0].es, `${s[2]} (${s[1]})`);
+      assert.deepStrictEqual(it.fields.slice(1).map(f => f.es), s.slice(3));
+      assert.strictEqual(it.labelEs, `Día ${i + 1} · ${s[0]}`);
+    });
+  }
 });
 
 if (failures) { console.log(`\n${failures} failing`); process.exit(1); }

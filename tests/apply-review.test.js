@@ -12,7 +12,7 @@ const { readDecisions, plan, apply } = require("../scripts/apply-review.js");
 const { collect } = require("../scripts/build-review-workbook.js");
 
 const ROOT = path.join(__dirname, "..");
-const COPY = ["content.js", "content.es.js", "prayers.js", "rosary.js", "logic.js", "scripts/build-review-workbook.js", "scripts/review-workbook.tpl", "scripts/review-suggestions.json"];
+const COPY = ["content.js", "content.es.js", "prayers.js", "rosary.js", "logic.js", "scripts/build-review-workbook.js", "scripts/review-workbook.tpl", "scripts/review-suggestions.json", "drafts/shelter.js"];
 
 let failures = 0;
 function test(name, fn) {
@@ -101,6 +101,22 @@ test("planning writes nothing", () => {
   const before = fs.readFileSync(path.join(dir, "content.es.js"), "utf8");
   plan(dir, { "day.core.01": change("day.core.01", ["Change “Donde estoy confundido, dame claridad.” → “Uno.”"]) });
   assert.strictEqual(fs.readFileSync(path.join(dir, "content.es.js"), "utf8"), before);
+});
+
+test("an approved wording on a draft journey lands in its draft file, in either language, not in the content files", () => {
+  const id = [...items.keys()].find(k => items.get(k).section === "draft");
+  if (!id) return; // no draft journey in progress
+  const dir = sandbox();
+  const lines = [`Change “${firstSentence(field(id, "Reflection").en)}” → “Changed.”`];
+  if (field(id, "Prayer").es) lines.push(`Change “${firstSentence(field(id, "Prayer").es)}” → “Cambiado.”`);
+  const before = ["content.js", "content.es.js"].map(f => fs.readFileSync(path.join(dir, f), "utf8"));
+  const p = plan(dir, { [id]: change(id, lines) });
+  assert.strictEqual(p.edits.length, lines.length, JSON.stringify(p.manual));
+  assert.ok(p.edits.every(e => e.file.startsWith("drafts/")), p.edits.map(e => e.file).join());
+  apply(dir, p.edits);
+  const draft = fs.readFileSync(path.join(dir, p.edits[0].file), "utf8");
+  assert.ok(draft.includes("Changed.") && (lines.length === 1 || draft.includes("Cambiado.")));
+  assert.deepStrictEqual(["content.js", "content.es.js"].map(f => fs.readFileSync(path.join(dir, f), "utf8")), before);
 });
 
 test("decisions read from one file (object or array) or a directory of documents", () => {

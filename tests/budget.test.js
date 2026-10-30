@@ -16,11 +16,14 @@ const zlib = require("zlib");
 
 const ROOT = path.join(__dirname, "..");
 // 157 KB when the budget was set; 130 KB once the Spanish journeys loaded
-// only for Spanish readers (28 September 2026).
-const TOTAL_BUDGET_KB = 145;
-// The largest single files are the two languages' journeys (~28 KB each) and
-// app.js (~26 KB).
-const FILE_BUDGET_KB = 32;
+// only for Spanish readers (28 September 2026). Raised to 152 KB for Shelter,
+// the second 30-day journey (+6 KB): its days are in content.js because the
+// library, reminders and cards read every journey's days directly. Loading a
+// journey's days on demand, as the Spanish ones are, would win this back.
+const TOTAL_BUDGET_KB = 152;
+// The largest single files are the two languages' journeys (~35 KB each with
+// Shelter) and app.js (~30 KB).
+const FILE_BUDGET_KB = 36;
 
 let failures = 0;
 function test(name, fn) {

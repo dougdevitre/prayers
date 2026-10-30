@@ -21,16 +21,16 @@
       "kind": "flyer",
       "file": "Stand-Flyer.pdf",
       "pages": 1,
-      "bytes": 47133,
-      "source": "27fdceb18327dabadbaef8f151166a734d625605070c861b64a6efbda60b976b"
+      "bytes": 40973,
+      "source": "dcebe1a34149179e4166b88ef7bfe3a784445e2f3ab09554994d0e593ed758ef"
     },
     {
       "lang": "en",
       "kind": "insert",
       "file": "Stand-Bulletin-Insert.pdf",
       "pages": 1,
-      "bytes": 64606,
-      "source": "4cea2c04dc593f28a88202c5249d2399bb2d45027504963576f13af92754d679"
+      "bytes": 59131,
+      "source": "8b41f2f2cf7475f2f443a644bbe19d51e5f6aed6609fd305db9397525be7d23a"
     },
     {
       "lang": "es",
@@ -53,16 +53,16 @@
       "kind": "flyer",
       "file": "Stand-Volante.pdf",
       "pages": 1,
-      "bytes": 48175,
-      "source": "e431130e4c5f2edce0d7373daaec3361ca111211b10bbdf0d2079ae96765d08c"
+      "bytes": 41745,
+      "source": "335768f537e6bdcf56ec7b603cee52aa8525a715aacd27fe1cfe0001f6cf7135"
     },
     {
       "lang": "es",
       "kind": "insert",
       "file": "Stand-Media-Hoja-Boletin.pdf",
       "pages": 1,
-      "bytes": 66585,
-      "source": "eeac9c12d85463e51cd8f680c5d21661b1ef16df3fa3a85d2c0451ebc28db884"
+      "bytes": 60843,
+      "source": "1b4479e10cc2132327cd8681fe8c233745ea8f2c4dba0ea61f5cb088adf02ddb"
     }
   ]
 }

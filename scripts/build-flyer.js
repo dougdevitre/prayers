@@ -53,7 +53,7 @@ const COPY = {
     free: "Free. No account. Works offline, and what you write stays on your device.",
     features: ({ sos, journeys, fear, stories }) => [
       [`${sos}.`, "Ninety seconds, always one tap away: a breathing pacer, one anchoring verse, a short spoken prayer, a declaration."],
-      [`${journeys} guided journeys.`, `The 30-day journey through the armor of Ephesians, ${fear} journeys for fear, and ${stories} four-day courage stories.`],
+      [`${journeys} guided journeys.`, `Two 30-day journeys, through the armor of Ephesians and the Psalms of trust, ${fear} journeys for fear, and ${stories} four-day courage stories.`],
       ["The Prayer Book and the Rosary.", "Traditional Christian prayers, and the Rosary with its mysteries for each day."],
       ["English and Spanish, read aloud.", "Every day and every prayer can be spoken, at your own pace."],
       ["A printable workbook.", "The thirty days on paper, or to fill in on screen:"]
@@ -72,7 +72,7 @@ const COPY = {
     free: "Gratis. Sin cuenta. Funciona sin conexión, y lo que escribes se queda en tu dispositivo.",
     features: ({ sos, journeys, fear, stories }) => [
       [`${sos}.`, "Noventa segundos, siempre a un toque: una guía de respiración, un versículo que ancla, una oración breve hablada, una declaración."],
-      [`${journeys} caminos guiados.`, `El camino de 30 días por la armadura de Efesios, ${fear} caminos para el miedo y ${stories} historias de valor de cuatro días.`],
+      [`${journeys} caminos guiados.`, `Dos caminos de 30 días, por la armadura de Efesios y por los Salmos de confianza, ${fear} caminos para el miedo y ${stories} historias de valor de cuatro días.`],
       ["El Devocionario y el Rosario.", "Oraciones cristianas tradicionales, y el Rosario con sus misterios de cada día."],
       ["En español y en inglés, en voz alta.", "Cada día y cada oración pueden escucharse, a tu ritmo."],
       ["Un cuaderno para imprimir.", "Los treinta días en papel, o para rellenar en pantalla:"]
@@ -89,7 +89,10 @@ const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(
 function counts(lang = "en") {
   const ids = Object.keys(tracks);
   const group = name => ids.filter(id => tracks[id].group === name).length;
-  return { sos: appUi[lang]["sos.button"], journeys: ids.length, fear: group("Journeys for fear"), stories: group("Courage stories") };
+  const thirty = group("The 30-Day Journey");
+  // The copy names the two 30-day journeys (Stand and Shelter) in words.
+  if (thirty !== 2) throw new Error(`the flyer names two 30-day journeys; the content has ${thirty}`);
+  return { sos: appUi[lang]["sos.button"], journeys: ids.length, thirty, fear: group("Journeys for fear"), stories: group("Courage stories") };
 }
 // The groups the counts read (content.es.js names the same three), so a
 // renamed group fails here rather than printing "0 journeys for fear".

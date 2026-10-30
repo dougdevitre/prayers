@@ -40,8 +40,10 @@ const SITE_LABEL = "prayers.dougdevitre.org";
 // A day's shown text, measured at the longest day when the layout was set
 // (The Wall, day 4: 573 characters of verse, reflection and prayer, which
 // leaves a quarter of the card empty). tests/cards.test.js fails if any day
-// grows past this, so a longer text gets a look at the layout first.
-const TEXT_BUDGET = 700;
+// grows past this, so a longer text gets a look at the layout first. Raised
+// to 720 for Shelter's day 30 (701 characters), whose post card still leaves
+// room above the footer and whose link preview fits in four lines.
+const TEXT_BUDGET = 720;
 // A prayer's text, measured at the longest (the Angelus in Spanish, 1,310
 // characters). A prayer card sets its text smaller as the prayer grows
 // (api/card.js), down to a size checked readable at this length; the tests

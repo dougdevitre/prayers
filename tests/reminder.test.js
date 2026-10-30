@@ -113,7 +113,7 @@ test("every page link resolves to a generated file, every day, both languages", 
       }
     }
   }
-  assert.strictEqual(checked, 216);
+  assert.strictEqual(checked, 276);
 });
 
 test("slugify folds accents and punctuation the way the pages are named", () => {

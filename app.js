@@ -977,11 +977,23 @@ function render() {
   $("completeButton").setAttribute("aria-pressed", String(done));
   $("prevButton").disabled = day === 0;
   $("nextButton").disabled = day === DAYS() - 1;
+  renderNextJourney(done);
   document.title = t("share.title", { n: day + 1, title });
   renderDayCheckin();
   renderGrid();
   renderReminder();
 }
+
+// Finishing a journey that has a follow-on offers it under the last day, once
+// that day is marked complete: Stand leads to Shelter.
+const NEXT_JOURNEY = { core: "shelter" };
+function renderNextJourney(done) {
+  const next = NEXT_JOURNEY[state.track || "core"];
+  const show = Boolean(next && tracks[next] && done && day === DAYS() - 1);
+  $("nextJourney").hidden = !show;
+  if (show) $("nextJourneyName").textContent = localizedTrack(next).name;
+}
+$("nextJourneyButton").onclick = () => openTrack(NEXT_JOURNEY[state.track || "core"]);
 
 /* ---------- Interactions ---------- */
 

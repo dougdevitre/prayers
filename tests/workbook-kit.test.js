@@ -169,7 +169,7 @@ function actionsIn(pdf) {
     const n = flyer.counts("en");
     assert.strictEqual(n.journeys, Object.keys(tracks).length);
     assert.ok(n.fear > 0 && n.stories > 0);
-    assert.strictEqual(n.journeys, 1 + n.fear + n.stories, "a journey in a group the flyer does not mention");
+    assert.strictEqual(n.journeys, n.thirty + n.fear + n.stories, "a journey in a group the flyer does not mention");
     assert.ok(flyers["en flyer"].html.includes(`${n.journeys} guided journeys.`) && flyers["en flyer"].html.includes(`${n.stories} four-day courage stories`));
     assert.ok(flyers["es flyer"].html.includes(`${n.journeys} caminos guiados.`) && flyers["es flyer"].html.includes(`${n.stories} historias de valor de cuatro días`));
     assert.ok(flyers["en flyer"].html.includes(`<b>${esc(appUi.en["sos.button"])}.</b>`) && flyers["es flyer"].html.includes(`<b>${esc(appUi.es["sos.button"])}.</b>`));

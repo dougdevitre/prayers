@@ -12,7 +12,7 @@ const { readDecisions, plan, apply } = require("../scripts/apply-review.js");
 const { collect } = require("../scripts/build-review-workbook.js");
 
 const ROOT = path.join(__dirname, "..");
-const COPY = ["content.js", "content.es.js", "prayers.js", "rosary.js", "logic.js", "scripts/build-review-workbook.js", "scripts/review-workbook.tpl", "scripts/review-suggestions.json", "drafts/shelter.js"];
+const COPY = ["content.js", "content-journeys.js", "content.es.js", "prayers.js", "rosary.js", "logic.js", "scripts/build-review-workbook.js", "scripts/review-workbook.tpl", "scripts/review-suggestions.json", "drafts/shelter.js"];
 
 let failures = 0;
 function test(name, fn) {
@@ -117,6 +117,15 @@ test("an approved wording on a draft journey lands in its draft file, in either 
   const draft = fs.readFileSync(path.join(dir, p.edits[0].file), "utf8");
   assert.ok(draft.includes("Changed.") && (lines.length === 1 || draft.includes("Cambiado.")));
   assert.deepStrictEqual(["content.js", "content.es.js"].map(f => fs.readFileSync(path.join(dir, f), "utf8")), before);
+});
+
+test("an approved wording on a day of a journey other than Stand lands in content-journeys.js", () => {
+  const dir = sandbox();
+  const en = firstSentence(field("day.shelter.01", "Reflection").en);
+  const p = plan(dir, { "day.shelter.01": change("day.shelter.01", [`Change “${en}” → “Changed.”`]) });
+  assert.deepStrictEqual(p.edits.map(e => e.file), ["content-journeys.js"], JSON.stringify(p.manual));
+  apply(dir, p.edits);
+  assert.ok(fs.readFileSync(path.join(dir, "content-journeys.js"), "utf8").includes("Changed."));
 });
 
 test("decisions read from one file (object or array) or a directory of documents", () => {

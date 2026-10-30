@@ -234,6 +234,8 @@ const server = http.createServer((req, res) => {
   check("the library's group names are normal case, capitalized by the stylesheet", await page.$$eval(".track-group-label", els =>
     els.every(el => el.textContent !== el.textContent.toUpperCase() && el.innerText === el.textContent.toUpperCase())));
   await page.click('.track-chip[data-track="unknown"]');
+  // The first journey other than Stand fetches its days (content-journeys.js) before it shows.
+  await page.waitForFunction(() => document.getElementById("dayTitle").textContent === "The Unwritten Page", null, { timeout: 5000 }).catch(() => {});
   check("track day 1 title", (await page.textContent("#dayTitle")) === "The Unwritten Page");
   check("track length is 5", (await page.textContent("#progressLabel")) === "Day 1 of 5");
   check("track week label", (await page.textContent("#weekLabel")) === "Fear of the Unknown · Five days");
@@ -697,6 +699,20 @@ const server = http.createServer((req, res) => {
   check("erase clears state and reshows welcome", await page.evaluate(() => document.getElementById("welcomeDialog").open));
   check("erase removed storage", await page.evaluate(() => localStorage.getItem("stand-state") === null || !JSON.parse(localStorage.getItem("stand-state")).completed.length));
   check("erase also forgets the backup reminders", await page.evaluate(() => localStorage.getItem("stand-backup-at") === null && localStorage.getItem("stand-backup-snooze") === null));
+
+  // A first visit downloads Stand's days only; another journey's arrive when
+  // it is first opened (content-journeys.js), and then it shows.
+  {
+    const context = await browser.newContext({ serviceWorkers: "block" });
+    const fresh = await context.newPage();
+    const fetched = [];
+    fresh.on("request", r => fetched.push(new URL(r.url()).pathname));
+    await fresh.goto("http://localhost:8123/app", { waitUntil: "networkidle" });
+    check("a first visit loads Stand's days only, not the other journeys'", !fetched.includes("/content-journeys.js") && (await fresh.textContent("#dayTitle")) === tracks.core.days[0][0]);
+    await fresh.goto("http://localhost:8123/app?track=night#2", { waitUntil: "networkidle" });
+    check("opening another journey loads its days, then shows the day", fetched.includes("/content-journeys.js") && (await fresh.textContent("#dayTitle")) === tracks.night.days[1][0]);
+    await context.close();
+  }
 
   // welcome path selection starts the chosen track
   await page.click('.path-button[data-track="night"]');

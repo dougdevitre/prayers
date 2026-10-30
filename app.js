@@ -150,6 +150,9 @@ function loadScript(src, ready) {
   return scriptLoads[src];
 }
 const loadSpanish = () => loadScript("/content.es.js", () => typeof esTracks !== "undefined");
+// Every journey's days but Stand's (content-journeys.js), the first time one
+// of those journeys is open; until then content.js knows only their length.
+const loadJourneys = () => loadScript("/content-journeys.js", () => Object.values(tracks).every(t => t.days[0]));
 const loadRosary = () => loadScript("/rosary.js", () => typeof rosarySteps !== "undefined")
   .then(() => loadScript("/rosary-ui.js", () => typeof openRosary === "function"));
 // Runs fn once the guided Rosary is here; offline before it was ever saved,
@@ -938,6 +941,16 @@ const weekLabelFor = d => weekLabel(activeTrack().weeks, d);
 let renderedFor = null;
 
 function render() {
+  // The open journey's words have not arrived yet: fetch them, then paint. If
+  // they cannot be fetched (offline before the service worker ever saved
+  // them), Stand, whose days are always here, rather than an empty page.
+  if (!activeTrack().days[day]) {
+    loadJourneys().then(() => {
+      if (!activeTrack().days[day]) { state.track = "core"; save(); day = Math.min(day, DAYS() - 1); }
+      render();
+    });
+    return;
+  }
   scheduleOfflineSync();
   scheduleProtect();
   const showing = `${state.lang}|${state.track || "core"}|${day}`;

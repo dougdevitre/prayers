@@ -122,8 +122,8 @@ test("slugify folds accents and punctuation the way the pages are named", () => 
   assert.strictEqual(slugify("Guard the Mind"), "guard-the-mind");
 });
 
-test("appDayLink mirrors the static pages: no ?track= for core, named otherwise", () => {
-  assert.strictEqual(appDayLink(ORIGIN, "core", 6), `${ORIGIN}/app#7`);
+test("appDayLink names every journey, Stand's included, so a reader with another journey open lands on this one", () => {
+  assert.strictEqual(appDayLink(ORIGIN, "core", 6), `${ORIGIN}/app?track=core#7`);
   assert.strictEqual(appDayLink(ORIGIN, "furnace", 0), `${ORIGIN}/app?track=furnace#1`);
 });
 
@@ -300,9 +300,9 @@ test("a core day carries its title, week, scripture, practice, declaration, tip 
   assert.strictEqual(d[4], "Today’s practice: Choose one short verse and return to it three times today.");
   assert.strictEqual(d[6], "Declare: Truth will remain after today's noise disappears.");
   assert.ok(d[8].startsWith("Tip: Set aside ten minutes."));
-  assert.strictEqual(d[10], `Open Day 7 in the app: ${ORIGIN}/app#7`);
+  assert.strictEqual(d[10], `Open Day 7 in the app: ${ORIGIN}/app?track=core#7`);
   assert.strictEqual(d[11], `Read it on the web: ${ORIGIN}/day/07-the-word#practice`);
-  assert.strictEqual(day7.URL, `${ORIGIN}/app#7`);
+  assert.strictEqual(day7.URL, `${ORIGIN}/app?track=core#7`);
   assert.strictEqual(day7.alarm.DESCRIPTION, "Time to stand — Day 7: The Word");
 });
 
@@ -446,7 +446,7 @@ test("the evening check-in is its own series on the same days, at its own time",
   assert.strictEqual(first.SUMMARY, "Stand · Day 7 · How did it go?");
   assert.ok(first.DESCRIPTION.startsWith("Day 7 of 30 · The Word\\n\\nThis morning’s practice: Choose one short verse"));
   assert.ok(first.DESCRIPTION.includes("How did it go? Open the day\\, mark it complete\\, and note where your fear is now."));
-  assert.strictEqual(first.URL, `${ORIGIN}/app?checkin=1#7`);
+  assert.strictEqual(first.URL, `${ORIGIN}/app?checkin=1&track=core#7`);
   assert.strictEqual(first.alarm.DESCRIPTION, "How did Day 7 go? — The Word");
 });
 
@@ -537,7 +537,7 @@ test("the private preview entry is exactly what the private file carries", () =>
   const { overrides } = parse(build({ completed: [0, 1, 2, 3, 4, 5], discreet: true }));
   const entry = reminderEntry({ track: tracks.core, trackId: "core", lang: "en", origin: ORIGIN, t: tFor("en"), dayIndex: 6, position: 0, discreet: true });
   assert.strictEqual(entry.summary, "Stand — daily prayer");
-  assert.strictEqual(entry.description, `Open Day 7 in the app: ${ORIGIN}/app#7`);
+  assert.strictEqual(entry.description, `Open Day 7 in the app: ${ORIGIN}/app?track=core#7`);
   assert.strictEqual(overrides[0].SUMMARY, icsText(entry.summary));
   assert.strictEqual(overrides[0].DESCRIPTION, icsText(entry.description));
   assert.strictEqual(overrides[0].alarm.DESCRIPTION, icsText(entry.alarm));

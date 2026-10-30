@@ -118,14 +118,15 @@ const formOf = lang => widgetsIn(fill[lang].html);
     }
   });
 
-  await test("each day's code opens that day in the app, in the workbook's language, with no other parameter", () => {
-    assert.deepStrictEqual(qrTargets("en"), [`${SITE}/app`, ...daysFor("en").map(d => `${SITE}/app#${d.n}`)]);
-    assert.deepStrictEqual(qrTargets("es"), [`${SITE}/app?lang=es`, ...daysFor("es").map(d => `${SITE}/app?lang=es#${d.n}`)]);
-    for (const url of qrTargets("en")) assert.ok(!url.includes("?"), url);
-    for (const url of qrTargets("es")) assert.strictEqual(new URL(url).search, "?lang=es", url);
+  await test("each day's code opens that day of Stand in the app, in the workbook's language, with no other parameter", () => {
+    // Stand names itself (?track=core), so a reader with another journey open still lands on Stand.
+    assert.deepStrictEqual(qrTargets("en"), [`${SITE}/app?track=core`, ...daysFor("en").map(d => `${SITE}/app?track=core#${d.n}`)]);
+    assert.deepStrictEqual(qrTargets("es"), [`${SITE}/app?lang=es&track=core`, ...daysFor("es").map(d => `${SITE}/app?lang=es&track=core#${d.n}`)]);
+    for (const url of qrTargets("en")) assert.strictEqual(new URL(url).search, "?track=core", url);
+    for (const url of qrTargets("es")) assert.strictEqual(new URL(url).search, "?lang=es&track=core", url);
     each(({ html, C }, name, lang, edition) => {
       // In the fillable edition each code is also a link to the same address.
-      const code = url => edition === "fillable" ? `<a href="${url}"><svg data-for="${url}">` : `<svg data-for="${url}">`;
+      const code = url => edition === "fillable" ? `<a href="${esc(url)}"><svg data-for="${url}">` : `<svg data-for="${url}">`;
       for (const d of daysFor(lang)) {
         assert.ok(html.includes(`${esc(C.scan(d.n))}</span><span class="qr">${code(d.url)}`), `${name} Day ${d.n}`);
       }

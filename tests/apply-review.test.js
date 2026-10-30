@@ -12,7 +12,7 @@ const { readDecisions, plan, apply } = require("../scripts/apply-review.js");
 const { collect } = require("../scripts/build-review-workbook.js");
 
 const ROOT = path.join(__dirname, "..");
-const COPY = ["content.js", "content.es.js", "prayers.js", "rosary.js", "logic.js", "scripts/build-review-workbook.js", "scripts/review-workbook.tpl", "scripts/review-suggestions.json"];
+const COPY = ["content.js", "content.es.js", "prayers.js", "rosary.js", "logic.js", "scripts/build-review-workbook.js", "scripts/review-workbook.tpl", "scripts/review-suggestions.json", "drafts/shelter.js"];
 
 let failures = 0;
 function test(name, fn) {
@@ -101,6 +101,20 @@ test("planning writes nothing", () => {
   const before = fs.readFileSync(path.join(dir, "content.es.js"), "utf8");
   plan(dir, { "day.core.01": change("day.core.01", ["Change “Donde estoy confundido, dame claridad.” → “Uno.”"]) });
   assert.strictEqual(fs.readFileSync(path.join(dir, "content.es.js"), "utf8"), before);
+});
+
+test("an approved wording on a draft journey lands in its draft file, not in content.js", () => {
+  const id = [...items.keys()].find(k => items.get(k).section === "draft");
+  if (!id) return; // no draft journey in progress
+  const dir = sandbox();
+  const en = firstSentence(field(id, "Reflection").en);
+  const content = fs.readFileSync(path.join(dir, "content.js"), "utf8");
+  const p = plan(dir, { [id]: change(id, [`Change “${en}” → “Changed.”`]) });
+  assert.strictEqual(p.edits.length, 1, JSON.stringify(p.manual));
+  assert.ok(p.edits[0].file.startsWith("drafts/"), p.edits[0].file);
+  apply(dir, p.edits);
+  assert.ok(fs.readFileSync(path.join(dir, p.edits[0].file), "utf8").includes("Changed."));
+  assert.strictEqual(fs.readFileSync(path.join(dir, "content.js"), "utf8"), content);
 });
 
 test("decisions read from one file (object or array) or a directory of documents", () => {

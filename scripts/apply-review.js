@@ -24,6 +24,12 @@ const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
 
+// Draft journeys (drafts/*.js) are reviewed in English before they go live,
+// so an approved wording change lands in the draft file itself.
+function draftFiles(root) {
+  const dir = path.join(root, "drafts");
+  return fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => f.endsWith(".js")).sort().map(f => "drafts/" + f) : [];
+}
 const FILES = { en: ["content.js", "prayers.js", "rosary.js"], es: ["content.es.js", "prayers.js", "rosary.js"] };
 const CHANGE = /^Change “(.+)” → “(.+)”$/;
 
@@ -47,6 +53,7 @@ function plan(root, decisions) {
   const items = new Map(collect(root).items.map(i => [i.id, i]));
   const src = {};
   const read = f => (src[f] ??= fs.readFileSync(path.join(root, f), "utf8"));
+  const files = { en: [...FILES.en, ...draftFiles(root)], es: FILES.es };
   const out = { counts: { approved: 0, change: 0, stale: 0, pending: 0, unknown: 0 }, edits: [], manual: [], stale: [] };
 
   for (const [id, d] of Object.entries(decisions)) {
@@ -71,7 +78,7 @@ function plan(root, decisions) {
       if (f[lang].split(from).length !== 2) { why("the sentence appears more than once in the field"); continue; }
       const oldLit = JSON.stringify(f[lang]);
       const next = f[lang].replace(from, () => to);
-      const where = FILES[lang].filter(file => read(file).includes(oldLit));
+      const where = files[lang].filter(file => read(file).includes(oldLit));
       const count = where.reduce((n, file) => n + read(file).split(oldLit).length - 1, 0);
       if (count !== 1) { why(count ? `the ${f.label.toLowerCase()} text appears ${count} times in the content (shared with another item)` : "the field's text was not found as written in the content files"); continue; }
       out.edits.push({ id, lang, field: f.label, file: where[0], from, to, oldLit, newLit: JSON.stringify(next) });

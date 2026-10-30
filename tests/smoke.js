@@ -711,6 +711,28 @@ const server = http.createServer((req, res) => {
   check("fear finder closed the library", !(await page.evaluate(() => document.getElementById("libraryDialog").open)));
   await page.click("#libraryButton");
   check("fear finder resets after use", (await page.inputValue("#fearFinder")) === "");
+
+  // finishing Stand offers Shelter under Day 30, and only once Day 30 is done
+  await page.selectOption("#fearFinder", "core");
+  await page.evaluate(() => { location.hash = "30"; });
+  await page.waitForFunction(() => document.getElementById("progressLabel").textContent.startsWith("Day 30 "));
+  const day30Done = (await page.getAttribute("#completeButton", "aria-pressed")) === "true";
+  if (day30Done) await page.click("#completeButton");
+  check("no next journey before Stand's Day 30 is complete", await page.isHidden("#nextJourney"));
+  await page.click("#completeButton");
+  check("completing Stand's Day 30 offers Shelter", await page.isVisible("#nextJourney") && (await page.textContent("#nextJourneyName")) === tracks.shelter.name);
+  await page.click("#nextJourneyButton");
+  check("the offer opens Shelter at its first day", (await page.textContent("#dayTitle")) === tracks.shelter.days[0][0] && (await page.textContent("#progressLabel")) === "Day 1 of 30");
+  check("no next journey offered inside Shelter", await page.isHidden("#nextJourney"));
+  // put Stand's Day 30 back as it was and return to the journey the finder opened
+  await page.click("#libraryButton");
+  await page.selectOption("#fearFinder", "core");
+  await page.evaluate(() => { location.hash = "30"; });
+  await page.waitForFunction(() => document.getElementById("progressLabel").textContent.startsWith("Day 30 "));
+  if (!day30Done) await page.click("#completeButton");
+  await page.click("#libraryButton");
+  await page.selectOption("#fearFinder", "den");
+  await page.click("#libraryButton");
   await page.click("#closeLibrary");
 
   // prayer composer: composes from the corpus, reseeds, and narrates

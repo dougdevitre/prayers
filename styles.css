@@ -377,3 +377,4 @@ h2.section-kicker,.landing-section h2.section-kicker{margin:0;font-family:inheri
    seconds, as the markup is (app.js, boot). */
 .booting main,.booting #sosButton,.day-pending :is(#weekLabel,#dayNumber,#dayTitle,.scripture,#reflection,#prayer,#declaration,#action,.progress-copy,#sosButton){visibility:hidden;animation:shell-fallback 0s 8s forwards}
 @keyframes shell-fallback{to{visibility:visible}}
+.next-journey{margin-top:20px}.next-journey .track-chip{width:100%;margin-top:8px}

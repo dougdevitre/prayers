@@ -36,7 +36,7 @@ const fileOf = (card, format) => path.basename(cardPath(card, format));
 (async () => {
   await test("every day and every prayer in both languages has a card whose slug is a generated page", () => {
     const all = allCards();
-    assert.strictEqual(all.length, 216 + 26 + 10);
+    assert.strictEqual(all.length, 276 + 26 + 10);
     for (const c of all) {
       const rosaryBase = c.lang === "es" ? "es/oraciones/rosario" : "prayers/rosary";
       const page = c.kind === "rosary"

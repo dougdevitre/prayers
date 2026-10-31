@@ -16,6 +16,11 @@ const { verify, checkRemoteOnce, verifyRemote } = require("../scripts/verify-aud
 const { bump: bumpSw } = require("../scripts/bump-sw.js");
 const pruneAudio = require("../scripts/prune-audio.js");
 const { slugify } = require("../logic.js");
+const { execFileSync } = require("child_process");
+const mixer = require("../scripts/audio-mix.js");
+const sfx = require("../scripts/build-sfx.js");
+const master = require("../scripts/build-master.js");
+const { DAY_SECTIONS } = require("../narration.js");
 
 let failures = 0;
 async function test(name, fn) {
@@ -388,6 +393,149 @@ function fakeApi({ failFirst = 0, status = 429 } = {}) {
   await test("the committed manifest verifies against the committed content", () => {
     const r = verify();
     assert.ok(r.ok, r.lines.join("\n"));
+  });
+
+  // ---------- Shelter: a mix laid over a kept voice ----------
+  // A voices file whose shelter mix points at clips in a temp root, so tests
+  // can generate and change them without touching audio-sfx/.
+  const mixedVoices = (root, tweak = {}) => {
+    const v = JSON.parse(JSON.stringify(voices));
+    for (const c of Object.values(v.journeys.shelter.mix.clips)) c.file = c.file.replace("audio-sfx/", "sfx/");
+    Object.assign(v.journeys.shelter.mix, tweak);
+    return v;
+  };
+  // The with-timestamps endpoint: the fixture, and each character 50 ms apart.
+  const timedApi = () => {
+    const calls = [];
+    const fetchImpl = async (url, init) => {
+      calls.push({ url, body: JSON.parse(init.body) });
+      const chars = [...JSON.parse(init.body).text];
+      const alignment = { characters: chars, character_start_times_seconds: chars.map((_, i) => i * 0.05), character_end_times_seconds: chars.map((_, i) => i * 0.05 + 0.04) };
+      return { ok: true, status: 200, json: async () => ({ audio_base64: MP3.toString("base64"), alignment }) };
+    };
+    return { fetchImpl, calls };
+  };
+  const stubMix = calls => ({ outFile, sections, names, alignment, mix }) => {
+    calls.push({ sections, names, cuts: mixer.cutTimes(sections, alignment), mix });
+    fs.mkdirSync(path.dirname(outFile), { recursive: true });
+    fs.writeFileSync(outFile, MP3);
+    return { seconds: 1 };
+  };
+
+  await test("Shelter's days are planned as a kept voice and a mix; every other recording is as before", () => {
+    const plan = lib.planItems({ items, voices, slugify });
+    const shelter = plan.filter(p => p.item.track === "shelter");
+    assert.strictEqual(shelter.length, 60);
+    for (const p of shelter) {
+      assert.ok(p.mix && p.voiceKey.startsWith(`voice/${p.item.lang}/day/shelter/`) && p.voiceHash !== p.hash, p.item.id);
+      assert.strictEqual(p.voiceHash, lib.itemHash(p.item.text, p.settings), `${p.item.id}: the voice's hash is the plain recording's`);
+      assert.deepStrictEqual(p.item.sections.length, DAY_SECTIONS.length);
+      assert.strictEqual(p.item.sections.join("\n\n"), p.item.text);
+    }
+    assert.ok(plan.filter(p => p.item.track !== "shelter").every(p => !p.mix && !p.voiceKey));
+  });
+
+  await test("a change to the mix moves the recording's hash, never the voice's", () => {
+    const root = tmp();
+    const a = lib.planItems({ items: items.filter(i => i.id === "en/day/shelter/0"), voices: mixedVoices(root), slugify, root })[0];
+    const b = lib.planItems({ items: items.filter(i => i.id === "en/day/shelter/0"), voices: mixedVoices(root, { introSeconds: 3 }), slugify, root })[0];
+    assert.strictEqual(a.voiceHash, b.voiceHash);
+    assert.notStrictEqual(a.hash, b.hash);
+    fs.mkdirSync(path.join(root, "sfx")); fs.writeFileSync(path.join(root, "sfx/shelter-bed.mp3"), MP3);
+    const c = lib.planItems({ items: items.filter(i => i.id === "en/day/shelter/0"), voices: mixedVoices(root), slugify, root })[0];
+    assert.notStrictEqual(a.hash, c.hash, "generating a clip moves it too");
+  });
+
+  await test("the section boundaries come from the voice's own timing, between sections", () => {
+    const sections = ["Day one.", "Scripture.", "Amen."];
+    const text = sections.join("\n\n");
+    const chars = [...text];
+    const al = { characters: chars, character_start_times_seconds: chars.map((_, i) => i), character_end_times_seconds: chars.map((_, i) => i + 0.5) };
+    // "Day one." ends at index 7 (ends 7.5), "Scripture." starts at 10: midway, 8.75; it ends at 19 (19.5), "Amen." starts at 22: 20.75.
+    assert.deepStrictEqual(mixer.cutTimes(sections, al), [8.75, 20.75]);
+    assert.strictEqual(mixer.cutTimes(sections, { ...al, characters: chars.slice(1) }), null, "timing for other text is not trusted");
+  });
+
+  await test("a Shelter day renders its voice once with its timing, then a mix change re-mixes with no request at all", async () => {
+    const root = tmp(), out = tmp(), file = path.join(tmp(), "manifest.js");
+    const manifest = freshManifest();
+    manifest.base = "https://audio.example";
+    const only = ["en/day/shelter/0"];
+    const api = timedApi(), mixes = [];
+    const first = await build.run({ ...build.parseArgs([]), only, out }, { items, voices: mixedVoices(root), slugify, manifest, manifestFile: file, fetchImpl: api.fetchImpl, apiKey: "k", log: quiet, root, mixDay: stubMix(mixes) });
+    assert.deepStrictEqual(first.rendered, only);
+    assert.strictEqual(api.calls.length, 1);
+    assert.ok(api.calls[0].url.includes("/with-timestamps?"), api.calls[0].url);
+    const entry = manifest.items["en/day/shelter/0"];
+    assert.ok(entry.voice && fs.existsSync(path.join(out, entry.voice.key)) && fs.existsSync(path.join(out, entry.voice.key.replace(/\.mp3$/, ".json"))));
+    assert.ok(fs.existsSync(path.join(out, entry.key)));
+    assert.deepStrictEqual(mixes[0].names, DAY_SECTIONS);
+    assert.strictEqual(mixes[0].cuts.length, DAY_SECTIONS.length - 1, "a cut between every two sections");
+    // Retune the mix: the plan says nothing is sent, and nothing is.
+    const retuned = mixedVoices(root, { introSeconds: 4 });
+    const dry = await build.run({ ...build.parseArgs([]), only, out, dryRun: true }, { items, voices: retuned, slugify, manifest, manifestFile: file, log: quiet, root });
+    assert.strictEqual(dry.chars, 0);
+    const again = await build.run({ ...build.parseArgs([]), only, out }, { items, voices: retuned, slugify, manifest, manifestFile: file, fetchImpl: api.fetchImpl, apiKey: undefined, log: quiet, root, mixDay: stubMix(mixes) });
+    assert.deepStrictEqual(again.rendered, only);
+    assert.strictEqual(api.calls.length, 1, "no second request to ElevenLabs");
+    assert.strictEqual(manifest.items["en/day/shelter/0"].voice.key, entry.voice.key);
+    assert.notStrictEqual(manifest.items["en/day/shelter/0"].key, entry.key);
+    // On a fresh machine the kept voice comes from the host, still with no request to ElevenLabs.
+    const fresh = tmp(), fetched = [];
+    const host = async url => { fetched.push(url); const f = path.join(out, url.replace("https://audio.example/", "")); return { ok: true, status: 200, arrayBuffer: async () => fs.readFileSync(f) }; };
+    await build.run({ ...build.parseArgs([]), only, out: fresh, force: false }, { items, voices: mixedVoices(root, { introSeconds: 5 }), slugify, manifest, manifestFile: file, fetchImpl: host, apiKey: undefined, log: quiet, root, mixDay: stubMix(mixes) });
+    assert.deepStrictEqual(fetched.map(u => u.split("/").pop().replace(/\.[0-9a-f]{8}/, "")), ["01-shelter.mp3", "01-shelter.json"]);
+    assert.strictEqual(lib.manifestReport(manifest, lib.planItems({ items, voices: mixedVoices(root, { introSeconds: 5 }), slugify, root }).filter(p => only.includes(p.item.id))).problems.length, 0);
+  });
+
+  await test("prune-audio keeps a mixed day's voice and timing, and the whole-journey files", () => {
+    const dir = tmp(), m = path.join(tmp(), "m.js");
+    const keys = ["en/day/shelter/01-a.11111111.mp3", "voice/en/day/shelter/01-a.22222222.mp3", "voice/en/day/shelter/01-a.22222222.json", "en/master/shelter.33333333.mp3", "voice/en/day/shelter/01-a.44444444.json"];
+    for (const k of keys) { fs.mkdirSync(path.dirname(path.join(dir, k)), { recursive: true }); fs.writeFileSync(path.join(dir, k), "x"); }
+    lib.writeManifest({ base: "", items: { "en/day/shelter/0": { key: keys[0], hash: "a".repeat(64), voice: { key: keys[1], hash: "b".repeat(64) } } }, masters: { "en/shelter": { key: keys[3], hash: "c".repeat(64) } } }, m);
+    assert.deepStrictEqual(pruneAudio.plan({ dir, keep: [m] }).remove, [keys[4]]);
+  });
+
+  await test("build-sfx generates only the clips that are missing, and prices them first", async () => {
+    const root = tmp(), v = mixedVoices(root), calls = [];
+    const fetchImpl = async (url, init) => { calls.push(JSON.parse(init.body)); return { ok: true, arrayBuffer: async () => MP3.buffer.slice(MP3.byteOffset, MP3.byteOffset + MP3.byteLength) }; };
+    const dry = await sfx.run({ dryRun: true }, { voices: v, root, log: quiet });
+    assert.strictEqual(dry.work.length, 3);
+    fs.mkdirSync(path.join(root, "sfx")); fs.writeFileSync(path.join(root, "sfx/shelter-bed.mp3"), MP3);
+    const r = await sfx.run({}, { voices: v, root, apiKey: "k", fetchImpl, log: quiet });
+    assert.deepStrictEqual(r.generated.sort(), ["sfx/shelter-close.mp3", "sfx/shelter-open.mp3"]);
+    assert.ok(calls.every(c => c.text && c.duration_seconds > 0 && c.duration_seconds <= 30));
+  });
+
+  // ffmpeg itself (installed in CI): the real mix and the whole-journey file, on generated tones.
+  await test("the mix lays the voice out with its pauses and clips, and the whole journey joins the days with chapters", async () => {
+    const root = tmp(), out = tmp();
+    const tone = (file, seconds, f = 440) => { fs.mkdirSync(path.dirname(file), { recursive: true }); execFileSync("ffmpeg", ["-y", "-v", "error", "-f", "lavfi", "-i", `sine=f=${f}:d=${seconds}`, "-c:a", "libmp3lame", "-b:a", "128k", file]); };
+    const v = mixedVoices(root);
+    for (const c of Object.values(v.journeys.shelter.mix.clips)) tone(path.join(root, c.file), c.name === "bed" ? 6 : 2, 660);
+    const sections = ["Day one.", "Scripture.", "Amen."];
+    const chars = [...sections.join("\n\n")];
+    const alignment = { characters: chars, character_start_times_seconds: chars.map((_, i) => i * 0.1), character_end_times_seconds: chars.map((_, i) => i * 0.1 + 0.08) };
+    tone(path.join(out, "voice.mp3"), 3);
+    const mix = { ...v.journeys.shelter.mix, pauses: { title: 1, scripture: 2 } };
+    const r = mixer.mixDay({ voiceFile: path.join(out, "voice.mp3"), alignment, sections, names: ["title", "scripture", "blessing"], mix, outFile: path.join(out, "day.mp3"), root });
+    assert.strictEqual(r.cuts, 2);
+    // intro + voice + both pauses + outro
+    const want = mix.introSeconds + mixer.duration(path.join(out, "voice.mp3")) + 3 + mix.outroSeconds;
+    assert.ok(Math.abs(mixer.duration(path.join(out, "day.mp3")) - want) < 0.6, `${mixer.duration(path.join(out, "day.mp3"))} vs ${want}`);
+    // Three days of one journey, current in a manifest, joined with a chapter each.
+    const days = items.filter(i => i.track === "shelter" && i.lang === "en").slice(0, 3);
+    const plan = lib.planItems({ items: days, voices: v, slugify, root });
+    const manifest = freshManifest(), file = path.join(tmp(), "m.js");
+    for (const p of plan) { fs.mkdirSync(path.dirname(path.join(out, p.key)), { recursive: true }); fs.copyFileSync(path.join(out, "day.mp3"), path.join(out, p.key)); manifest.items[p.item.id] = { key: p.key, hash: p.hash, bytes: 1, seconds: 1 }; }
+    const res = await master.run({ out }, { voices: v, items: days, manifest, manifestFile: file, slugify, log: quiet, root });
+    assert.deepStrictEqual(res.built, ["en/shelter"]);
+    const m = manifest.masters["en/shelter"];
+    assert.ok(/^en\/master\/shelter\.[0-9a-f]{8}\.mp3$/.test(m.key) && m.days === 3);
+    const chapters = JSON.parse(execFileSync("ffprobe", ["-v", "error", "-show_chapters", "-of", "json", path.join(out, m.key)], { encoding: "utf8" })).chapters;
+    assert.deepStrictEqual(chapters.map(c => c.tags.title), days.map((d, i) => `Day ${i + 1} · ${d.title}`));
+    const again = await master.run({ out }, { voices: v, items: days, manifest, manifestFile: file, slugify, log: quiet, root });
+    assert.deepStrictEqual(again.built, [], "rebuilt only when a day changes");
   });
 
   if (failures) { console.log(`\n${failures} failing`); process.exit(1); }

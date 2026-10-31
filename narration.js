@@ -125,9 +125,20 @@ function withAmen(text, f) {
   return `${spokenText(text).replace(/\.$/, "")}... ${f.amen}`;
 }
 
+/** What each of a day's narration sections is, in order (daySections). A
+ * recording with a mix (audio-voices.json journeys) pauses after the ones it
+ * names, cut at the section boundaries the voice's own timing gives. */
+const DAY_SECTIONS = ["title", "scripture", "breathe", "reflection", "prayer", "declaration", "practice", "blessing"];
+
 /** The narration for one day: [title, ref, verse, reflection, prayer,
  * declaration, practice] at a zero-based index, in the language. */
 function dayScript(dayData, index, lang = "en") {
+  return daySections(dayData, index, lang).join("\n\n");
+}
+
+/** dayScript's sections, one per DAY_SECTIONS name; joined by a blank line
+ * they are the script. */
+function daySections(dayData, index, lang = "en") {
   const f = NARRATION_FRAMES[lang] || NARRATION_FRAMES.en;
   const [title, ref, verse, reflection, prayer, declaration, practice] = dayData;
   return [
@@ -139,7 +150,7 @@ function dayScript(dayData, index, lang = "en") {
     `${f.declaration}\n\n${closed(declaration)}`,
     `${f.practice}\n\n${closed(practice)}`,
     `${f.blessing}\n\n${f.blessingText}`
-  ].join("\n\n");
+  ];
 }
 
 /** The narration for one SOS set: { ref, verse, prayer, declaration }. */
@@ -209,7 +220,8 @@ function narrationItems(deps) {
     const tracks = byLang[lang] || {};
     for (const [trackId, track] of Object.entries(tracks)) {
       track.days.forEach((d, i) => {
-        items.push({ id: dayItemId(lang, trackId, i), lang, kind: "day", track: trackId, index: i, title: d[0], text: dayScript(d, i, lang) });
+        const sections = daySections(d, i, lang);
+        items.push({ id: dayItemId(lang, trackId, i), lang, kind: "day", track: trackId, index: i, title: d[0], text: sections.join("\n\n"), sections });
       });
     }
   }
@@ -241,5 +253,5 @@ function narrationItems(deps) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { NARRATION_FRAMES, numberWords, parseRef, spokenRef, spokenText, dayScript, sosScript, prayerScript, mysteryScript, fatimaScript, dayItemId, sosItemId, prayerItemId, rosaryItemId, narrationItems };
+  module.exports = { NARRATION_FRAMES, DAY_SECTIONS, numberWords, parseRef, spokenRef, spokenText, dayScript, daySections, sosScript, prayerScript, mysteryScript, fatimaScript, dayItemId, sosItemId, prayerItemId, rosaryItemId, narrationItems };
 }

@@ -158,6 +158,32 @@ if (typeof module !== "undefined" && module.exports) module.exports = { audioMan
  * longer in the content), missing (in the content, not yet rendered), plus
  * anything malformed.
  */
+/**
+ * Credits left on the ElevenLabs account, from /v1/user/subscription, or null
+ * when the key may not read it (a key scoped to text to speech only): then
+ * the caller goes ahead and ElevenLabs refuses what it cannot cover.
+ */
+async function creditsLeft({ apiKey, fetchImpl = fetch, api = "https://api.elevenlabs.io/v1/user/subscription" }) {
+  try {
+    const res = await fetchImpl(api, { headers: { "xi-api-key": apiKey, Accept: "application/json" } });
+    if (!res.ok) return null;
+    const s = await res.json();
+    if (!Number.isFinite(s.character_limit) || !Number.isFinite(s.character_count)) return null;
+    return { left: s.character_limit - s.character_count, limit: s.character_limit, resets: s.next_character_count_reset_unix ? new Date(s.next_character_count_reset_unix * 1000).toISOString().slice(0, 10) : null };
+  } catch {
+    return null;
+  }
+}
+
+/** Throws before any spend when the account cannot cover `need` credits. */
+async function requireCredits(need, { apiKey, fetchImpl, log = console.log, what = "this run" }) {
+  const c = await creditsLeft({ apiKey, fetchImpl });
+  if (!c) { log("  (could not read the account's remaining credits; going ahead)"); return null; }
+  log(`  ElevenLabs credits left: ${c.left.toLocaleString()} of ${c.limit.toLocaleString()}${c.resets ? `, resets ${c.resets}` : ""}`);
+  if (c.left < need) throw new Error(`${what} needs about ${need.toLocaleString()} credits and the ElevenLabs account has ${c.left.toLocaleString()} left${c.resets ? ` (it resets ${c.resets})` : ""}; nothing was sent`);
+  return c;
+}
+
 function manifestReport(manifest, plan) {
   const report = { fresh: [], stale: [], orphan: [], missing: [], problems: [] };
   if (!manifest || typeof manifest !== "object") { report.problems.push("manifest is not an object"); return report; }
@@ -187,4 +213,4 @@ function manifestReport(manifest, plan) {
   return report;
 }
 
-module.exports = { ROOT, MANIFEST_FILE, VOICES_FILE, loadItems, loadVoices, settingsFor, itemHash, keyFor, mixFor, mixHash, planItems, voiceKept, readManifest, writeManifest, manifestReport };
+module.exports = { ROOT, MANIFEST_FILE, VOICES_FILE, loadItems, loadVoices, settingsFor, itemHash, keyFor, mixFor, mixHash, planItems, voiceKept, readManifest, writeManifest, manifestReport, creditsLeft, requireCredits };

@@ -53,6 +53,8 @@ async function run({ dryRun = false, force = false } = {}, deps = {}) {
   if (dryRun || !work.length) return { generated: [], work };
   const apiKey = deps.apiKey !== undefined ? deps.apiKey : process.env.ELEVENLABS_API_KEY;
   if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not set");
+  const checkCredits = deps.requireCredits || (!deps.fetchImpl && lib.requireCredits);
+  if (checkCredits) await checkCredits(seconds * CREDITS_PER_SECOND, { apiKey, fetchImpl: deps.fetchImpl, log, what: "generating the sound clips" });
   const generated = [];
   for (const c of work) {
     const bytes = await generate(c, { apiKey, fetchImpl: deps.fetchImpl });

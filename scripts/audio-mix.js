@@ -12,7 +12,7 @@
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { execFileSync } = require("child_process");
+const { execFileSync, spawnSync } = require("child_process");
 
 const ROOT = path.join(__dirname, "..");
 
@@ -46,6 +46,14 @@ function duration(file, ffprobe = "ffprobe") {
   return Number(out.trim());
 }
 
+/** The loudest sample in a file, in dBFS, by ffmpeg's volumedetect. */
+function peakDb(file, ffmpeg = "ffmpeg") {
+  const r = spawnSync(ffmpeg, ["-hide_banner", "-nostats", "-i", file, "-af", "volumedetect", "-f", "null", "-"], { encoding: "utf8" });
+  const m = /max_volume:\s*(-?[\d.]+|-inf) dB/.exec(r.stderr || "");
+  if (!m) throw new Error(`could not measure the level of ${file}`);
+  return m[1] === "-inf" ? 0 : Number(m[1]);
+}
+
 /**
  * Mixes one day. { voiceFile, alignment, sections, names (DAY_SECTIONS), mix,
  * outFile, root, ffmpeg, ffprobe }. Returns { seconds }.
@@ -56,7 +64,10 @@ function mixDay({ voiceFile, alignment, sections, names, mix, outFile, root = RO
     if (!c) return null;
     const file = path.join(root, c.file);
     if (!fs.existsSync(file)) throw new Error(`${c.file} has not been generated yet: run node scripts/build-sfx.js`);
-    return { file, gainDb: c.gainDb || 0 };
+    // gainDb is where the clip's peak lands (dBFS), whatever level the
+    // generator returned it at: a tone that came back at -44 dB still opens
+    // the day at the level the mix names.
+    return { file, gainDb: Math.round(((c.gainDb || 0) - peakDb(file, ffmpeg)) * 10) / 10 };
   };
   const open = clip("open"), close = clip("close"), bed = clip("bed");
   const voiceSeconds = duration(voiceFile, ffprobe);
@@ -100,13 +111,28 @@ function mixDay({ voiceFile, alignment, sections, names, mix, outFile, root = RO
     filters.push(`[${n++}:a]${fmt},atrim=duration=${total},volume=${bed.gainDb}dB,afade=t=in:d=3,afade=t=out:st=${Math.max(0, total - 4)}:d=4[bed]`);
     layers.push("[bed]");
   }
-  filters.push(`${layers.join("")}amix=inputs=${layers.length}:normalize=0:duration=longest,atrim=duration=${total},loudnorm=I=${mix.loudnessLufs || -16}:TP=-1.5:LRA=11,aresample=44100[out]`);
+  const mixed = `${layers.join("")}amix=inputs=${layers.length}:normalize=0:duration=longest,atrim=duration=${total}`;
+  // Two-pass loudness normalization: measure the whole day, then apply one
+  // fixed gain (linear), so the bed and tones keep their level under the
+  // voice instead of swelling in the pauses as a single pass would.
+  const target = `I=${mix.loudnessLufs || -16}:TP=-1.5:LRA=11`;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "stand-mix-"));
+  const measureScript = path.join(dir, "measure.txt");
+  fs.writeFileSync(measureScript, [...filters, `${mixed},loudnorm=${target}:print_format=json[out]`].join(";\n"));
+  const measured = spawnSync(ffmpeg, ["-hide_banner", "-nostats", ...inputs, "-filter_complex_script", measureScript, "-map", "[out]", "-f", "null", "-"], { encoding: "utf8" });
+  const json = /\{[^{}]*"input_i"[^{}]*\}/.exec(measured.stderr || "");
+  if (measured.status !== 0 || !json) throw new Error(`could not measure the mix's loudness: ${(measured.stderr || "").slice(-300)}`);
+  const m = JSON.parse(json[0]);
+  const linear = ["input_i", "input_tp", "input_lra", "input_thresh", "target_offset"].every(k => Number.isFinite(Number(m[k])))
+    ? `:measured_I=${m.input_i}:measured_TP=${m.input_tp}:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset}:linear=true`
+    : ""; // silence measures -inf: fall back to the single pass
+  filters.push(`${mixed},loudnorm=${target}${linear},aresample=44100[out]`);
 
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
-  const script = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "stand-mix-")), "filter.txt");
+  const script = path.join(dir, "filter.txt");
   fs.writeFileSync(script, filters.join(";\n"));
   execFileSync(ffmpeg, ["-y", "-v", "error", ...inputs, "-filter_complex_script", script, "-map", "[out]", "-c:a", "libmp3lame", "-b:a", "128k", "-ar", "44100", outFile]);
   return { seconds: Math.round(duration(outFile, ffprobe)), cuts: cuts.length };
 }
 
-module.exports = { cutTimes, duration, mixDay };
+module.exports = { cutTimes, duration, peakDb, mixDay };

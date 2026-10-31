@@ -22,7 +22,11 @@
  *                             leaves the current value when neither is set
  *
  * Idempotent: an item whose hash already matches the manifest is skipped, so a
- * re-run after a content edit renders only the days that changed. The manifest
+ * re-run after a content edit renders only the days that changed. A day whose
+ * journey has a mix (audio-voices.json journeys) keeps its voice under voice/
+ * with its character timing, and is mixed from it by scripts/audio-mix.js
+ * (ffmpeg): when only the mix changed, the kept voice is fetched from the host
+ * and nothing is sent to ElevenLabs. The manifest
  * is rewritten after every item, so an interrupted run resumes where it stopped.
  * Objects are keyed by hash and never overwritten. The API key is only ever
  * read from the environment.
@@ -78,11 +82,36 @@ async function render(text, settings, { apiKey, fetchImpl = fetch, sleep = ms =>
   throw new Error(`ElevenLabs request failed: ${last}`);
 }
 
+/** The same request to the with-timestamps endpoint: the recording and the
+ * time each character is spoken (the same credits as a plain render). */
+async function renderTimed(text, settings, { apiKey, fetchImpl = fetch, sleep, api = API, attempts = 5 } = {}) {
+  const url = `${api}/${encodeURIComponent(settings.voiceId)}/with-timestamps?output_format=${encodeURIComponent(settings.outputFormat)}`;
+  const body = JSON.stringify({
+    text, model_id: settings.model,
+    voice_settings: { stability: settings.stability, similarity_boost: settings.similarity, style: settings.style, use_speaker_boost: settings.boost, speed: settings.speed }
+  });
+  sleep = sleep || (ms => new Promise(r => setTimeout(r, ms)));
+  let last;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    const res = await fetchImpl(url, { method: "POST", headers: { "xi-api-key": apiKey, "Content-Type": "application/json", Accept: "application/json" }, body });
+    if (res.ok) {
+      const json = await res.json();
+      const bytes = Buffer.from(json.audio_base64 || "", "base64");
+      if (!bytes.length) throw new Error("ElevenLabs returned no audio");
+      return { bytes, alignment: json.alignment || null };
+    }
+    last = `${res.status} ${(await res.text()).slice(0, 200)}`;
+    if (res.status !== 429 && res.status < 500) break;
+    if (attempt < attempts) await sleep(Math.min(30000, 1000 * 2 ** (attempt - 1)));
+  }
+  throw new Error(`ElevenLabs request failed: ${last}`);
+}
+
 async function uploadObject(bucket, key, bytes) {
   const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
   const client = uploadObject.client || (uploadObject.client = new S3Client({}));
   await client.send(new PutObjectCommand({
-    Bucket: bucket, Key: key, Body: bytes, ContentType: "audio/mpeg",
+    Bucket: bucket, Key: key, Body: bytes, ContentType: key.endsWith(".json") ? "application/json" : "audio/mpeg",
     CacheControl: "public, max-age=31536000, immutable"
   }));
 }
@@ -120,23 +149,73 @@ async function run(options, deps = {}) {
   const report = lib.manifestReport(manifest, plan);
   const fresh = new Set(report.fresh);
   const work = plan.filter(p => options.force || !fresh.has(p.item.id)).slice(0, options.limit);
-  const chars = work.reduce((n, p) => n + p.item.text.length, 0);
+  // A mixed day whose voice is already kept (and not forced) is only re-mixed.
+  const remixOnly = p => !options.force && lib.voiceKept(manifest, p);
+  const chars = work.reduce((n, p) => n + (remixOnly(p) ? 0 : p.item.text.length), 0);
+  const remixes = work.filter(remixOnly).length;
 
-  log(`${plan.length} items in scope, ${fresh.size} already fresh, ${work.length} to render (${chars.toLocaleString()} characters)`);
+  log(`${plan.length} items in scope, ${fresh.size} already fresh, ${work.length} to render (${chars.toLocaleString()} characters${remixes ? `; ${remixes} re-mixed from kept voices, 0 characters` : ""})`);
   if (options.dryRun) {
-    for (const p of work) log(`  ${p.item.id}  ${p.item.text.length} chars  -> ${p.key}`);
-    return { rendered: [], failed: [], skipped: plan.length - work.length, work };
+    for (const p of work) log(`  ${p.item.id}  ${remixOnly(p) ? "re-mix only, 0" : p.item.text.length} chars  -> ${p.key}`);
+    return { rendered: [], failed: [], skipped: plan.length - work.length, work, chars };
   }
   if (!work.length) return { rendered: [], failed: [], skipped: plan.length, work };
   if (options.maxChars && chars > options.maxChars) {
     throw new Error(`this run would send ${chars.toLocaleString()} characters to ElevenLabs, over the --max-chars limit of ${options.maxChars.toLocaleString()}; narrow it with --only or --limit, or raise the limit if the spend is intended`);
   }
-  if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not set");
+  if (!apiKey && chars) throw new Error("ELEVENLABS_API_KEY is not set");
   if (options.upload && !options.bucket) throw new Error("--upload needs --bucket or AUDIO_BUCKET");
 
   const upload = deps.upload || uploadObject;
+  const fetchImpl = deps.fetchImpl || fetch;
+  const mixDay = deps.mixDay || require("./audio-mix.js").mixDay;
+  const { DAY_SECTIONS } = require(path.join(lib.ROOT, "narration.js"));
+  const write = (key, bytes) => {
+    const file = path.join(options.out, key);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, bytes);
+    return file;
+  };
+  // A mixed day: its voice (kept on disk, else on the host, else rendered with
+  // its timing), then the mix. Only the last spends credits.
+  async function mixed(p) {
+    const voiceFile = path.join(options.out, p.voiceKey);
+    const timingFile = voiceFile.replace(/\.mp3$/, ".json");
+    if (!fs.existsSync(voiceFile) || !fs.existsSync(timingFile)) {
+      if (remixOnly(p) && manifest.base) {
+        const get = async key => {
+          const res = await fetchImpl(`${manifest.base}/${key}`);
+          if (!res.ok) throw new Error(`the kept voice ${key} is not on the host (${res.status})`);
+          return Buffer.from(await res.arrayBuffer());
+        };
+        write(p.voiceKey, await get(p.voiceKey));
+        write(p.voiceKey.replace(/\.mp3$/, ".json"), await get(p.voiceKey.replace(/\.mp3$/, ".json")));
+      } else {
+        const { bytes, alignment } = await renderTimed(p.item.text, p.settings, { apiKey, fetchImpl, sleep: deps.sleep });
+        write(p.voiceKey, bytes);
+        write(p.voiceKey.replace(/\.mp3$/, ".json"), Buffer.from(JSON.stringify({ alignment })));
+        if (options.upload) {
+          await upload(options.bucket, p.voiceKey, bytes);
+          await upload(options.bucket, p.voiceKey.replace(/\.mp3$/, ".json"), fs.readFileSync(timingFile));
+        }
+      }
+    }
+    const { alignment } = JSON.parse(fs.readFileSync(timingFile, "utf8"));
+    const outFile = path.join(options.out, p.key);
+    const { seconds } = mixDay({ voiceFile, alignment, sections: p.item.sections, names: DAY_SECTIONS, mix: p.mix, outFile, root: deps.root || lib.ROOT });
+    return { bytes: fs.readFileSync(outFile), seconds };
+  }
   let done = 0;
   const results = await pool(work, options.concurrency, async p => {
+    if (p.mix) {
+      const reused = remixOnly(p);
+      const { bytes, seconds } = await mixed(p);
+      if (options.upload) await upload(options.bucket, p.key, bytes);
+      manifest.items[p.item.id] = { key: p.key, hash: p.hash, bytes: bytes.length, seconds, voice: { key: p.voiceKey, hash: p.voiceHash } };
+      lib.writeManifest(manifest, manifestFile);
+      log(`  ${++done}/${work.length}  ${p.item.id}  ${seconds}s  ${p.key}${reused ? "  (re-mixed from the kept voice)" : ""}`);
+      return p.item.id;
+    }
     const bytes = await render(p.item.text, p.settings, { apiKey, fetchImpl: deps.fetchImpl, sleep: deps.sleep });
     const file = path.join(options.out, p.key);
     fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -163,4 +242,4 @@ if (require.main === module) {
     .catch(e => { console.error(e.message); process.exit(2); });
 }
 
-module.exports = { parseArgs, render, pool, run };
+module.exports = { parseArgs, render, renderTimed, pool, run };

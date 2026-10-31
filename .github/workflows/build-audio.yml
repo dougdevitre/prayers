@@ -65,6 +65,9 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npm install --no-save @aws-sdk/client-s3
+      # A journey with a mix (Shelter) is laid out with ffmpeg: its pauses,
+      # its clips and the whole-journey file. None of that spends credits.
+      - run: command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
       # Stale items are what this run is for; anything else wrong with the
       # manifest (a malformed entry, an orphan) stops it before any spend.
       - run: npm run verify:audio -- --allow-stale
@@ -99,6 +102,13 @@ jobs:
           role-to-assume: ${{ vars.AWS_PUBLISHER_ROLE_ARN || secrets.AWS_PUBLISHER_ROLE_ARN }}
           aws-region: us-east-1
 
+      # A clip a mix names (audio-sfx/) is generated once, when it is missing:
+      # a few seconds of ElevenLabs Sound Effects each. A dry run prices them.
+      - name: Generate missing sound clips
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API || secrets.ELEVENLABS_API_KEY }}
+        run: node scripts/build-sfx.js ${{ inputs.dry_run && '--dry-run' || '' }}
+
       - name: Render
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API || secrets.ELEVENLABS_API_KEY }}
@@ -118,6 +128,15 @@ jobs:
             node scripts/build-audio.js --out .audio-out "${args[@]}"
           fi
 
+      # Once every day of a mixed journey is current in a language, join them
+      # into one file with a chapter per day (no credits; rebuilt only when a
+      # day changed). Days already on the host are fetched from it.
+      - name: Join whole journeys
+        if: ${{ !cancelled() }}
+        env:
+          AUDIO_BASE_URL: ${{ vars.AUDIO_BASE_URL || (inputs.publish == 'branch' && 'https://stand-audio.vercel.app') || '' }}
+        run: node scripts/build-master.js --out .audio-out ${{ inputs.dry_run && '--dry-run' || '' }}
+
       # The render exits non-zero when any item fails, but every item that did
       # render is already on disk and in the manifest, so the steps below run
       # anyway: nothing paid for is thrown away, and the job still ends red.
@@ -131,7 +150,7 @@ jobs:
         if: ${{ !cancelled() && !inputs.dry_run && inputs.publish == 'branch' }}
         run: |
           set -euo pipefail
-          count=$(find .audio-out -name '*.mp3' | wc -l)
+          count=$(find .audio-out \( -name '*.mp3' -o -name '*.json' \) | wc -l)
           if [ "$count" = "0" ]; then echo "Nothing new was rendered."; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -168,7 +187,7 @@ jobs:
         if: ${{ !cancelled() && !inputs.dry_run }}
         run: |
           set -euo pipefail
-          if git diff --quiet -- audio-manifest.js; then
+          if git diff --quiet -- audio-manifest.js && [ -z "$(git status --porcelain -- audio-sfx)" ]; then
             echo "Nothing new was rendered; the manifest is unchanged."
             exit 0
           fi
@@ -179,7 +198,7 @@ jobs:
           # Installed apps precache the manifest; a new cache name makes them
           # refetch it on their next visit instead of one visit later.
           node scripts/bump-sw.js
-          git add audio-manifest.js sw.js
+          git add audio-manifest.js sw.js $([ -d audio-sfx ] && echo audio-sfx)
           git commit -m "Render narration (build-audio run ${{ github.run_number }})"
           git push -u origin "$branch"
           # Open the PR here. The token's PR starts no workflows by itself, so

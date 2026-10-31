@@ -40,7 +40,8 @@ function verify({ manifest = lib.readManifest(), items = lib.loadItems(), voices
   const ok = !lines.length && (allowStale || !report.stale.length);
   const mark = allowStale ? "•" : "✗";
   for (const s of report.stale) lines.push(`${mark} ${s.id} is stale: rendered as ${s.key}, the current script and settings give ${s.expected}`);
-  const length = new Map(plan.map(p => [p.item.id, p.item.text.length]));
+  // A mixed day whose voice is still current is only re-mixed: 0 characters.
+  const length = new Map(plan.map(p => [p.item.id, lib.voiceKept(manifest, p) ? 0 : p.item.text.length]));
   const staleChars = report.stale.reduce((n, s) => n + length.get(s.id), 0);
   if (report.stale.length) {
     lines.push(`  re-render with: node scripts/build-audio.js --only ${report.stale.map(s => s.id).join(",")}`);

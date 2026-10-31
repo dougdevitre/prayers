@@ -18,6 +18,8 @@ jobs:
         with:
           node-version: 22
       - run: npm install
+      # The audio tests mix and join real files (scripts/audio-mix.js).
+      - run: command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
       - run: npm run check
       - run: npm run validate
       # The traditional prayers must match REMAM's at the locked commit, apart

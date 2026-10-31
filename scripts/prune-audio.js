@@ -20,19 +20,25 @@ function keysOf(manifestFiles) {
   const keys = new Set();
   for (const file of manifestFiles) {
     const { audioManifest } = require(path.resolve(file));
-    for (const item of Object.values(audioManifest.items || {})) if (item && item.key) keys.add(item.key);
+    for (const item of Object.values(audioManifest.items || {})) {
+      if (item && item.key) keys.add(item.key);
+      // A mixed day's kept voice and its timing, which a re-mix needs.
+      if (item && item.voice && item.voice.key) keys.add(item.voice.key).add(item.voice.key.replace(/\.mp3$/, ".json"));
+    }
+    for (const m of Object.values(audioManifest.masters || {})) if (m && m.key) keys.add(m.key);
   }
   return keys;
 }
 
-/** The .mp3 files under dir, as keys relative to it with forward slashes. */
+/** The .mp3 files under dir (and the kept voices' .json timing), as keys
+ * relative to it with forward slashes. */
 function listRecordings(dir) {
   const out = [];
   const walk = (d) => {
     for (const entry of fs.readdirSync(d, { withFileTypes: true })) {
       const full = path.join(d, entry.name);
       if (entry.isDirectory()) walk(full);
-      else if (entry.isFile() && entry.name.endsWith(".mp3")) out.push(path.relative(dir, full).split(path.sep).join("/"));
+      else if (entry.isFile() && (entry.name.endsWith(".mp3") || (entry.name.endsWith(".json") && path.relative(dir, full).startsWith("voice")))) out.push(path.relative(dir, full).split(path.sep).join("/"));
     }
   };
   walk(dir);

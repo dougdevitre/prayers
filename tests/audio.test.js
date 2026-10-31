@@ -538,6 +538,29 @@ function fakeApi({ failFirst = 0, status = 429 } = {}) {
     assert.deepStrictEqual(again.built, [], "rebuilt only when a day changes");
   });
 
+  await test("a clip lands at its gainDb peak whatever level it was generated at", async () => {
+    const dir = tmp(), at = db => { const f = path.join(dir, `${db}.mp3`); execFileSync("ffmpeg", ["-y", "-v", "error", "-f", "lavfi", "-i", "sine=f=440:d=1", "-af", `volume=${db}dB`, "-c:a", "libmp3lame", f]); return mixer.peakDb(f); };
+    const loud = at(0), soft = at(-40);
+    assert.ok(Math.abs(loud - soft - 40) < 1.5, `${loud} vs ${soft}`);
+  });
+
+  await test("a run that the account cannot cover stops before anything is sent", async () => {
+    const sub = left => async () => ({ ok: true, json: async () => ({ character_limit: 1000, character_count: 1000 - left, next_character_count_reset_unix: 1893456000 }) });
+    const logs = [];
+    assert.ok(await lib.requireCredits(500, { apiKey: "k", fetchImpl: sub(600), log: l => logs.push(l) }));
+    assert.ok(/600 of 1,000/.test(logs[0]));
+    await assert.rejects(lib.requireCredits(500, { apiKey: "k", fetchImpl: sub(400), log: quiet }), /needs about 500 credits.*400 left.*nothing was sent/);
+    // A key that may not read the subscription goes ahead.
+    assert.strictEqual(await lib.requireCredits(500, { apiKey: "k", fetchImpl: async () => ({ ok: false }), log: quiet }), null);
+    // build-audio checks before the first request.
+    const root = tmp(), out = tmp(), sent = [];
+    const r = build.run({ ...build.parseArgs(["--only", "en/sos"]), out },
+      { items, voices, slugify, manifest: freshManifest(), manifestFile: path.join(root, "m.js"), fetchImpl: async u => { sent.push(u); throw new Error("sent"); }, apiKey: "k", log: quiet,
+        requireCredits: need => lib.requireCredits(need, { apiKey: "k", fetchImpl: sub(1), log: quiet }) });
+    await assert.rejects(r, /nothing was sent/);
+    assert.deepStrictEqual(sent, []);
+  });
+
   if (failures) { console.log(`\n${failures} failing`); process.exit(1); }
   console.log("\nAll audio build tests passed.");
 })();

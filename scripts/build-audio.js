@@ -165,6 +165,10 @@ async function run(options, deps = {}) {
   }
   if (!apiKey && chars) throw new Error("ELEVENLABS_API_KEY is not set");
   if (options.upload && !options.bucket) throw new Error("--upload needs --bucket or AUDIO_BUCKET");
+  // With the real API (not a test's stand-in), refuse up front when the
+  // account cannot cover the run, rather than failing item by item.
+  const checkCredits = deps.requireCredits || (!deps.fetchImpl && lib.requireCredits);
+  if (chars && checkCredits) await checkCredits(chars, { apiKey, fetchImpl: deps.fetchImpl, log });
 
   const upload = deps.upload || uploadObject;
   const fetchImpl = deps.fetchImpl || fetch;

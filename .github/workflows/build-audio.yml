@@ -150,7 +150,7 @@ jobs:
         if: ${{ !cancelled() && !inputs.dry_run && inputs.publish == 'branch' }}
         run: |
           set -euo pipefail
-          count=$(find .audio-out \( -name '*.mp3' -o -name '*.json' \) | wc -l)
+          count=$( [ -d .audio-out ] && find .audio-out \( -name '*.mp3' -o -name '*.json' \) | wc -l || echo 0)
           if [ "$count" = "0" ]; then echo "Nothing new was rendered."; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

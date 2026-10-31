@@ -68,7 +68,7 @@
     }
   },
   "journeys": {
-    "_comment": "Per-journey sound for recorded days, applied after the voice is rendered and so changeable without spending ElevenLabs credits: the voice (text and the language's day settings) is kept as rendered under voice/ on the audio host, and scripts/audio-mix.js lays it out again whenever anything here changes. pauses: seconds of silence after each day section (narration.js DAY_SECTIONS), cut at the boundaries the voice's own timing gives. clips: generated once with ElevenLabs Sound Effects by scripts/build-sfx.js into audio-sfx/ (a clip regenerates only when its file is missing). Gains are in dB before loudness normalization to loudnessLufs.",
+    "_comment": "Per-journey sound for recorded days, applied after the voice is rendered and so changeable without spending ElevenLabs credits: the voice (text and the language's day settings) is kept as rendered under voice/ on the audio host, and scripts/audio-mix.js lays it out again whenever anything here changes. pauses: seconds of silence after each day section (narration.js DAY_SECTIONS), cut at the boundaries the voice's own timing gives. clips: generated once with ElevenLabs Sound Effects by scripts/build-sfx.js into audio-sfx/ (a clip regenerates only when its file is missing). gainDb is where each clip's peak lands, in dBFS (the mix measures the clip and sets it there, whatever level it was generated at), before the whole day is normalized to loudnessLufs.",
     "shelter": {
       "mix": {
         "pauses": {
@@ -87,21 +87,21 @@
             "file": "audio-sfx/shelter-open.mp3",
             "seconds": 4,
             "influence": 0.6,
-            "gainDb": -8,
+            "gainDb": -14,
             "prompt": "A single soft, warm singing bowl tone that rings once and fades slowly into silence. Peaceful and calm. No other sounds."
           },
           "close": {
             "file": "audio-sfx/shelter-close.mp3",
             "seconds": 5,
             "influence": 0.6,
-            "gainDb": -8,
+            "gainDb": -14,
             "prompt": "Two soft, warm chime notes, gently struck, fading slowly into silence. Peaceful, restful, unhurried. No other sounds."
           },
           "bed": {
             "file": "audio-sfx/shelter-bed.mp3",
             "seconds": 22,
             "influence": 0.5,
-            "gainDb": -27,
+            "gainDb": -26,
             "prompt": "A very soft, warm ambient pad: a slow, steady, gentle low drone with faint distant air, like a quiet sanctuary. No melody, no rhythm, no percussion, no voices. Even and seamless."
           }
         },
